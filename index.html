@@ -1043,9 +1043,10 @@ body.divider-dragging .preview-area { pointer-events: none; }
 }
 @media print { .save-hint { display: none !important; } }
 
-/* Print — 第一頁無邊距（金棕帶貼紙頂），第二頁起 12mm 上邊距 */
+/* Print — 第一頁 + 附件頁邊到邊；主檔第二頁起才有 12mm 上邊距 */
 @page { size: A4 portrait; margin: 12mm 0 14mm 0; }
 @page :first { margin: 0 0 14mm 0; }
+@page appendix-page { margin: 0 0 14mm 0; }
 @media print {
   html, body {
     background: none !important;
@@ -1079,6 +1080,12 @@ body.divider-dragging .preview-area { pointer-events: none; }
   }
   .print-btn, .ed-toolbar, .ed-palette-popup { display: none !important; }
   [contenteditable="true"] { outline: none !important; background-color: transparent !important; }
+
+  /* 附件頁：用 named @page 達成「邊到邊金棕帶 + 文字下方有呼吸空間」 */
+  .page.appendix-page {
+    page: appendix-page;
+    padding-top: 12mm !important;
+  }
 
   /* 補強破頁規則 */
   .notes-list li,
@@ -1535,7 +1542,7 @@ body.divider-dragging .preview-area { pointer-events: none; }
 
 </div>
 
-<div class="save-hint" data-no-edit>💾 按「儲存」可下載含資料的 HTML — 重開後資料完整還原　·　<span style="opacity:0.6">v2026.05.14d</span></div>
+<div class="save-hint" data-no-edit>💾 按「儲存」可下載含資料的 HTML — 重開後資料完整還原　·　<span style="opacity:0.6">v2026.05.14e</span></div>
 
 <!-- ════════════════════════════════════════ Builder Logic ════════════════════════════════════════ -->
 <script>
