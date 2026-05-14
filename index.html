@@ -1043,8 +1043,9 @@ body.divider-dragging .preview-area { pointer-events: none; }
 }
 @media print { .save-hint { display: none !important; } }
 
-/* Print — @page 上下邊距 + 側邊 0（讓 doc-title-band 等可邊到邊） */
+/* Print — 第一頁無邊距（金棕帶貼紙頂），第二頁起 12mm 上邊距 */
 @page { size: A4 portrait; margin: 12mm 0 14mm 0; }
+@page :first { margin: 0 0 14mm 0; }
 @media print {
   html, body {
     background: none !important;
@@ -1534,7 +1535,7 @@ body.divider-dragging .preview-area { pointer-events: none; }
 
 </div>
 
-<div class="save-hint" data-no-edit>💾 按「儲存」可下載含資料的 HTML — 重開後資料完整還原　·　<span style="opacity:0.6">v2026.05.14c</span></div>
+<div class="save-hint" data-no-edit>💾 按「儲存」可下載含資料的 HTML — 重開後資料完整還原　·　<span style="opacity:0.6">v2026.05.14d</span></div>
 
 <!-- ════════════════════════════════════════ Builder Logic ════════════════════════════════════════ -->
 <script>
