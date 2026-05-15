@@ -549,6 +549,26 @@ body.divider-dragging .preview-area { pointer-events: none; }
 }
 .bp-group-opts .bp-group-opt { margin-bottom: 0; }
 .bp-auto-discount-row.hidden { display: none; }
+.bp-adjustment-fields {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  padding-left: 22px;
+}
+.bp-adjustment-fields.hidden { display: none; }
+.bp-adjustment-fields input {
+  flex: 1;
+  min-width: 0;
+  background: #0D0804;
+  border: 1px solid rgba(186,153,114,0.3);
+  border-radius: 3px;
+  color: #FAF8F5;
+  padding: 6px 9px;
+  font-size: 12.5px;
+  font-family: inherit;
+}
+.bp-adjustment-fields input:focus { outline: none; border-color: #BA9972; }
+.bp-adjustment-fields .bp-adjustment-amount { flex: 0 0 130px; text-align: right; font-family: 'Roboto', monospace; }
 
 /* Up/Down reorder buttons */
 .bp-item-reorder {
@@ -1362,6 +1382,324 @@ body.divider-dragging .preview-area { pointer-events: none; }
 @media print {
   .edit-btn, .edit-modal { display: none !important; }
 }
+
+/* ────────────────────────────────────────── Builder Topbar Actions (新報價 / 歷史 / 狀態) ────────────────────────────────────────── */
+.bp-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.bp-btn-ghost {
+  background: rgba(186,153,114,0.06);
+  border: 1px solid rgba(186,153,114,0.4);
+  color: #BA9972;
+  padding: 6px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  letter-spacing: 0.04em;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.bp-btn-ghost:hover {
+  background: rgba(186,153,114,0.18);
+  border-color: #BA9972;
+  color: #D4B080;
+}
+.bp-status-wrap {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(186,153,114,0.06);
+  border: 1px solid rgba(186,153,114,0.4);
+  border-radius: 3px;
+  padding: 4px 8px 4px 10px;
+}
+.bp-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9A8B7A;
+  display: inline-block;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.bp-status-select {
+  background: transparent;
+  border: none;
+  color: #FAF8F5;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 2px 2px 2px 0;
+  cursor: pointer;
+  outline: none;
+  letter-spacing: 0.04em;
+}
+.bp-status-select option { background: #1A1510; color: #FAF8F5; }
+
+/* ────────────────────────────────────────── History Page ────────────────────────────────────────── */
+.history-page {
+  position: fixed;
+  inset: 0;
+  background: #0D0804;
+  color: #E8E3DC;
+  z-index: 1000;
+  overflow-y: auto;
+  font-family: 'Roboto', 'Noto Sans TC', sans-serif;
+  display: none;
+  flex-direction: column;
+}
+.history-page.active { display: flex; }
+.history-page-inner { max-width: 1200px; width: 100%; margin: 0 auto; padding: 28px 32px 60px; flex: 1; }
+
+.hp-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(186,153,114,0.25);
+  margin-bottom: 22px;
+}
+.hp-logo { height: 38px; width: auto; }
+.hp-title { font-size: 20px; font-weight: 600; color: #BA9972; letter-spacing: 0.1em; }
+.hp-sub { font-size: 12px; color: rgba(186,153,114,0.65); margin-top: 3px; }
+.hp-header-actions { margin-left: auto; display: flex; gap: 8px; }
+
+.hp-filter {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto;
+  gap: 10px;
+  background: #1A1510;
+  border: 1px solid rgba(186,153,114,0.2);
+  border-radius: 4px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+.hp-filter-field { display: flex; flex-direction: column; gap: 4px; }
+.hp-filter-field label {
+  font-size: 11px;
+  color: rgba(186,153,114,0.7);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.hp-filter-field input, .hp-filter-field select {
+  background: #0D0804;
+  border: 1px solid rgba(186,153,114,0.3);
+  border-radius: 3px;
+  color: #FAF8F5;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: inherit;
+}
+.hp-filter-field input:focus, .hp-filter-field select:focus {
+  outline: none;
+  border-color: #BA9972;
+}
+.hp-filter-field input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.4);
+  opacity: 0.75;
+  cursor: pointer;
+}
+.hp-filter-actions { display: flex; align-items: flex-end; gap: 6px; }
+.hp-range-group { display: flex; gap: 4px; flex-wrap: wrap; }
+.hp-range-btn {
+  background: #0D0804;
+  border: 1px solid rgba(186,153,114,0.3);
+  color: rgba(186,153,114,0.85);
+  padding: 7px 11px;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.hp-range-btn:hover { background: rgba(186,153,114,0.12); border-color: rgba(186,153,114,0.6); color: #D4B080; }
+.hp-range-btn.active { background: #BA9972; border-color: #BA9972; color: #1A1510; font-weight: 600; }
+
+.hp-summary {
+  font-size: 12px;
+  color: rgba(186,153,114,0.7);
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+
+.hp-table-wrap {
+  background: #1A1510;
+  border: 1px solid rgba(186,153,114,0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.hp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.hp-table thead th {
+  background: rgba(186,153,114,0.1);
+  color: #BA9972;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 11px;
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(186,153,114,0.25);
+  white-space: nowrap;
+}
+.hp-table tbody td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(186,153,114,0.1);
+  color: #E8E3DC;
+}
+.hp-table tbody tr:last-child td { border-bottom: none; }
+.hp-table tbody tr:hover { background: rgba(186,153,114,0.05); }
+.hp-table .hp-quote-no {
+  color: #BA9972;
+  font-weight: 600;
+  font-family: 'Roboto', monospace;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-decoration: none;
+}
+.hp-table .hp-quote-no:hover { color: #D4B080; text-decoration: underline; }
+.hp-amount { text-align: right; font-family: 'Roboto', monospace; }
+.hp-status-pill {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  border: 1px solid;
+  background: rgba(0,0,0,0.2);
+}
+.hp-actions { white-space: nowrap; text-align: right; }
+.hp-icon-btn {
+  background: transparent;
+  border: 1px solid rgba(186,153,114,0.35);
+  color: #BA9972;
+  padding: 4px 9px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-family: inherit;
+  margin-left: 4px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.hp-icon-btn:hover { background: rgba(186,153,114,0.18); border-color: #BA9972; color: #D4B080; }
+.hp-icon-btn.danger { color: #C45C6E; border-color: rgba(196,92,110,0.4); }
+.hp-icon-btn.danger:hover { background: rgba(139,38,53,0.3); border-color: #8B2635; color: #FAF8F5; }
+
+.hp-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: rgba(186,153,114,0.55);
+  font-size: 14px;
+}
+.hp-loading { text-align: center; padding: 40px; color: rgba(186,153,114,0.7); font-size: 13px; }
+.hp-error { color: #E89AAA; background: rgba(139,38,53,0.2); border: 1px solid #8B2635; padding: 14px; border-radius: 3px; margin-bottom: 14px; font-size: 13px; }
+
+.hp-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+.hp-page-btn {
+  background: transparent;
+  border: 1px solid rgba(186,153,114,0.3);
+  color: #BA9972;
+  min-width: 32px;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.hp-page-btn:hover:not(:disabled) { background: rgba(186,153,114,0.15); border-color: #BA9972; }
+.hp-page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.hp-page-btn.active { background: #BA9972; color: #1A1510; border-color: #BA9972; font-weight: 600; }
+
+/* Confirm dialog (刪除) */
+.hp-confirm {
+  position: fixed;
+  inset: 0;
+  background: rgba(13,8,4,0.78);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+.hp-confirm.active { display: flex; }
+.hp-confirm-box {
+  background: #1A1510;
+  border: 1px solid #BA9972;
+  border-radius: 4px;
+  padding: 22px 26px;
+  max-width: 380px;
+  color: #E8E3DC;
+}
+.hp-confirm-title { font-size: 15px; font-weight: 600; color: #BA9972; margin-bottom: 10px; letter-spacing: 0.06em; }
+.hp-confirm-msg { font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
+.hp-confirm-msg strong { color: #BA9972; }
+.hp-confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+.hp-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1A1510;
+  border: 1px solid #BA9972;
+  color: #FAF8F5;
+  padding: 10px 18px;
+  border-radius: 4px;
+  font-size: 13px;
+  z-index: 1200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.hp-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.hp-toast.error { border-color: #8B2635; color: #E89AAA; }
+
+/* 路由模式：歷史頁顯示時，Builder + 預覽全部隱藏 */
+body.route-history .builder-panel,
+body.route-history .builder-divider,
+body.route-history .preview-area,
+body.route-history .action-bar,
+body.route-history .save-hint { display: none !important; }
+
+/* 雲端模式徽章（顯示在 quote-no 旁） */
+.bp-cloud-badge {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+  border: 1px solid rgba(186,153,114,0.4);
+  color: rgba(186,153,114,0.75);
+}
+.bp-cloud-badge.saved { color: #7AA88C; border-color: #7AA88C; }
+
+/* RWD：窄螢幕時把 topbar actions 收成兩排 */
+@media (max-width: 640px) {
+  .bp-status-wrap { margin-left: 0; }
+}
+
+/* 列印時隱藏歷史頁（保險） */
+@media print {
+  .history-page, .hp-toast, .hp-confirm { display: none !important; }
+}
 </style>
 </head>
 <body>
@@ -1371,9 +1709,22 @@ body.divider-dragging .preview-area { pointer-events: none; }
   <div class="bp-toolbar">
     <div class="bp-toolbar-head">
       <img src="./logo/ARTWAY_logo_白_直.png" alt="ARTWAY" class="bp-logo">
-      <div>
+      <div style="flex:1; min-width:0">
         <h1>報價單 Builder</h1>
         <div class="sub">填表 → 自動帶入右側預覽 → 列印</div>
+      </div>
+    </div>
+    <div class="bp-topbar-actions">
+      <button class="bp-btn bp-btn-ghost" id="btnNewQuote" title="清空目前內容，建立新報價">+ 新報價</button>
+      <button class="bp-btn bp-btn-ghost" id="btnHistory" title="開啟歷史紀錄">歷史紀錄</button>
+      <div class="bp-status-wrap" title="報價單狀態">
+        <span class="bp-status-dot" id="bpStatusDot"></span>
+        <select id="bpStatus" class="bp-status-select">
+          <option value="draft">草稿</option>
+          <option value="sent">已送出</option>
+          <option value="signed">已簽回</option>
+          <option value="executed">已執行</option>
+        </select>
       </div>
     </div>
     <div class="bp-loading" id="bpLoading">正在載入品項資料…</div>
@@ -1527,7 +1878,7 @@ body.divider-dragging .preview-area { pointer-events: none; }
 
     <!-- 重新整理品項 -->
     <section class="bp-section">
-      <button class="bp-btn" onclick="reloadItems()" style="width:100%">🔄 重新抓取品項資料</button>
+      <button class="bp-btn" onclick="reloadItems()" style="width:100%">重新抓取品項資料</button>
       <div style="font-size:9.5px; color:rgba(186,153,114,0.5); margin-top:6px; text-align:center; line-height:1.5">
         PM 改了 Sheet 後想立刻看到新資料時用<br>
         （API 有 5 分鐘快取）
@@ -1707,7 +2058,7 @@ body.divider-dragging .preview-area { pointer-events: none; }
 
 </div>
 
-<div class="save-hint" data-no-edit>💾 按「儲存」可下載含資料的 HTML — 重開後資料完整還原　·　<span style="opacity:0.6">v2026.05.15h</span></div>
+<div class="save-hint" data-no-edit>儲存 = 存到雲端（共享歷史紀錄）　·　Shift+點擊「儲存」= 下載 HTML　·　<span style="opacity:0.6">v2026.05.15i-mock</span></div>
 
 <!-- ════════════════════════════════════════ Builder Logic ════════════════════════════════════════ -->
 <script>
@@ -1715,6 +2066,8 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbzdPKU9Ul1Cy5STvFLAI9bM
 
 // ─── State ──────────────────────────────────────────
 const state = {
+  id: null,            // 雲端紀錄 id（新報價為 null，載入舊紀錄後有值）
+  status: 'draft',     // draft|sent|signed|executed
   meta: { title: '', quoteNo: '', issueDate: '', validUntil: '' },
   client: { company: '', contactName: '', contactTitle: '', phone: '', email: '', address: '', taxId: '' },
   clientSig: { sameAsClient: true, name: '', title: '' },
@@ -1726,6 +2079,15 @@ const state = {
   payment: { terms: '', currency: '新台幣 NTD', method: '銀行轉帳', deliveryNote: '' },
   itemsCatalog: []     // from API
 };
+
+// 狀態 label / 顏色 對照
+const STATUS_OPTIONS = [
+  { value: 'draft',    label: '草稿',   color: '#9A8B7A' },
+  { value: 'sent',     label: '已送出', color: '#BA9972' },
+  { value: 'signed',   label: '已簽回', color: '#7AA88C' },
+  { value: 'executed', label: '已執行', color: '#6FA0C9' }
+];
+function statusMeta(v) { return STATUS_OPTIONS.find(x => x.value === v) || STATUS_OPTIONS[0]; }
 
 // ─── Quote number generator ──────────────────────────────────────────
 function generateQuoteNo() {
@@ -1771,11 +2133,11 @@ async function fetchItems(force) {
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     state.itemsCatalog = data.items || [];
-    loading.textContent = '✓ 已載入 ' + state.itemsCatalog.length + ' 筆品項';
+    loading.textContent = '已載入 ' + state.itemsCatalog.length + ' 筆品項';
     loading.className = 'bp-loading';
     setTimeout(() => loading.classList.add('success'), 1500);
   } catch (err) {
-    loading.textContent = '⚠ 載入失敗：' + err.message + '（請檢查網路或 Apps Script 是否上線）';
+    loading.textContent = '載入失敗：' + err.message + '（請檢查網路或 Apps Script 是否上線）';
     loading.className = 'bp-loading error';
   }
 }
@@ -1848,7 +2210,9 @@ function renderGroups() {
     groupEl.className = 'quote-group';
     const subtotal = g.items.reduce((s, it) => s + calcItemAmount(it, g.hasDiscount), 0);
     const tax = Math.round(subtotal * 0.05);
-    const grand = subtotal + tax;
+    const adjAmt = (g.hasAdjustment && g.adjustment && !isNaN(Number(g.adjustment.amount))) ? Number(g.adjustment.amount) : 0;
+    const adjLabel = (g.hasAdjustment && g.adjustment && g.adjustment.label) ? g.adjustment.label : '';
+    const grand = subtotal + tax + adjAmt;
     const hasDisc = g.hasDiscount;
     const totalCols = hasDisc ? 8 : 7;
 
@@ -1891,6 +2255,7 @@ function renderGroups() {
         <div class="totals-box">
           <div class="totals-row"><span class="lbl">小計 Subtotal</span><span class="val">NT$ ${formatMoney(subtotal)}</span></div>
           <div class="totals-row"><span class="lbl">營業稅 Tax 5%</span><span class="val">NT$ ${formatMoney(tax)}</span></div>
+          ${g.hasAdjustment && (adjAmt !== 0 || adjLabel) ? `<div class="totals-row"><span class="lbl">${escapeHtml(adjLabel || '金額異動 Adjustment')}</span><span class="val">${adjAmt < 0 ? '−' : ''}NT$ ${formatMoney(Math.abs(adjAmt))}</span></div>` : ''}
           <div class="totals-grand"><span>${escapeHtml(g.title)}　總價</span><span>NT$ ${formatMoney(grand)}</span></div>
         </div>
       </div>
@@ -2192,7 +2557,7 @@ function addQuoteGroup() {
   const id = 'g_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
   const num = nextGroupNum++;
   const code = 'A-' + num;
-  const g = { id, title: code + '．（請輸入組別名稱）', items: [], hasDiscount: false, autoDiscount: false };
+  const g = { id, title: code + '．（請輸入組別名稱）', items: [], hasDiscount: false, autoDiscount: false, hasAdjustment: false, adjustment: { label: '', amount: 0 } };
   state.groups.push(g);
   renderGroupBuilder(g);
   renderGroups();
@@ -2217,6 +2582,14 @@ function renderGroupBuilder(g) {
         <input type="checkbox" class="bp-auto-discount-toggle" ${g.autoDiscount ? 'checked' : ''}>
         <span>使用折扣：定價-優惠價</span>
       </label>
+      <label class="bp-group-opt">
+        <input type="checkbox" class="bp-adjustment-toggle" ${g.hasAdjustment ? 'checked' : ''}>
+        <span>最後金額異動（議價 / 手續費）</span>
+      </label>
+      <div class="bp-adjustment-fields ${g.hasAdjustment ? '' : 'hidden'}">
+        <input type="text" class="bp-adjustment-label" placeholder="名稱（例：議價折讓 / 手續費）" value="${escapeHtml((g.adjustment && g.adjustment.label) || '')}">
+        <input type="number" class="bp-adjustment-amount" placeholder="金額（負數＝扣款）" value="${(g.adjustment && g.adjustment.amount) || ''}" step="1">
+      </div>
     </div>
     <div class="bp-items"></div>
     <div class="bp-add-row">
@@ -2247,6 +2620,23 @@ function renderGroupBuilder(g) {
     g.autoDiscount = e.target.checked;
     if (g.autoDiscount) applyAutoDiscount(g);  // 一次性 push
     refreshGroupItems(g);
+    renderGroups();
+  };
+  div.querySelector('.bp-adjustment-toggle').onchange = e => {
+    g.hasAdjustment = e.target.checked;
+    if (!g.adjustment) g.adjustment = { label: '', amount: 0 };
+    div.querySelector('.bp-adjustment-fields').classList.toggle('hidden', !g.hasAdjustment);
+    renderGroups();
+  };
+  div.querySelector('.bp-adjustment-label').oninput = e => {
+    if (!g.adjustment) g.adjustment = { label: '', amount: 0 };
+    g.adjustment.label = e.target.value;
+    renderGroups();
+  };
+  div.querySelector('.bp-adjustment-amount').oninput = e => {
+    if (!g.adjustment) g.adjustment = { label: '', amount: 0 };
+    const v = parseFloat(e.target.value);
+    g.adjustment.amount = isNaN(v) ? 0 : v;
     renderGroups();
   };
   div.querySelector('.bp-add-item-btn.standard').onclick = () => openPicker(g, div);
@@ -2660,7 +3050,7 @@ async function embedImages() {
 
 async function saveAsHtml() {
   const btn = document.getElementById('saveBtn');
-  if (btn) { btn.classList.add('saving'); btn.textContent = '💾 儲存中…'; btn.disabled = true; }
+  if (btn) { btn.classList.add('saving'); btn.textContent = '儲存中…'; btn.disabled = true; }
   try {
     // 把最新的 state 寫進 frozenStateData
     embedFrozenState();
@@ -2686,11 +3076,11 @@ async function saveAsHtml() {
     setTimeout(() => URL.revokeObjectURL(url), 1500);
 
     _lastSavedAt = Date.now();
-    if (btn) { btn.textContent = '✓ 已儲存'; setTimeout(() => { btn.textContent = '💾 儲存'; btn.classList.remove('saving'); btn.disabled = false; }, 1500); }
+    if (btn) { btn.textContent = '已儲存'; setTimeout(() => { btn.textContent = '儲存'; btn.classList.remove('saving'); btn.disabled = false; }, 1500); }
   } catch (err) {
     console.error('儲存失敗', err);
     alert('儲存失敗：' + err.message);
-    if (btn) { btn.textContent = '💾 儲存'; btn.classList.remove('saving'); btn.disabled = false; }
+    if (btn) { btn.textContent = '儲存'; btn.classList.remove('saving'); btn.disabled = false; }
   }
 }
 
@@ -2700,7 +3090,7 @@ function showPrintConfirm() {
   _confirmStep = 'save';
   const btn = document.getElementById('confirmPrintAction');
   if (btn) {
-    btn.textContent = '💾 存檔';
+    btn.textContent = '存到雲端';
     btn.disabled = false;
   }
   document.getElementById('confirmPrintModal').hidden = false;
@@ -2712,11 +3102,15 @@ async function handlePrintConfirmAction() {
   const btn = document.getElementById('confirmPrintAction');
   if (_confirmStep === 'save') {
     btn.disabled = true;
-    btn.textContent = '💾 儲存中…';
-    await saveAsHtml();
+    btn.textContent = '儲存中…';
+    try {
+      await saveToCloud();
+      btn.textContent = '輸出 PDF';
+      _confirmStep = 'print';
+    } catch (err) {
+      btn.textContent = '儲存失敗，重試';
+    }
     btn.disabled = false;
-    btn.textContent = '輸出 PDF ↗';
-    _confirmStep = 'print';
   } else {
     hidePrintConfirm();
     window.print();
@@ -2732,6 +3126,8 @@ function scheduleEmbed() {
 function embedFrozenState() {
   // 不收 itemsCatalog（會太大；catalog 由 API 重抓）
   const snapshot = {
+    id: state.id,
+    status: state.status,
     meta: state.meta,
     client: state.client,
     clientSig: state.clientSig,
@@ -2801,6 +3197,554 @@ function reflectStateToBuilder() {
   refreshNotesUI();
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── MOCK CLOUD API（暫時用 localStorage 模擬，工程師接好後換成真 fetch）─────────
+// ═══════════════════════════════════════════════════════════════════════════════
+const MOCK = (function () {
+  const KEY = 'aw_mock_quotes';
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
+    catch { return []; }
+  }
+  function save(arr) { localStorage.setItem(KEY, JSON.stringify(arr)); }
+  function uid() { return 'q_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function now() { return new Date().toISOString(); }
+
+  // 計算 total amount
+  function calcTotal(quote) {
+    if (!quote.groups) return 0;
+    let total = 0;
+    quote.groups.forEach(g => {
+      let sub = 0;
+      g.items.forEach(it => {
+        const qty = Number(it.qty) || 0;
+        const up  = Number(it.unitPrice) || 0;
+        let amt = qty * up;
+        if (g.hasDiscount) {
+          const d = Number(it.discount) || 0;
+          if (d > 0) amt = amt * (1 - d / 100);
+        }
+        sub += amt;
+      });
+      const tax = Math.round(sub * 0.05);
+      const adj = (g.hasAdjustment && g.adjustment && !isNaN(Number(g.adjustment.amount))) ? Number(g.adjustment.amount) : 0;
+      total += sub + tax + adj;
+    });
+    return Math.round(total);
+  }
+
+  return {
+    nextNumber() {
+      // 模擬伺服器：以已存報價的最大 NNN+1
+      const now = new Date();
+      const yy = String(now.getFullYear()).slice(-2);
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const dateKey = yy + mm + dd;
+      const prefix = 'AW-' + dateKey + '-';
+      const list = load().filter(q => !q.deleted_at && q.quote_no && q.quote_no.startsWith(prefix));
+      const maxN = list.reduce((m, q) => {
+        const n = parseInt((q.quote_no || '').slice(-3), 10);
+        return isNaN(n) ? m : Math.max(m, n);
+      }, 0);
+      return Promise.resolve({ quote_no: prefix + String(maxN + 1).padStart(3, '0') });
+    },
+    create(quote) {
+      const arr = load();
+      const rec = Object.assign({}, quote, {
+        id: uid(),
+        total_amount: calcTotal(quote),
+        client_company: (quote.client || {}).company || '',
+        sales_name: (quote.sales || {}).name || '',
+        issue_date: (quote.meta || {}).issue_date || (quote.meta || {}).issueDate || '',
+        created_at: now(),
+        updated_at: now(),
+        deleted_at: null
+      });
+      arr.push(rec);
+      save(arr);
+      return Promise.resolve({ id: rec.id, quote_no: rec.quote_no, created_at: rec.created_at, updated_at: rec.updated_at });
+    },
+    update(id, quote) {
+      const arr = load();
+      const idx = arr.findIndex(q => q.id === id);
+      if (idx < 0) return Promise.reject(new Error('not found'));
+      arr[idx] = Object.assign({}, arr[idx], quote, {
+        id,
+        total_amount: calcTotal(quote),
+        client_company: (quote.client || {}).company || '',
+        sales_name: (quote.sales || {}).name || '',
+        issue_date: (quote.meta || {}).issue_date || (quote.meta || {}).issueDate || '',
+        updated_at: now()
+      });
+      save(arr);
+      return Promise.resolve({ id, updated_at: arr[idx].updated_at });
+    },
+    list(params) {
+      params = params || {};
+      let arr = load().filter(q => !q.deleted_at);
+      if (params.date_from) arr = arr.filter(q => (q.issue_date || '') >= params.date_from);
+      if (params.date_to)   arr = arr.filter(q => (q.issue_date || '') <= params.date_to);
+      if (params.sales_name) arr = arr.filter(q => (q.sales_name || '') === params.sales_name);
+      if (params.status)    arr = arr.filter(q => q.status === params.status);
+      arr.sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''));
+      const total = arr.length;
+      const page = params.page || 1;
+      const pageSize = params.page_size || 20;
+      const items = arr.slice((page - 1) * pageSize, page * pageSize).map(q => ({
+        id: q.id,
+        quote_no: q.quote_no,
+        title: (q.meta && q.meta.title) || '',
+        client_company: q.client_company,
+        sales_name: q.sales_name,
+        issue_date: q.issue_date,
+        total_amount: q.total_amount,
+        status: q.status,
+        updated_at: q.updated_at
+      }));
+      return Promise.resolve({ items, total, page, page_size: pageSize });
+    },
+    get(id) {
+      const arr = load();
+      const rec = arr.find(q => q.id === id && !q.deleted_at);
+      return rec ? Promise.resolve(rec) : Promise.reject(new Error('not found'));
+    },
+    softDelete(id) {
+      const arr = load();
+      const idx = arr.findIndex(q => q.id === id);
+      if (idx < 0) return Promise.reject(new Error('not found'));
+      arr[idx].deleted_at = now();
+      save(arr);
+      return Promise.resolve();
+    },
+    // 取得不重複的業務名稱（給篩選下拉）
+    distinctSales() {
+      const set = new Set(load().filter(q => !q.deleted_at && q.sales_name).map(q => q.sales_name));
+      return Array.from(set).sort();
+    },
+    // 種一些假資料（只在 store 為空時）
+    seedIfEmpty() {
+      const arr = load();
+      if (arr.length > 0) return;
+      const seed = [
+        { sales_name: '王志遠', client_company: '台灣當代藝術館', status: 'signed',   total_amount: 445200, day: 0 },
+        { sales_name: '林佳穎', client_company: '故宮博物院',     status: 'sent',     total_amount: 280000, day: -1 },
+        { sales_name: '王志遠', client_company: '北師美術館',     status: 'draft',    total_amount: 156000, day: -1 },
+        { sales_name: '陳冠廷', client_company: '高雄市立美術館', status: 'executed', total_amount: 920500, day: -3 },
+        { sales_name: '林佳穎', client_company: '忠泰美術館',     status: 'sent',     total_amount: 338000, day: -4 },
+        { sales_name: '王志遠', client_company: '臺北市立美術館', status: 'draft',    total_amount: 175000, day: -7 }
+      ];
+      seed.forEach((s, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() + s.day);
+        const yy = String(d.getFullYear()).slice(-2);
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const issue = d.getFullYear() + '-' + mm + '-' + dd;
+        arr.push({
+          id: uid(),
+          quote_no: 'AW-' + yy + mm + dd + '-' + String(i + 1).padStart(3, '0'),
+          status: s.status,
+          meta: { title: '', issueDate: issue, validUntil: '' },
+          client: { company: s.client_company },
+          sales: { name: s.sales_name },
+          groups: [], deliverables: [], services: [], notes: [], payment: {},
+          total_amount: s.total_amount,
+          client_company: s.client_company,
+          sales_name: s.sales_name,
+          issue_date: issue,
+          created_at: d.toISOString(),
+          updated_at: d.toISOString(),
+          deleted_at: null
+        });
+      });
+      save(arr);
+    },
+    _wipe() { localStorage.removeItem(KEY); } // 開發用
+  };
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── HISTORY PAGE ───────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+const HP = {
+  page: 1,
+  pageSize: 20,
+  total: 0,
+  filter: { date_from: '', date_to: '', sales_name: '', status: '' },
+
+  open() {
+    document.body.classList.add('route-history');
+    document.getElementById('historyPage').classList.add('active');
+    this.populateSales();
+    this.reload();
+  },
+  close() {
+    document.body.classList.remove('route-history');
+    document.getElementById('historyPage').classList.remove('active');
+  },
+  populateSales() {
+    const sel = document.getElementById('hpSales');
+    const current = sel.value;
+    const names = MOCK.distinctSales();
+    sel.innerHTML = '<option value="">全部</option>' + names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+    sel.value = current;
+  },
+  rangeDays: '',  // '' = 全部；'7' / '30' / '90' / '365'
+  readFilter() {
+    let dateFrom = '';
+    if (this.rangeDays) {
+      const d = new Date();
+      d.setDate(d.getDate() - parseInt(this.rangeDays, 10));
+      dateFrom = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    this.filter = {
+      date_from: dateFrom,
+      date_to:   '',
+      sales_name: document.getElementById('hpSales').value,
+      status:    document.getElementById('hpStatusFilter').value
+    };
+  },
+  reload() {
+    this.readFilter();
+    const wrap = document.getElementById('hpListWrap');
+    wrap.innerHTML = '<div class="hp-loading">載入中…</div>';
+    MOCK.list(Object.assign({}, this.filter, { page: this.page, page_size: this.pageSize }))
+      .then(res => this.render(res))
+      .catch(err => {
+        wrap.innerHTML = `<div class="hp-error">載入失敗：${escapeHtml(err.message)}</div>`;
+      });
+  },
+  render(res) {
+    this.total = res.total;
+    const wrap = document.getElementById('hpListWrap');
+    const sum = document.getElementById('hpSummary');
+    sum.textContent = res.total === 0 ? '' : `共 ${res.total} 筆 · 第 ${res.page} / ${Math.max(1, Math.ceil(res.total / res.page_size))} 頁`;
+
+    if (!res.items.length) {
+      wrap.innerHTML = '<div class="hp-empty">沒有符合條件的報價單<br><span style="font-size:12px; color:rgba(186,153,114,0.4); margin-top:8px; display:inline-block">調整篩選條件或建立新報價</span></div>';
+      document.getElementById('hpPagination').innerHTML = '';
+      return;
+    }
+    const rows = res.items.map(it => {
+      const sm = statusMeta(it.status);
+      const d = it.updated_at ? new Date(it.updated_at) : null;
+      const updatedStr = d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` : '—';
+      const titleCell = it.title
+        ? escapeHtml(it.title)
+        : '<span style="color:rgba(186,153,114,0.35); font-style:italic">（未命名）</span>';
+      return `
+        <tr>
+          <td><a href="#/quote/${encodeURIComponent(it.quote_no)}" class="hp-quote-no" data-id="${it.id}">${escapeHtml(it.quote_no)}</a></td>
+          <td>${escapeHtml(it.issue_date || '—')}</td>
+          <td>${escapeHtml(it.sales_name || '—')}</td>
+          <td>${escapeHtml(it.client_company || '—')}</td>
+          <td>${titleCell}</td>
+          <td class="hp-amount">${typeof it.total_amount === 'number' ? 'NT$ ' + formatMoney(it.total_amount) : '—'}</td>
+          <td><span class="hp-status-pill" style="color:${sm.color}; border-color:${sm.color}">${sm.label}</span></td>
+          <td style="color:rgba(186,153,114,0.6); font-size:11.5px">${updatedStr}</td>
+          <td class="hp-actions">
+            <button class="hp-icon-btn" data-act="load" data-id="${it.id}">載入</button>
+            <button class="hp-icon-btn danger" data-act="delete" data-id="${it.id}" data-no="${escapeHtml(it.quote_no)}">刪除</button>
+          </td>
+        </tr>`;
+    }).join('');
+
+    wrap.innerHTML = `
+      <div class="hp-table-wrap">
+        <table class="hp-table">
+          <thead><tr>
+            <th>單號</th><th>開立日期</th><th>業務</th><th>客戶</th><th>專案名稱</th>
+            <th style="text-align:right">金額</th><th>狀態</th><th>最後更新</th><th></th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+
+    // bind row actions
+    wrap.querySelectorAll('button[data-act]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = btn.dataset.id;
+        if (btn.dataset.act === 'load') {
+          const item = res.items.find(x => x.id === id);
+          if (item) location.hash = '#/quote/' + encodeURIComponent(item.quote_no);
+        } else if (btn.dataset.act === 'delete') {
+          HP.confirmDelete(id, btn.dataset.no);
+        }
+      });
+    });
+
+    // 渲染分頁
+    this.renderPagination(res);
+  },
+  renderPagination(res) {
+    const totalPages = Math.max(1, Math.ceil(res.total / res.page_size));
+    const cur = res.page;
+    const pg = document.getElementById('hpPagination');
+    if (totalPages <= 1) { pg.innerHTML = ''; return; }
+    let html = '';
+    html += `<button class="hp-page-btn" data-p="${cur - 1}" ${cur === 1 ? 'disabled' : ''}>‹ 上頁</button>`;
+    // 簡化版：最多顯示前後 2 頁
+    const start = Math.max(1, cur - 2);
+    const end   = Math.min(totalPages, cur + 2);
+    if (start > 1) html += `<button class="hp-page-btn" data-p="1">1</button>` + (start > 2 ? '<span style="color:#BA9972; padding:0 4px">…</span>' : '');
+    for (let i = start; i <= end; i++) {
+      html += `<button class="hp-page-btn ${i === cur ? 'active' : ''}" data-p="${i}">${i}</button>`;
+    }
+    if (end < totalPages) html += (end < totalPages - 1 ? '<span style="color:#BA9972; padding:0 4px">…</span>' : '') + `<button class="hp-page-btn" data-p="${totalPages}">${totalPages}</button>`;
+    html += `<button class="hp-page-btn" data-p="${cur + 1}" ${cur === totalPages ? 'disabled' : ''}>下頁 ›</button>`;
+    pg.innerHTML = html;
+    pg.querySelectorAll('button[data-p]').forEach(b => {
+      b.addEventListener('click', () => {
+        HP.page = parseInt(b.dataset.p, 10);
+        HP.reload();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+  },
+  confirmDelete(id, no) {
+    const dlg = document.getElementById('hpConfirm');
+    document.getElementById('hpConfirmMsg').innerHTML =
+      `確定要刪除報價單 <strong>${escapeHtml(no || '')}</strong> 嗎？<br><span style="font-size:11.5px; color:rgba(186,153,114,0.6); margin-top:6px; display:inline-block">（軟刪除：列表上看不到，但資料保留）</span>`;
+    dlg.classList.add('active');
+    const ok = document.getElementById('hpConfirmOk');
+    const cancel = document.getElementById('hpConfirmCancel');
+    const cleanup = () => {
+      dlg.classList.remove('active');
+      ok.removeEventListener('click', onOk);
+      cancel.removeEventListener('click', onCancel);
+    };
+    const onOk = () => {
+      MOCK.softDelete(id).then(() => {
+        cleanup();
+        HP.toast('已刪除 ' + (no || ''));
+        HP.reload();
+      }).catch(err => { cleanup(); HP.toast('刪除失敗：' + err.message, true); });
+    };
+    const onCancel = () => cleanup();
+    ok.addEventListener('click', onOk);
+    cancel.addEventListener('click', onCancel);
+  },
+  toast(msg, isError) {
+    const t = document.getElementById('hpToast');
+    t.textContent = msg;
+    t.classList.toggle('error', !!isError);
+    t.classList.add('show');
+    clearTimeout(this._toastT);
+    this._toastT = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── HASH ROUTER ────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleRoute() {
+  const hash = location.hash || '';
+  // #/history
+  if (hash.startsWith('#/history')) {
+    HP.open();
+    return;
+  }
+  HP.close();
+  // #/quote/AW-260515-002 → 載入該筆
+  const m = hash.match(/^#\/quote\/(.+)$/);
+  if (m) {
+    const quoteNo = decodeURIComponent(m[1]);
+    // 先從 mock 撈
+    try {
+      const all = await MOCK.list({ page: 1, page_size: 9999 });
+      const hit = all.items.find(x => x.quote_no === quoteNo);
+      if (!hit) {
+        HP.toast('找不到報價單 ' + quoteNo, true);
+        location.hash = '#/history';
+        return;
+      }
+      const full = await MOCK.get(hit.id);
+      loadQuoteIntoState(full);
+    } catch (err) {
+      alert('載入失敗：' + err.message);
+    }
+    return;
+  }
+  // 預設：Builder（hash 為空或 #/）
+}
+
+function loadQuoteIntoState(rec) {
+  // 把雲端資料蓋進 state
+  state.id = rec.id;
+  state.status = rec.status || 'draft';
+  state.meta = Object.assign({ title:'', quoteNo:'', issueDate:'', validUntil:'' }, rec.meta || {});
+  // 容錯：舊資料可能用 issue_date / valid_until snake_case
+  if (!state.meta.issueDate && rec.issue_date) state.meta.issueDate = rec.issue_date;
+  if (!state.meta.quoteNo && rec.quote_no) state.meta.quoteNo = rec.quote_no;
+  state.client = Object.assign({ company:'', contactName:'', contactTitle:'', phone:'', email:'', address:'', taxId:'' }, rec.client || {});
+  state.sales  = Object.assign({ name:'', title:'', phone:'', email:'' }, rec.sales || {});
+  state.groups = rec.groups || [];
+  state.deliverables = rec.deliverables || [];
+  state.services = rec.services || [];
+  state.notes = rec.notes || [];
+  state.payment = Object.assign({ terms:'', currency:'新台幣 NTD', method:'銀行轉帳', deliveryNote:'' }, rec.payment || {});
+  reflectStateToBuilder();
+  // status dropdown
+  const ss = document.getElementById('bpStatus');
+  if (ss) ss.value = state.status;
+  updateStatusDot();
+  updateCloudBadge();
+  renderAll();
+  // 載入後 → 若開立日期不是今天，詢問是否更新
+  maybePromptUpdateIssueDate();
+}
+
+function maybePromptUpdateIssueDate() {
+  const today = todayISO();
+  const orig = state.meta.issueDate;
+  if (!orig || orig === today) return; // 同天直接跳過
+  const dlg = document.getElementById('updateDateConfirm');
+  if (!dlg) return;
+  // 算差幾天
+  let diffStr = '';
+  try {
+    const a = new Date(orig);
+    const b = new Date(today);
+    const days = Math.round((b - a) / (1000 * 60 * 60 * 24));
+    if (days > 0) diffStr = `（已過 ${days} 天）`;
+  } catch {}
+  document.getElementById('updateDateMsg').innerHTML =
+    `這份報價單的開立日期是 <strong>${escapeHtml(orig)}</strong>${diffStr}。<br>` +
+    `要把開立日期更新為今天 <strong>${today}</strong> 嗎？<br>` +
+    `<span style="font-size:11.5px; color:rgba(186,153,114,0.6); margin-top:6px; display:inline-block">` +
+    `（單號 ${escapeHtml(state.meta.quoteNo)} 不會變，只更新 PDF 上顯示的日期）` +
+    `</span>`;
+  dlg.classList.add('active');
+  const yes  = document.getElementById('updateDateYes');
+  const keep = document.getElementById('updateDateKeep');
+  const cleanup = () => {
+    dlg.classList.remove('active');
+    yes.removeEventListener('click', onYes);
+    keep.removeEventListener('click', onKeep);
+  };
+  const onYes = () => {
+    state.meta.issueDate = today;
+    // 也把有效期往後推（保留原本間隔，沒填就 +15 天）
+    let gap = 15;
+    if (state.meta.validUntil) {
+      try {
+        const a = new Date(orig);
+        const c = new Date(state.meta.validUntil);
+        const d = Math.round((c - a) / (1000 * 60 * 60 * 24));
+        if (d > 0) gap = d;
+      } catch {}
+    }
+    state.meta.validUntil = addDaysISO(gap);
+    document.getElementById('bpIssueDate').value = state.meta.issueDate;
+    document.getElementById('bpValidUntil').value = state.meta.validUntil;
+    renderAll();
+    scheduleEmbed();
+    HP.toast('已更新開立日期為 ' + today);
+    cleanup();
+  };
+  const onKeep = () => cleanup();
+  yes.addEventListener('click', onYes);
+  keep.addEventListener('click', onKeep);
+}
+
+function updateStatusDot() {
+  const dot = document.getElementById('bpStatusDot');
+  if (!dot) return;
+  dot.style.background = statusMeta(state.status).color;
+}
+
+function updateCloudBadge() {
+  // 在 quoteNo input 旁顯示雲端狀態（hover tooltip）
+  const qnInput = document.getElementById('bpQuoteNo');
+  if (!qnInput) return;
+  if (state.id) {
+    qnInput.title = '已存到雲端（id: ' + state.id + '）';
+  } else {
+    qnInput.title = '尚未存到雲端';
+  }
+}
+
+function newQuoteAction() {
+  // 詢問是否捨棄當前
+  if (state.id || state.groups.some(g => g.items && g.items.length)) {
+    if (!confirm('要建立新報價嗎？\n\n目前在 Builder 的內容若未儲存將會清空。')) return;
+  }
+  location.hash = ''; // 回 builder
+  // 重設 state
+  state.id = null;
+  state.status = 'draft';
+  state.groups = [];
+  state.deliverables = [];
+  state.services = [];
+  state.client = { company:'', contactName:'', contactTitle:'', phone:'', email:'', address:'', taxId:'' };
+  state.sales = { name:'', title:'', phone:'02-7752-8899', email:'' };
+  state.meta = {
+    title: '',
+    quoteNo: '',
+    issueDate: todayISO(),
+    validUntil: addDaysISO(15)
+  };
+  // 拿新流水號（mock）
+  MOCK.nextNumber().then(r => {
+    state.meta.quoteNo = r.quote_no;
+    reflectStateToBuilder();
+    document.getElementById('bpStatus').value = 'draft';
+    updateStatusDot();
+    updateCloudBadge();
+    // 加一個空組
+    nextGroupNum = 1;
+    addQuoteGroup();
+    renderAll();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── SAVE TO CLOUD ──────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+async function saveToCloud() {
+  const btn = document.getElementById('saveBtn');
+  if (btn) { btn.classList.add('saving'); btn.textContent = '儲存中…'; btn.disabled = true; }
+  const payload = buildQuotePayload();
+  try {
+    if (state.id) {
+      await MOCK.update(state.id, payload);
+    } else {
+      const res = await MOCK.create(payload);
+      state.id = res.id;
+    }
+    updateCloudBadge();
+    if (btn) {
+      btn.textContent = '已存到雲端';
+      setTimeout(() => { btn.textContent = '存到雲端'; btn.classList.remove('saving'); btn.disabled = false; }, 1800);
+    }
+    HP.toast('已存到雲端 ' + state.meta.quoteNo);
+  } catch (err) {
+    console.error(err);
+    if (btn) { btn.textContent = '儲存失敗'; setTimeout(() => { btn.textContent = '存到雲端'; btn.classList.remove('saving'); btn.disabled = false; }, 2000); }
+    HP.toast('儲存失敗：' + err.message, true);
+  }
+}
+
+function buildQuotePayload() {
+  return {
+    quote_no: state.meta.quoteNo,
+    status: state.status,
+    meta: {
+      title: state.meta.title,
+      issue_date: state.meta.issueDate,
+      valid_until: state.meta.validUntil
+    },
+    client: state.client,
+    sales: state.sales,
+    groups: state.groups,
+    deliverables: state.deliverables,
+    services: state.services,
+    notes: state.notes,
+    payment: state.payment
+  };
+}
+
 // ─── Init ──────────────────────────────────────────
 async function init() {
   // 1. 先檢查有沒有「凍結 state」需要還原（另存 HTML 後重開的情況）
@@ -2861,10 +3805,70 @@ async function init() {
   embedFrozenState();
 
   // 4. 綁儲存 / 輸出 PDF 按鈕
+  //    儲存 = 存到雲端（mock）；HTML 下載另外做（雙擊或 ctrl-click）
   const saveBtn = document.getElementById('saveBtn');
-  if (saveBtn) saveBtn.addEventListener('click', saveAsHtml);
+  if (saveBtn) {
+    saveBtn.textContent = '存到雲端';
+    saveBtn.title = '存到雲端歷史紀錄（共享）。按住 Shift 點擊 = 改下載 HTML';
+    saveBtn.addEventListener('click', (e) => {
+      if (e.shiftKey) { saveAsHtml(); } else { saveToCloud(); }
+    });
+  }
   const printBtn = document.getElementById('printBtn');
   if (printBtn) printBtn.addEventListener('click', showPrintConfirm);
+
+  // 5b. 種假資料（只在第一次）
+  MOCK.seedIfEmpty();
+
+  // 5c. 綁狀態 dropdown + 新報價 / 歷史紀錄按鈕
+  const statusSel = document.getElementById('bpStatus');
+  if (statusSel) {
+    statusSel.value = state.status || 'draft';
+    updateStatusDot();
+    statusSel.addEventListener('change', () => {
+      state.status = statusSel.value;
+      updateStatusDot();
+      scheduleEmbed();
+    });
+  }
+  const newBtn = document.getElementById('btnNewQuote');
+  if (newBtn) newBtn.addEventListener('click', newQuoteAction);
+  const histBtn = document.getElementById('btnHistory');
+  if (histBtn) histBtn.addEventListener('click', () => { location.hash = '#/history'; });
+
+  // 5d. 歷史頁綁定
+  document.getElementById('hpBackBtn').addEventListener('click', () => { location.hash = ''; });
+  document.getElementById('hpNewBtn').addEventListener('click', () => {
+    location.hash = '';
+    setTimeout(newQuoteAction, 50);
+  });
+  ['hpSales','hpStatusFilter'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => { HP.page = 1; HP.reload(); });
+  });
+  document.querySelectorAll('#hpRangeGroup .hp-range-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#hpRangeGroup .hp-range-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      HP.rangeDays = btn.dataset.range || '';
+      HP.page = 1;
+      HP.reload();
+    });
+  });
+  document.getElementById('hpResetBtn').addEventListener('click', () => {
+    ['hpSales','hpStatusFilter'].forEach(id => { document.getElementById(id).value = ''; });
+    HP.rangeDays = '';
+    document.querySelectorAll('#hpRangeGroup .hp-range-btn').forEach(b => {
+      b.classList.toggle('active', !b.dataset.range);
+    });
+    HP.page = 1;
+    HP.reload();
+  });
+
+  // 5e. 啟動路由
+  window.addEventListener('hashchange', handleRoute);
+  handleRoute();
+
+  updateCloudBadge();
 
   // 5. 綁 print confirm modal
   const cpCancel = document.getElementById('confirmPrintCancel');
@@ -2937,16 +3941,98 @@ init();
 })();
 </script>
 
+<!-- ════════════════════════════════════════ History Page ════════════════════════════════════════ -->
+<div class="history-page" id="historyPage" data-no-edit>
+  <div class="history-page-inner">
+    <div class="hp-header">
+      <img src="./logo/ARTWAY_logo_白_直.png" alt="ARTWAY" class="hp-logo">
+      <div>
+        <div class="hp-title">歷史紀錄</div>
+        <div class="hp-sub">所有業務共享的報價單列表</div>
+      </div>
+      <div class="hp-header-actions">
+        <button class="bp-btn bp-btn-ghost" id="hpBackBtn">回 Builder</button>
+        <button class="bp-btn bp-btn-primary" id="hpNewBtn">+ 新報價</button>
+      </div>
+    </div>
+
+    <div class="hp-filter" id="hpFilter">
+      <div class="hp-filter-field" style="grid-column: span 2">
+        <label>日期區間</label>
+        <div class="hp-range-group" id="hpRangeGroup">
+          <button type="button" data-range="7"   class="hp-range-btn">過去 7 天</button>
+          <button type="button" data-range="30"  class="hp-range-btn">過去 1 個月</button>
+          <button type="button" data-range="90"  class="hp-range-btn">過去 1 季</button>
+          <button type="button" data-range="365" class="hp-range-btn">過去 1 年</button>
+          <button type="button" data-range=""    class="hp-range-btn active">全部</button>
+        </div>
+      </div>
+      <div class="hp-filter-field">
+        <label>業務</label>
+        <select id="hpSales">
+          <option value="">全部</option>
+        </select>
+      </div>
+      <div class="hp-filter-field">
+        <label>狀態</label>
+        <select id="hpStatusFilter">
+          <option value="">全部</option>
+          <option value="draft">草稿</option>
+          <option value="sent">已送出</option>
+          <option value="signed">已簽回</option>
+          <option value="executed">已執行</option>
+        </select>
+      </div>
+      <div class="hp-filter-actions">
+        <button class="bp-btn" id="hpResetBtn">重設</button>
+      </div>
+    </div>
+
+    <div class="hp-summary" id="hpSummary"></div>
+
+    <div id="hpListWrap">
+      <div class="hp-loading">載入中…</div>
+    </div>
+
+    <div class="hp-pagination" id="hpPagination"></div>
+  </div>
+</div>
+
+<div class="hp-confirm" id="hpConfirm" data-no-edit>
+  <div class="hp-confirm-box">
+    <div class="hp-confirm-title">確認刪除</div>
+    <div class="hp-confirm-msg" id="hpConfirmMsg"></div>
+    <div class="hp-confirm-actions">
+      <button class="bp-btn" id="hpConfirmCancel">取消</button>
+      <button class="bp-btn bp-btn-primary" id="hpConfirmOk" style="background:#8B2635; border-color:#8B2635; color:#FAF8F5">確定刪除</button>
+    </div>
+  </div>
+</div>
+
+<div class="hp-toast" id="hpToast" data-no-edit></div>
+
+<!-- 載入舊報價時的「更新開立日期」詢問 modal -->
+<div class="hp-confirm" id="updateDateConfirm" data-no-edit>
+  <div class="hp-confirm-box">
+    <div class="hp-confirm-title">要更新開立日期嗎？</div>
+    <div class="hp-confirm-msg" id="updateDateMsg"></div>
+    <div class="hp-confirm-actions">
+      <button class="bp-btn" id="updateDateKeep">保持原日期</button>
+      <button class="bp-btn bp-btn-primary" id="updateDateYes">改為今天</button>
+    </div>
+  </div>
+</div>
+
 <!-- ════════════════════════════════════════ Edit Mode UI ════════════════════════════════════════ -->
 <div class="action-bar" data-no-edit>
-  <button class="edit-btn" id="editToggleBtn">✏ 編輯預覽</button>
-  <button class="save-btn" id="saveBtn">💾 儲存</button>
-  <button class="print-btn" id="printBtn">輸出 PDF ↗</button>
+  <button class="edit-btn" id="editToggleBtn">編輯預覽</button>
+  <button class="save-btn" id="saveBtn">儲存</button>
+  <button class="print-btn" id="printBtn">輸出 PDF</button>
 </div>
 
 <div class="edit-modal" id="editModal" hidden>
   <div class="edit-modal-box">
-    <div class="edit-modal-title">⚠ 請注意</div>
+    <div class="edit-modal-title">請注意</div>
     <div class="edit-modal-msg">
       <strong>請優先使用左側欄位進行編輯</strong>，最後要調整的再來編輯這邊的內容。<br>
       （直接編輯預覽可能會讓金額計算不正確）
@@ -2960,15 +4046,15 @@ init();
 
 <div class="edit-modal" id="confirmPrintModal" hidden>
   <div class="edit-modal-box">
-    <div class="edit-modal-title">⚠ 即將輸出 PDF</div>
+    <div class="edit-modal-title">即將輸出 PDF</div>
     <div class="edit-modal-msg">
-      建議先存檔保留 HTML 編輯版本，再輸出 PDF 給客戶。<br>
-      <strong>HTML</strong>＝可重新編輯的內部版本（必存）<br>
+      建議先「存到雲端」留檔，再輸出 PDF 給客戶。<br>
+      <strong>雲端</strong>＝可重新編輯、共享給其他業務（必存）<br>
       <strong>PDF</strong>＝固定版本，客戶接收用
     </div>
     <div class="edit-modal-actions">
       <button class="btn-cancel" id="confirmPrintCancel">取消</button>
-      <button class="btn-confirm" id="confirmPrintAction">💾 存檔</button>
+      <button class="btn-confirm" id="confirmPrintAction">存到雲端</button>
     </div>
   </div>
 </div>
@@ -3024,7 +4110,7 @@ init();
       editBtn.textContent = '✕ 結束編輯';
     } else {
       editBtn.classList.remove('active');
-      editBtn.textContent = '✏ 編輯預覽';
+      editBtn.textContent = '編輯預覽';
     }
     applyToPreview();
   }
