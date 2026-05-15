@@ -23,11 +23,14 @@
 
 | 環境 | URL | branch | 觸發 |
 |---|---|---|---|
-| **prod** | `https://quote.artogo.co`（最終 domain；過渡期：`https://quote-app-prod-xxx.run.app`） | `main` | push / merge → 自動部署 |
-| **staging** | `https://quote-staging-app-xxx.run.app` | `staging` | push → 自動部署 |
+| **prod** | `https://quote.artogo.co` | `main` | push / merge → 自動部署（Phase A 後可用） |
+| **staging** | `https://quote-staging.artogo.co` | `staging` | push → 自動部署（Phase A 後可用） |
 | **dev** | `http://localhost:8080` | local | `docker compose up` |
 
-> 三個環境都會擋 IAP，第一次開瀏覽器要 Google 登入（@artogo.co 帳號）。
+> prod 與 staging 走既有 ARTOGO LB（IP `35.241.57.95`），都會擋 GCP IAP；
+> 第一次開瀏覽器要 Google 登入（@artogo.co Workspace 帳號）。
+>
+> **過渡期（重構未完成前）**：舊版 GitHub Pages [https://artogo.github.io/Artway-quote-system/](https://artogo.github.io/Artway-quote-system/) 仍可用，但無歷史紀錄共享功能。新 URL Phase A 後上線。
 
 ---
 

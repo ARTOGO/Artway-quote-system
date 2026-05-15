@@ -27,6 +27,22 @@ backend/dist/
 # ─── Docker ────────────────────────────────────────────────
 backend/.docker/
 
+# ─── Terraform ─────────────────────────────────────────────
+# state 含 secret（DB password / SA key 等），永遠不該 commit
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
 # ─── IDE / Editor ──────────────────────────────────────────
 .idea/
 .vscode/
