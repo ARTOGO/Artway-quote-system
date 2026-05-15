@@ -897,6 +897,8 @@ body.divider-dragging .preview-area { pointer-events: none; }
 .qt { width: 100%; border-collapse: collapse; font-size: 9.5px; table-layout: fixed; }
 .qt thead th, .qt tbody td { overflow-wrap: anywhere; word-break: break-word; }
 .qt th.r, .qt td.r { white-space: nowrap; overflow-wrap: normal; word-break: normal; }
+/* 合併後的 Qty (數量 + 單位) — 允許換行（例：「10,000 字」太擠時自動斷） */
+.qt th.qty-unit, .qt td.qty-unit { white-space: normal; overflow-wrap: anywhere; word-break: break-word; text-align: right; }
 .qt th.unit, .qt td.unit { white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
 .qt tbody td.desc,
 .qt tbody td.sub-cat { white-space: pre-wrap; }
@@ -2230,18 +2232,19 @@ function renderGroups() {
     const adjLabel = (g.hasAdjustment && g.adjustment && g.adjustment.label) ? g.adjustment.label : '';
     const grand = subtotal + tax + adjAmt;
     const hasDisc = g.hasDiscount;
-    const totalCols = hasDisc ? 8 : 7;
+    const totalCols = hasDisc ? 7 : 6;
 
     let rowsHtml = '';
     g.items.forEach((it, ii) => {
       const amt = calcItemAmount(it, hasDisc);
       const discCell = hasDisc ? `<td class="r">${(Number(it.discount) || 0) > 0 ? '−' + formatMoney(Number(it.discount) || 0) : '—'}</td>` : '';
+      const unitStr = escapeHtml(stripUnitSlash(it.unit) || '');
+      const qtyStr  = escapeHtml(String(it.qty));
       rowsHtml += `<tr>
         <td class="no">${String(ii + 1).padStart(2, '0')}</td>
         <td class="sub-cat">${escapeHtml(displaySubGroup(it.sub_group))}</td>
         <td class="desc">${escapeHtml(it.name)}</td>
-        <td class="r">${escapeHtml(String(it.qty))}</td>
-        <td class="r unit">${escapeHtml(stripUnitSlash(it.unit))}</td>
+        <td class="qty-unit">${qtyStr}${unitStr ? ' ' + unitStr : ''}</td>
         <td class="r">${formatMoney(Number(it.unitPrice))}</td>
         ${discCell}
         <td class="r">${formatMoney(amt)}</td>
@@ -2251,7 +2254,7 @@ function renderGroups() {
       rowsHtml = `<tr><td colspan="${totalCols}" style="text-align:center;color:#999;padding:12px">（左側加入品項後會顯示在這裡）</td></tr>`;
     }
 
-    const discHeader = hasDisc ? `<th class="r" style="width:70px">Discount</th>` : '';
+    const discHeader = hasDisc ? `<th class="r" style="width:60px">Discount</th>` : '';
     groupEl.innerHTML = `
       <div class="group-title">${escapeHtml(g.title)}</div>
       <table class="qt">
@@ -2259,11 +2262,10 @@ function renderGroups() {
           <th style="width:36px">No.</th>
           <th style="width:95px">Category</th>
           <th>Description</th>
-          <th class="r" style="width:40px">Qty</th>
-          <th class="r unit" style="width:80px">Unit</th>
-          <th class="r" style="width:80px">Unit Price</th>
+          <th class="qty-unit" style="width:60px">Qty</th>
+          <th class="r" style="width:68px">Unit Price</th>
           ${discHeader}
-          <th class="r" style="width:90px">Amount</th>
+          <th class="r" style="width:78px">Amount</th>
         </tr></thead>
         <tbody>${rowsHtml}</tbody>
       </table>
