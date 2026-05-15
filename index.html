@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ARTWAY 報價單系統</title>
+<link rel="icon" type="image/svg+xml" href="./logo/SVG/logo_simple-fix.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -225,6 +226,24 @@ body.divider-dragging .preview-area { pointer-events: none; }
 }
 .bp-btn-danger:hover { background: #8B2635; color: #FAF8F5; border-color: #8B2635; }
 
+.bp-item-repick {
+  background: transparent;
+  border: 1px solid rgba(186,153,114,0.5);
+  color: #BA9972;
+  font-size: 13px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1.2;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.bp-item-repick:hover {
+  background: rgba(186,153,114,0.15);
+  border-color: #BA9972;
+  color: #D4B080;
+}
+
 /* Quote group card */
 .bp-group {
   background: rgba(186,153,114,0.07);
@@ -272,6 +291,19 @@ body.divider-dragging .preview-area { pointer-events: none; }
   background: rgba(186,153,114,0.1);
   border-color: #BA9972;
   color: #D4B080;
+}
+
+/* 兩按鈕並排（新增標準品 ｜ 手動新增） */
+.bp-add-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.bp-add-row .bp-add-item-btn {
+  display: block;
+  width: auto;
+  flex: 1;
+  margin-top: 0;
 }
 
 /* Item picker */
@@ -339,19 +371,61 @@ body.divider-dragging .preview-area { pointer-events: none; }
 /* Added item row */
 .bp-item {
   background: rgba(0,0,0,0.35);
-  padding: 9px 10px;
+  padding: 9px 8px;
   border-radius: 3px;
   margin-bottom: 6px;
   font-size: 12.5px;
   border-left: 3px solid #BA9972;
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  transition: opacity 0.15s, box-shadow 0.15s;
 }
+.bp-item.dragging { opacity: 0.4; }
+.bp-item.drag-over { box-shadow: inset 0 4px 0 0 #BA9972; }
+
+/* 拖曳把手 — 細直立點狀紋路 */
+.bp-item-drag {
+  flex: 0 0 12px;
+  cursor: grab;
+  background-image: radial-gradient(circle, rgba(186,153,114,0.55) 1.1px, transparent 1.5px);
+  background-size: 4px 5px;
+  background-repeat: repeat;
+  background-position: center;
+  border-radius: 2px;
+  align-self: stretch;
+  transition: background-color 0.15s;
+}
+.bp-item-drag:hover { background-color: rgba(186,153,114,0.12); }
+.bp-item-drag:active { cursor: grabbing; }
+
+.bp-item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .bp-item-top {
   display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  align-items: flex-start;
-  margin-bottom: 5px;
+  gap: 6px;
+  align-items: flex-end;
+  margin-bottom: 0;
 }
+.bp-field-mini.bp-field-cat { flex: 0 0 90px; }
+.bp-field-mini.bp-field-desc { flex: 1; min-width: 0; }
+.bp-item-top .bp-btn-danger { align-self: flex-end; }
+
+/* 重選 + 刪除 按鈕上下並列 */
+.bp-item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-self: flex-end;
+  flex-shrink: 0;
+}
+.bp-item-actions button { min-width: 30px; text-align: center; }
 .bp-item-text {
   flex: 1;
   min-width: 0;
@@ -365,9 +439,11 @@ body.divider-dragging .preview-area { pointer-events: none; }
   font-size: 11px;
   letter-spacing: 0.04em;
   line-height: 1.4;
-  white-space: nowrap;
   flex-shrink: 0;
   font-weight: 500;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
 }
 .bp-item-sub::after {
   content: '｜';
@@ -380,6 +456,8 @@ body.divider-dragging .preview-area { pointer-events: none; }
   font-size: 12.5px;
   flex: 1;
   min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .bp-item-meta {
   display: flex;
@@ -399,7 +477,8 @@ body.divider-dragging .preview-area { pointer-events: none; }
   letter-spacing: 0.04em;
   line-height: 1.2;
 }
-.bp-field-mini input {
+.bp-field-mini input,
+.bp-field-mini textarea {
   background: #0D0804;
   border: 1px solid rgba(186,153,114,0.25);
   color: #FAF8F5;
@@ -408,6 +487,11 @@ body.divider-dragging .preview-area { pointer-events: none; }
   border-radius: 2px;
   width: 100%;
   font-family: inherit;
+}
+.bp-field-mini textarea {
+  resize: vertical;
+  min-height: 36px;
+  line-height: 1.45;
 }
 .bp-field-mini.bp-field-amount { flex: 1.3; }
 .bp-field-mini.bp-field-amount label { text-align: right; }
@@ -457,6 +541,14 @@ body.divider-dragging .preview-area { pointer-events: none; }
   margin: 0;
 }
 .bp-group-opt:hover { color: #D4B080; }
+.bp-group-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+  margin-bottom: 8px;
+}
+.bp-group-opts .bp-group-opt { margin-bottom: 0; }
+.bp-auto-discount-row.hidden { display: none; }
 
 /* Up/Down reorder buttons */
 .bp-item-reorder {
@@ -481,27 +573,59 @@ body.divider-dragging .preview-area { pointer-events: none; }
 .bp-item-reorder button:hover:not(:disabled) { background: #BA9972; color: #1A1510; }
 .bp-item-reorder button:disabled { opacity: 0.25; cursor: not-allowed; }
 
-/* Tier toggle on existing item */
-.bp-item-tier {
-  background: transparent;
-  border: 1px solid rgba(186,153,114,0.5);
-  color: #BA9972;
-  padding: 3px 9px;
-  border-radius: 3px;
-  font-size: 10.5px;
+/* Tier 切換：iOS-style toggle switch (定價 / 優惠價) */
+.bp-tier-switch {
+  display: inline-flex;
+  position: relative;
+  width: 88px;
+  height: 22px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(186,153,114,0.4);
+  border-radius: 12px;
   cursor: pointer;
-  font-family: inherit;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
+  user-select: none;
   flex-shrink: 0;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  font-size: 9.5px;
+  font-family: inherit;
+  letter-spacing: 0.02em;
 }
-.bp-item-tier.arts {
-  background: rgba(212,176,128,0.18);
-  border-color: #D4B080;
-  color: #E8D2A8;
+.bp-tier-switch::before {
+  content: '';
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  left: 1px;
+  width: calc(50% - 1px);
+  background: #BA9972;
+  border-radius: 11px;
+  transition: transform 0.18s ease;
+  z-index: 0;
 }
-.bp-item-tier:hover { background: #BA9972; color: #1A1510; }
+.bp-tier-switch.arts::before {
+  transform: translateX(calc(100% - 0px));
+}
+.bp-tier-switch span {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  color: rgba(186,153,114,0.7);
+  transition: color 0.15s, font-weight 0.15s;
+}
+.bp-tier-switch:not(.arts) span:first-child,
+.bp-tier-switch.arts span:last-child {
+  color: #1A1510;
+  font-weight: 600;
+}
+.bp-tier-switch.disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  pointer-events: none;
+  background: rgba(0,0,0,0.5);
+}
+.bp-tier-switch.disabled::before { background: rgba(186,153,114,0.5); }
 
 /* Deliverable / note / service row */
 .bp-list-row {
@@ -579,6 +703,40 @@ body.divider-dragging .preview-area { pointer-events: none; }
   line-height: 1.55;
 }
 .bp-service-summary:focus { outline: none; border-color: #BA9972; }
+
+.bp-service-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.bp-service-head .bp-service-title {
+  flex: 1;
+  margin: 0;
+}
+.bp-incl-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 10.5px;
+  color: rgba(186,153,114,0.75);
+  letter-spacing: 0.03em;
+  user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+.bp-incl-toggle:hover { background: rgba(186,153,114,0.1); }
+.bp-incl-toggle input[type=checkbox] {
+  accent-color: #BA9972;
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
 
 /* Sheet 有附件 → Builder 反灰提示 */
 .bp-service-note {
@@ -706,7 +864,12 @@ body.divider-dragging .preview-area { pointer-events: none; }
   -webkit-print-color-adjust: exact; print-color-adjust: exact;
 }
 
-.qt { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+.qt { width: 100%; border-collapse: collapse; font-size: 9.5px; table-layout: fixed; }
+.qt thead th, .qt tbody td { overflow-wrap: anywhere; word-break: break-word; }
+.qt th.r, .qt td.r { white-space: nowrap; overflow-wrap: normal; word-break: normal; }
+.qt th.unit, .qt td.unit { white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
+.qt tbody td.desc,
+.qt tbody td.sub-cat { white-space: pre-wrap; }
 .qt thead tr { background: #2A1D11; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .qt thead th {
   padding: 7px 8px 6px; text-align: left; font-weight: 600; color: #D4B080;
@@ -774,6 +937,7 @@ body.divider-dragging .preview-area { pointer-events: none; }
   color: #5A4F40;
   font-size: 10px;
   line-height: 1.6;
+  white-space: pre-wrap;
 }
 .svc-summary-ref {
   color: #BA9972;
@@ -877,6 +1041,7 @@ body.divider-dragging .preview-area { pointer-events: none; }
   padding: 4px 0; border-bottom: 1px solid #F0EAE0; line-height: 1.5;
 }
 .notes-list li:last-child { border-bottom: none; }
+.notes-list li > span:last-child { white-space: pre-wrap; }
 .note-num { color: #BA9972; font-weight: 700; flex-shrink: 0; min-width: 18px; }
 
 .payment-table { width: 100%; border-collapse: collapse; font-size: 9.5px; margin-top: 8px; }
@@ -1542,7 +1707,7 @@ body.divider-dragging .preview-area { pointer-events: none; }
 
 </div>
 
-<div class="save-hint" data-no-edit>💾 按「儲存」可下載含資料的 HTML — 重開後資料完整還原　·　<span style="opacity:0.6">v2026.05.14e</span></div>
+<div class="save-hint" data-no-edit>💾 按「儲存」可下載含資料的 HTML — 重開後資料完整還原　·　<span style="opacity:0.6">v2026.05.15h</span></div>
 
 <!-- ════════════════════════════════════════ Builder Logic ════════════════════════════════════════ -->
 <script>
@@ -1694,9 +1859,9 @@ function renderGroups() {
       rowsHtml += `<tr>
         <td class="no">${String(ii + 1).padStart(2, '0')}</td>
         <td class="sub-cat">${escapeHtml(displaySubGroup(it.sub_group))}</td>
-        <td>${escapeHtml(it.name)}</td>
+        <td class="desc">${escapeHtml(it.name)}</td>
         <td class="r">${escapeHtml(String(it.qty))}</td>
-        <td class="r">${escapeHtml(stripUnitSlash(it.unit))}</td>
+        <td class="r unit">${escapeHtml(stripUnitSlash(it.unit))}</td>
         <td class="r">${formatMoney(Number(it.unitPrice))}</td>
         ${discCell}
         <td class="r">${formatMoney(amt)}</td>
@@ -1706,19 +1871,19 @@ function renderGroups() {
       rowsHtml = `<tr><td colspan="${totalCols}" style="text-align:center;color:#999;padding:12px">（左側加入品項後會顯示在這裡）</td></tr>`;
     }
 
-    const discHeader = hasDisc ? `<th class="r" style="width:58px">Discount</th>` : '';
+    const discHeader = hasDisc ? `<th class="r" style="width:70px">Discount</th>` : '';
     groupEl.innerHTML = `
       <div class="group-title">${escapeHtml(g.title)}</div>
       <table class="qt">
         <thead><tr>
-          <th style="width:24px">No.</th>
-          <th style="width:78px">Category</th>
+          <th style="width:36px">No.</th>
+          <th style="width:95px">Category</th>
           <th>Description</th>
-          <th class="r" style="width:32px">Qty</th>
-          <th class="r" style="width:38px">Unit</th>
-          <th class="r" style="width:64px">Unit Price</th>
+          <th class="r" style="width:40px">Qty</th>
+          <th class="r unit" style="width:80px">Unit</th>
+          <th class="r" style="width:80px">Unit Price</th>
           ${discHeader}
-          <th class="r" style="width:66px">Amount</th>
+          <th class="r" style="width:90px">Amount</th>
         </tr></thead>
         <tbody>${rowsHtml}</tbody>
       </table>
@@ -1812,7 +1977,8 @@ function syncServices() {
         sub_group: sg,
         summary: prev.summary || (hit && hit.summary) || '',
         service_description: newDesc,
-        hasAppendix: !!(newDesc && newDesc.trim())
+        hasAppendix: !!(newDesc && newDesc.trim()),
+        includeAppendix: prev.includeAppendix !== false  // 保留使用者的開關偏好（default true）
       };
     }
     // 新副品項：從 catalog 抓（沒抓到就空）
@@ -1821,7 +1987,8 @@ function syncServices() {
       sub_group: sg,
       summary: (hit && hit.summary) || '',
       service_description: sheet_desc,
-      hasAppendix: !!(sheet_desc && sheet_desc.trim())
+      hasAppendix: !!(sheet_desc && sheet_desc.trim()),
+      includeAppendix: true
     };
   });
 }
@@ -1837,9 +2004,13 @@ function refreshServicesUI() {
   state.services.forEach((s) => {
     const item = document.createElement('div');
     item.className = 'bp-service-item';
-    let html = `<div class="bp-service-title">${escapeHtml(s.sub_group)}</div>`;
+    let html = `<div class="bp-service-head">`;
     if (s.hasAppendix) {
-      // 反灰提示：預覽會自動帶「請見附件」
+      html += `<label class="bp-incl-toggle" title="是否在報價單顯示「請見附件」與附件頁"><input type="checkbox" class="incl-appendix" ${s.includeAppendix !== false ? 'checked' : ''}><span>含附件</span></label>`;
+    }
+    html += `<div class="bp-service-title">${escapeHtml(s.sub_group)}</div>`;
+    html += `</div>`;
+    if (s.hasAppendix && s.includeAppendix !== false) {
       html += `<div class="bp-service-note">完整服務說明請見「附件 ｜ ${escapeHtml(displaySubGroup(s.sub_group))}」</div>`;
     }
     const placeholder = s.hasAppendix
@@ -1853,6 +2024,15 @@ function refreshServicesUI() {
       s.summary = e.target.value;
       renderServicesPreview();
     };
+    const inclCb = item.querySelector('.incl-appendix');
+    if (inclCb) {
+      inclCb.onchange = e => {
+        s.includeAppendix = e.target.checked;
+        refreshServicesUI();      // 重繪 Builder（更新「請見附件」反灰提示）
+        renderServicesPreview();  // 更新預覽
+        renderAppendix();          // 更新附件頁
+      };
+    }
     list.appendChild(item);
   });
 }
@@ -1864,8 +2044,9 @@ function renderServicesPreview() {
   for (const s of state.services) {
     const userSummary = (s.summary || '').trim();
     const hasAppendix = !!s.hasAppendix;
-    // 兩個都沒 → 跳過整列（不顯示）
-    if (!userSummary && !hasAppendix) continue;
+    const showAppendix = hasAppendix && s.includeAppendix !== false;
+    // 摘要沒填、且也不顯示附件 → 跳過整列
+    if (!userSummary && !showAppendix) continue;
 
     const cleanSg = displaySubGroup(s.sub_group);
     const div = document.createElement('div');
@@ -1874,7 +2055,7 @@ function renderServicesPreview() {
     if (userSummary) {
       html += `<div class="svc-summary-text">${escapeHtml(userSummary)}</div>`;
     }
-    if (hasAppendix) {
+    if (showAppendix) {
       html += `<div class="svc-summary-ref">完整服務說明請見「附件 ｜ ${escapeHtml(cleanSg)}」</div>`;
     }
     div.innerHTML = html;
@@ -1891,6 +2072,7 @@ function renderAppendix() {
   container.innerHTML = '';
   for (const s of state.services) {
     if (!s.hasAppendix) continue;
+    if (s.includeAppendix === false) continue;  // 業務關閉了這個副品項的附件
     const sections = parseAppendixSections(s.service_description);
     if (sections.length === 0) continue;
 
@@ -1993,11 +2175,24 @@ function bindPaymentInputs() {
 
 // ─── Quote groups ──────────────────────────────────────────
 let nextGroupNum = 1;
+// 「使用折扣」一次性 push — 把所有標準品設成定價 + 自動價差
+function applyAutoDiscount(g) {
+  for (const it of g.items) {
+    if (it.isManual) continue;
+    const ps = Number(it._priceStandard);
+    const pa = Number(it._priceArts);
+    if (isNaN(ps)) continue;
+    it.priceTier = 'price_standard';
+    it.unitPrice = ps;
+    it.discount = isNaN(pa) ? 0 : Math.max(0, ps - pa);
+  }
+}
+
 function addQuoteGroup() {
   const id = 'g_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
   const num = nextGroupNum++;
   const code = 'A-' + num;
-  const g = { id, title: code + '．（請輸入組別名稱）', items: [], hasDiscount: false };
+  const g = { id, title: code + '．（請輸入組別名稱）', items: [], hasDiscount: false, autoDiscount: false };
   state.groups.push(g);
   renderGroupBuilder(g);
   renderGroups();
@@ -2013,12 +2208,21 @@ function renderGroupBuilder(g) {
       <input class="bp-group-title" type="text" value="${escapeHtml(g.title)}" placeholder="A-1．組別名稱">
       <button class="bp-btn bp-btn-danger" onclick="removeGroup('${g.id}')" title="刪除組別">✕</button>
     </div>
-    <label class="bp-group-opt">
-      <input type="checkbox" class="bp-discount-toggle" ${g.hasDiscount ? 'checked' : ''}>
-      <span>顯示 Discount 折扣欄位</span>
-    </label>
+    <div class="bp-group-opts">
+      <label class="bp-group-opt">
+        <input type="checkbox" class="bp-discount-toggle" ${g.hasDiscount ? 'checked' : ''}>
+        <span>顯示 Discount 折扣欄位</span>
+      </label>
+      <label class="bp-group-opt bp-auto-discount-row ${g.hasDiscount ? '' : 'hidden'}">
+        <input type="checkbox" class="bp-auto-discount-toggle" ${g.autoDiscount ? 'checked' : ''}>
+        <span>使用折扣：定價-優惠價</span>
+      </label>
+    </div>
     <div class="bp-items"></div>
-    <button class="bp-add-item-btn" type="button">＋ 新增品項</button>
+    <div class="bp-add-row">
+      <button class="bp-add-item-btn standard" type="button">＋ 新增標準品</button>
+      <button class="bp-add-item-btn manual" type="button">＋ 手動新增</button>
+    </div>
     <div class="bp-picker-slot"></div>
   `;
   container.appendChild(div);
@@ -2029,17 +2233,31 @@ function renderGroupBuilder(g) {
   };
   div.querySelector('.bp-discount-toggle').onchange = e => {
     g.hasDiscount = e.target.checked;
+    const autoRow = div.querySelector('.bp-auto-discount-row');
+    if (autoRow) autoRow.classList.toggle('hidden', !g.hasDiscount);
+    if (!g.hasDiscount) {
+      g.autoDiscount = false;
+      const autoCb = div.querySelector('.bp-auto-discount-toggle');
+      if (autoCb) autoCb.checked = false;
+    }
     refreshGroupItems(g);
     renderGroups();
   };
-  div.querySelector('.bp-add-item-btn').onclick = () => openPicker(g, div);
+  div.querySelector('.bp-auto-discount-toggle').onchange = e => {
+    g.autoDiscount = e.target.checked;
+    if (g.autoDiscount) applyAutoDiscount(g);  // 一次性 push
+    refreshGroupItems(g);
+    renderGroups();
+  };
+  div.querySelector('.bp-add-item-btn.standard').onclick = () => openPicker(g, div);
+  div.querySelector('.bp-add-item-btn.manual').onclick = () => openManualPicker(g, div);
 }
 
 function openPicker(g, groupDiv) {
   const slot = groupDiv.querySelector('.bp-picker-slot');
-  const addBtn = groupDiv.querySelector('.bp-add-item-btn');
+  const addRow = groupDiv.querySelector('.bp-add-row');
   if (slot.querySelector('.bp-picker')) return;
-  addBtn.style.display = 'none';
+  if (addRow) addRow.style.display = 'none';
   const picker = document.createElement('div');
   picker.className = 'bp-picker';
   picker.dataset.gid = g.id;
@@ -2047,11 +2265,83 @@ function openPicker(g, groupDiv) {
   buildPicker(picker, g, () => closePicker(groupDiv));
 }
 
+function openRePicker(g, groupDiv, itemIndex) {
+  const slot = groupDiv.querySelector('.bp-picker-slot');
+  const addRow = groupDiv.querySelector('.bp-add-row');
+  if (slot.querySelector('.bp-picker')) return;
+  if (addRow) addRow.style.display = 'none';
+  const picker = document.createElement('div');
+  picker.className = 'bp-picker';
+  picker.dataset.gid = g.id;
+  slot.appendChild(picker);
+  buildPicker(picker, g, () => closePicker(groupDiv), itemIndex);
+}
+
+function openManualPicker(g, groupDiv) {
+  const slot = groupDiv.querySelector('.bp-picker-slot');
+  const addRow = groupDiv.querySelector('.bp-add-row');
+  if (slot.querySelector('.bp-picker')) return;
+  if (addRow) addRow.style.display = 'none';
+  const picker = document.createElement('div');
+  picker.className = 'bp-picker bp-picker-manual';
+  picker.dataset.gid = g.id;
+  slot.appendChild(picker);
+  buildManualPicker(picker, g, () => closePicker(groupDiv));
+}
+
 function closePicker(groupDiv) {
   const slot = groupDiv.querySelector('.bp-picker-slot');
-  const addBtn = groupDiv.querySelector('.bp-add-item-btn');
+  const addRow = groupDiv.querySelector('.bp-add-row');
   if (slot) slot.innerHTML = '';
-  if (addBtn) addBtn.style.display = '';
+  if (addRow) addRow.style.display = '';
+}
+
+function buildManualPicker(pickerEl, g, onAdd) {
+  pickerEl.innerHTML = `
+    <button class="bp-picker-cancel" type="button" title="取消">✕</button>
+    <div class="bp-field" style="margin-bottom:6px">
+      <label>副品項 Category</label>
+      <input type="text" class="manual-cat" placeholder="例：客製化、設計、雜支">
+    </div>
+    <div class="bp-field" style="margin-bottom:6px">
+      <label>品項名稱 Description</label>
+      <input type="text" class="manual-name" placeholder="自由輸入完整說明">
+    </div>
+    <div class="bp-row" style="margin-bottom:6px">
+      <div class="bp-field">
+        <label>單位 Unit</label>
+        <input type="text" class="manual-unit" placeholder="式 / 件 / 場 / 年">
+      </div>
+      <div class="bp-field">
+        <label>單價 Unit Price</label>
+        <input type="number" class="manual-price" min="0" step="1" placeholder="0">
+      </div>
+    </div>
+    <button class="bp-btn bp-btn-primary picker-add" style="width:100%;margin-top:6px">加入</button>
+  `;
+  pickerEl.querySelector('.bp-picker-cancel').onclick = () => { if (onAdd) onAdd(); };
+  pickerEl.querySelector('.picker-add').onclick = () => {
+    const cat = pickerEl.querySelector('.manual-cat').value.trim();
+    const name = pickerEl.querySelector('.manual-name').value.trim();
+    const unit = pickerEl.querySelector('.manual-unit').value.trim();
+    const price = parseFloat(pickerEl.querySelector('.manual-price').value) || 0;
+    if (!name) { alert('請至少填寫「品項名稱」'); return; }
+    g.items.push({
+      sub_group: cat,
+      name: name,
+      unit: unit,
+      qty: 1,
+      unitPrice: price,
+      priceTier: 'manual',
+      discount: 0,
+      isManual: true,
+      _priceStandard: null,
+      _priceArts: null
+    });
+    refreshGroupItems(g);
+    renderGroups();
+    if (onAdd) onAdd();
+  };
 }
 
 function removeGroup(gid) {
@@ -2062,18 +2352,20 @@ function removeGroup(gid) {
   renderGroups();
 }
 
-function buildPicker(pickerEl, g, onAdd) {
+function buildPicker(pickerEl, g, onAdd, replaceIndex) {
+  const isReplace = replaceIndex != null;
   pickerEl.innerHTML = `
     <button class="bp-picker-cancel" type="button" title="取消">✕</button>
+    ${isReplace ? '<div style="font-size:11px;color:#D4B080;margin-bottom:6px">重新選擇此品項（保留位置）</div>' : ''}
     <select class="picker-group"><option value="">— 大品項 —</option></select>
     <select class="picker-sub" disabled><option value="">— 副品項 —</option></select>
     <select class="picker-name" disabled><option value="">— 品項名稱 —</option></select>
     <div class="price-info">請先選擇品項</div>
-    <button class="bp-btn bp-btn-primary picker-add" style="width:100%;margin-top:8px">加入</button>
+    <button class="bp-btn bp-btn-primary picker-add" style="width:100%;margin-top:8px">${isReplace ? '替換' : '加入'}</button>
   `;
   pickerEl.dataset.gid = g.id;
   populatePickerGroup(pickerEl);
-  attachPickerEvents(pickerEl, g, onAdd);
+  attachPickerEvents(pickerEl, g, onAdd, replaceIndex);
   pickerEl.querySelector('.bp-picker-cancel').onclick = () => { if (onAdd) onAdd(); };
 }
 
@@ -2084,7 +2376,7 @@ function populatePickerGroup(pickerEl) {
     groups.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
 }
 
-function attachPickerEvents(pickerEl, g, onAdd) {
+function attachPickerEvents(pickerEl, g, onAdd, replaceIndex) {
   const selG = pickerEl.querySelector('.picker-group');
   const selS = pickerEl.querySelector('.picker-sub');
   const selN = pickerEl.querySelector('.picker-name');
@@ -2127,7 +2419,7 @@ function attachPickerEvents(pickerEl, g, onAdd) {
     const useArtsAsDefault = isNaN(ps);
     const defaultTier = useArtsAsDefault ? 'price_arts' : 'price_standard';
     const defaultPrice = useArtsAsDefault ? (isNaN(pa) ? 0 : pa) : ps;
-    g.items.push({
+    const newItem = {
       sub_group: item.sub_group,
       name: item.name,
       unit: item.unit,
@@ -2137,7 +2429,18 @@ function attachPickerEvents(pickerEl, g, onAdd) {
       discount: 0,
       _priceStandard: isNaN(ps) ? null : ps,
       _priceArts: isNaN(pa) ? null : pa
-    });
+    };
+    // 若這組已開啟「使用折扣」模式，新增/替換的品項自動套定價 + 價差 discount
+    if (g.autoDiscount && !isNaN(ps)) {
+      newItem.priceTier = 'price_standard';
+      newItem.unitPrice = ps;
+      newItem.discount = isNaN(pa) ? 0 : Math.max(0, ps - pa);
+    }
+    if (replaceIndex != null && g.items[replaceIndex]) {
+      g.items[replaceIndex] = newItem;  // 替換模式：保留位置
+    } else {
+      g.items.push(newItem);
+    }
     refreshGroupItems(g);
     renderGroups();
     if (onAdd) onAdd();
@@ -2173,53 +2476,86 @@ function refreshGroupItems(g) {
       </div>
     ` : '';
     row.innerHTML = `
-      <div class="bp-item-top">
-        <div class="bp-item-reorder">
-          <button type="button" title="上移" ${ii === 0 ? 'disabled' : ''}>▲</button>
-          <button type="button" title="下移" ${ii === g.items.length - 1 ? 'disabled' : ''}>▼</button>
-        </div>
-        <div class="bp-item-text">
-          ${it.sub_group ? `<div class="bp-item-sub">${escapeHtml(it.sub_group)}</div>` : ''}
-          <div class="bp-item-name">${escapeHtml(it.name)}</div>
-        </div>
-        <button type="button" class="bp-btn bp-btn-danger" title="刪除">✕</button>
-      </div>
-      <div class="bp-item-meta">
-        <div class="bp-field-mini">
-          <label>數量</label>
-          <input type="number" min="0" step="1" value="${it.qty}" class="inp-qty">
-        </div>
-        <div class="bp-field-mini bp-field-price">
-          <label>顯示單價</label>
-          <div class="bp-price-inline">
-            <input type="number" min="0" step="1" value="${it.unitPrice}" class="inp-price">
-            <button type="button" class="bp-item-tier ${tierCls}" title="點擊切換定價/藝文續約">${tierLabel}</button>
+      <div class="bp-item-drag" draggable="true" title="拖曳調整順序"></div>
+      <div class="bp-item-body">
+        <div class="bp-item-top">
+          <div class="bp-field-mini bp-field-cat">
+            <label>副品項</label>
+            <textarea class="inp-cat" rows="2" placeholder="Category">${escapeHtml(it.sub_group || '')}</textarea>
+          </div>
+          <div class="bp-field-mini bp-field-desc">
+            <label>品項名稱</label>
+            <textarea class="inp-desc" rows="2" placeholder="Description">${escapeHtml(it.name || '')}</textarea>
+          </div>
+          <div class="bp-item-actions">
+            ${it.isManual ? '' : `<button type="button" class="bp-item-repick" title="重新選擇此品項">⟲</button>`}
+            <button type="button" class="bp-btn bp-btn-danger" title="刪除">✕</button>
           </div>
         </div>
-        ${discountField}
-        <div class="bp-field-mini bp-field-amount">
-          <label>金額</label>
-          <span class="amount">NT$ ${formatMoney(amt)}</span>
+        <div class="bp-item-meta">
+          <div class="bp-field-mini">
+            <label>數量</label>
+            <input type="number" min="0" step="1" value="${it.qty}" class="inp-qty">
+          </div>
+          <div class="bp-field-mini">
+            <label>單位</label>
+            <input type="text" class="inp-unit" value="${escapeHtml(it.unit || '')}" placeholder="式/件/年">
+          </div>
+          <div class="bp-field-mini bp-field-price">
+            <label>顯示單價</label>
+            <div class="bp-price-inline">
+              <input type="number" min="0" step="1" value="${it.unitPrice}" class="inp-price">
+              ${it.isManual ? '' : `<div class="bp-tier-switch ${isArts ? 'arts' : ''} ${g.autoDiscount ? 'disabled' : ''}" role="switch" title="${g.autoDiscount ? '使用折扣模式已鎖定為定價' : '點擊切換 定價/優惠價'}"><span>定價</span><span>優惠價</span></div>`}
+            </div>
+          </div>
+          ${discountField}
+          <div class="bp-field-mini bp-field-amount">
+            <label>金額</label>
+            <span class="amount">NT$ ${formatMoney(amt)}</span>
+          </div>
         </div>
       </div>
     `;
-    const [upBtn, downBtn] = row.querySelectorAll('.bp-item-reorder button');
-    upBtn.onclick = () => {
-      if (ii <= 0) return;
-      [g.items[ii - 1], g.items[ii]] = [g.items[ii], g.items[ii - 1]];
+
+    // 拖曳排序
+    const handle = row.querySelector('.bp-item-drag');
+    handle.addEventListener('dragstart', e => {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(ii));
+      try { e.dataTransfer.setDragImage(row, 10, 10); } catch (_) {}
+      row.classList.add('dragging');
+    });
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      row.classList.add('drag-over');
+    });
+    row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      row.classList.remove('drag-over');
+      const fromGi = parseInt(e.dataTransfer.getData('text/plain'), 10);
+      if (isNaN(fromGi) || fromGi === ii) return;
+      const [moved] = g.items.splice(fromGi, 1);
+      g.items.splice(ii, 0, moved);
       refreshGroupItems(g); renderGroups();
-    };
-    downBtn.onclick = () => {
-      if (ii >= g.items.length - 1) return;
-      [g.items[ii], g.items[ii + 1]] = [g.items[ii + 1], g.items[ii]];
-      refreshGroupItems(g); renderGroups();
-    };
-    row.querySelector('.bp-item-tier').onclick = () => {
-      it.priceTier = isArts ? 'price_standard' : 'price_arts';
-      const newPrice = it.priceTier === 'price_arts' ? it._priceArts : it._priceStandard;
-      if (newPrice != null && !isNaN(newPrice)) it.unitPrice = newPrice;
-      refreshGroupItems(g); renderGroups();
-    };
+    });
+    row.addEventListener('dragend', () => row.classList.remove('dragging'));
+
+    // 文字欄位編輯
+    row.querySelector('.inp-cat').oninput = e => { it.sub_group = e.target.value; renderGroups(); };
+    row.querySelector('.inp-desc').oninput = e => { it.name = e.target.value; renderGroups(); };
+    row.querySelector('.inp-unit').oninput = e => { it.unit = e.target.value; renderGroups(); };
+    const tierSwitch = row.querySelector('.bp-tier-switch');
+    if (tierSwitch) {
+      tierSwitch.onclick = () => {
+        if (g.autoDiscount) return;  // 鎖定中
+        it.priceTier = isArts ? 'price_standard' : 'price_arts';
+        const newPrice = it.priceTier === 'price_arts' ? it._priceArts : it._priceStandard;
+        if (newPrice != null && !isNaN(newPrice)) it.unitPrice = newPrice;
+        refreshGroupItems(g); renderGroups();
+      };
+    }
     const updateAmount = () => {
       row.querySelector('.amount').textContent = 'NT$ ' + formatMoney(calcItemAmount(it, g.hasDiscount));
     };
@@ -2243,6 +2579,13 @@ function refreshGroupItems(g) {
       refreshGroupItems(g);
       renderGroups();
     };
+    const repickBtn = row.querySelector('.bp-item-repick');
+    if (repickBtn) {
+      repickBtn.onclick = () => {
+        const groupDiv = document.querySelector('.bp-group[data-gid="' + g.id + '"]');
+        if (groupDiv) openRePicker(g, groupDiv, ii);
+      };
+    }
     div.appendChild(row);
   });
 }
@@ -2496,8 +2839,8 @@ async function init() {
     state.payment.deliveryNote = '收款後 6 個工作週';
     state.notes = [
       '若對本報價尚有未能釋疑之處，歡迎與本報價單聯繫窗口或其代理人聯絡。',
-      '本報價單回簽視同正式訂單，若未進一步簽訂合約，於雙方確認後視同服務條款之一部分。若簽訂合約，雙方權利義務應以合約為主。',
-      '雙方應確保所提供予他方使用之各相關資料，皆未侵害任何人之智慧財產權及其他權利。'
+      '客戶需確保所提供素材（文字稿、圖片、音檔等）之著作權，並擔保其責任。',
+      '本報價單回簽視同正式訂單，若後續有協議調整，應以書面補充協議或另簽新報價單。若簽訂合約，雙方權利義務應以合約為主。'
     ];
     document.getElementById('bpQuoteNo').value = state.meta.quoteNo;
     document.getElementById('bpIssueDate').value = state.meta.issueDate;
