@@ -165,6 +165,16 @@ body.divider-dragging .preview-area { pointer-events: none; }
   border-color: #BA9972;
   background: #1A1510;
 }
+.bp-field input[readonly] {
+  color: rgba(186,153,114,0.7);
+  background: rgba(186,153,114,0.05);
+  border-color: rgba(186,153,114,0.18);
+  cursor: not-allowed;
+}
+.bp-field input[readonly]:focus {
+  border-color: rgba(186,153,114,0.18);
+  background: rgba(186,153,114,0.05);
+}
 /* Date / time input 內建月曆 icon 在深底上看不到 — 反白 */
 .bp-field input[type="date"]::-webkit-calendar-picker-indicator,
 .bp-field input[type="time"]::-webkit-calendar-picker-indicator {
@@ -1741,7 +1751,7 @@ body.route-history .save-hint { display: none !important; }
       </div>
       <div class="bp-field">
         <label>報價單編號</label>
-        <input id="bpQuoteNo" type="text" placeholder="自動產生，可改">
+        <input id="bpQuoteNo" type="text" placeholder="自動產生" readonly title="報價單編號為永久 ID，建立後不可變更">
       </div>
       <div class="bp-row">
         <div class="bp-field">
@@ -3251,12 +3261,15 @@ const MOCK = (function () {
     },
     create(quote) {
       const arr = load();
+      // 後端只信任前端傳的外層欄位（不解析內部 groups）
       const rec = Object.assign({}, quote, {
         id: uid(),
-        total_amount: calcTotal(quote),
-        client_company: (quote.client || {}).company || '',
-        sales_name: (quote.sales || {}).name || '',
-        issue_date: (quote.meta || {}).issue_date || (quote.meta || {}).issueDate || '',
+        // fallback：萬一前端漏傳，後端還是會試著補（但前端應該都有給）
+        total_amount: typeof quote.total_amount === 'number' ? quote.total_amount : calcTotal(quote),
+        title: quote.title || ((quote.meta || {}).title) || '',
+        client_company: quote.client_company || ((quote.client || {}).company) || '',
+        sales_name: quote.sales_name || ((quote.sales || {}).name) || '',
+        issue_date: quote.issue_date || ((quote.meta || {}).issue_date) || ((quote.meta || {}).issueDate) || '',
         created_at: now(),
         updated_at: now(),
         deleted_at: null
@@ -3269,12 +3282,14 @@ const MOCK = (function () {
       const arr = load();
       const idx = arr.findIndex(q => q.id === id);
       if (idx < 0) return Promise.reject(new Error('not found'));
-      arr[idx] = Object.assign({}, arr[idx], quote, {
-        id,
-        total_amount: calcTotal(quote),
-        client_company: (quote.client || {}).company || '',
-        sales_name: (quote.sales || {}).name || '',
-        issue_date: (quote.meta || {}).issue_date || (quote.meta || {}).issueDate || '',
+      // PUT 時忽略 body 裡的 quote_no（永久 ID）
+      const preserved = { id, quote_no: arr[idx].quote_no, created_at: arr[idx].created_at };
+      arr[idx] = Object.assign({}, arr[idx], quote, preserved, {
+        total_amount: typeof quote.total_amount === 'number' ? quote.total_amount : calcTotal(quote),
+        title: quote.title || ((quote.meta || {}).title) || '',
+        client_company: quote.client_company || ((quote.client || {}).company) || '',
+        sales_name: quote.sales_name || ((quote.sales || {}).name) || '',
+        issue_date: quote.issue_date || ((quote.meta || {}).issue_date) || ((quote.meta || {}).issueDate) || '',
         updated_at: now()
       });
       save(arr);
@@ -3294,7 +3309,7 @@ const MOCK = (function () {
       const items = arr.slice((page - 1) * pageSize, page * pageSize).map(q => ({
         id: q.id,
         quote_no: q.quote_no,
-        title: (q.meta && q.meta.title) || '',
+        title: q.title || (q.meta && q.meta.title) || '',
         client_company: q.client_company,
         sales_name: q.sales_name,
         issue_date: q.issue_date,
@@ -3726,10 +3741,38 @@ async function saveToCloud() {
   }
 }
 
+function calcQuoteTotal() {
+  let total = 0;
+  state.groups.forEach(g => {
+    let sub = 0;
+    (g.items || []).forEach(it => {
+      const qty = Number(it.qty) || 0;
+      const up  = Number(it.unitPrice) || 0;
+      let amt = qty * up;
+      if (g.hasDiscount) {
+        const d = Number(it.discount) || 0;
+        if (d > 0) amt = amt * (1 - d / 100);
+      }
+      sub += amt;
+    });
+    const tax = Math.round(sub * 0.05);
+    const adj = (g.hasAdjustment && g.adjustment && !isNaN(Number(g.adjustment.amount))) ? Number(g.adjustment.amount) : 0;
+    total += sub + tax + adj;
+  });
+  return Math.round(total);
+}
+
 function buildQuotePayload() {
   return {
+    // ─── 外層 7 欄（後端解析、給列表用）───
     quote_no: state.meta.quoteNo,
     status: state.status,
+    title: state.meta.title || '',
+    total_amount: calcQuoteTotal(),
+    client_company: (state.client && state.client.company) || '',
+    sales_name: (state.sales && state.sales.name) || '',
+    issue_date: state.meta.issueDate || '',
+    // ─── 內層黑盒子（後端原樣存）───
     meta: {
       title: state.meta.title,
       issue_date: state.meta.issueDate,
