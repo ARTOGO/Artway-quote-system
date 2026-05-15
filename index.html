@@ -1196,6 +1196,12 @@ body.divider-dragging .preview-area { pointer-events: none; }
 
 /* 列印時壓縮間距，盡量讓單頁裝得下 */
 @media print {
+  /* 強制所有元素印出背景色 — 不管使用者有沒有勾「背景圖形」 */
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
   .section-wrap { margin-bottom: 8px !important; }
   .quote-group { margin-bottom: 8px !important; }
   .sig-section { margin-top: 8px !important; }
@@ -3123,8 +3129,31 @@ async function handlePrintConfirmAction() {
     btn.disabled = false;
   } else {
     hidePrintConfirm();
-    window.print();
+    printWithCustomFilename();
   }
+}
+
+// 列印前臨時改 document.title — Chrome 存 PDF 時會用 title 當預設檔名
+function printWithCustomFilename() {
+  const safe = (s) => String(s || '').replace(/[\\/:*?"<>|\r\n\t]/g, '').trim();
+  const quoteNo = safe(state.meta.quoteNo) || 'AW-quote';
+  const today   = todayISO();  // YYYY-MM-DD
+  const client  = safe((state.client && state.client.company) || '');
+  const project = safe(state.meta.title || '');
+  // 藝途科技報價單AW-260515-008_2026-05-15_客戶名稱_專案名稱
+  const parts = ['藝途科技報價單' + quoteNo, today, client, project].filter(Boolean);
+  const filename = parts.join('_');
+
+  const originalTitle = document.title;
+  document.title = filename;
+  const restore = () => {
+    document.title = originalTitle;
+    window.removeEventListener('afterprint', restore);
+  };
+  window.addEventListener('afterprint', restore);
+  setTimeout(restore, 1500);
+
+  window.print();
 }
 
 // ─── 狀態快照 — 把 state 埋進文件，讓「另存 HTML」後重開可還原 ──────────────────────────────────────────
@@ -3226,15 +3255,10 @@ const MOCK = (function () {
     let total = 0;
     quote.groups.forEach(g => {
       let sub = 0;
-      g.items.forEach(it => {
-        const qty = Number(it.qty) || 0;
-        const up  = Number(it.unitPrice) || 0;
-        let amt = qty * up;
-        if (g.hasDiscount) {
-          const d = Number(it.discount) || 0;
-          if (d > 0) amt = amt * (1 - d / 100);
-        }
-        sub += amt;
+      (g.items || []).forEach(it => {
+        const base = (Number(it.qty) || 0) * (Number(it.unitPrice) || 0);
+        const disc = g.hasDiscount ? (Number(it.discount) || 0) : 0;
+        sub += base - disc;  // discount 為絕對金額（不是百分比）
       });
       const tax = Math.round(sub * 0.05);
       const adj = (g.hasAdjustment && g.adjustment && !isNaN(Number(g.adjustment.amount))) ? Number(g.adjustment.amount) : 0;
@@ -3746,14 +3770,7 @@ function calcQuoteTotal() {
   state.groups.forEach(g => {
     let sub = 0;
     (g.items || []).forEach(it => {
-      const qty = Number(it.qty) || 0;
-      const up  = Number(it.unitPrice) || 0;
-      let amt = qty * up;
-      if (g.hasDiscount) {
-        const d = Number(it.discount) || 0;
-        if (d > 0) amt = amt * (1 - d / 100);
-      }
-      sub += amt;
+      sub += calcItemAmount(it, g.hasDiscount);
     });
     const tax = Math.round(sub * 0.05);
     const adj = (g.hasAdjustment && g.adjustment && !isNaN(Number(g.adjustment.amount))) ? Number(g.adjustment.amount) : 0;
