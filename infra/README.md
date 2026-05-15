@@ -60,7 +60,7 @@ State 改用 `gs://artogo-tf-state/Artway-quote-system` backend。
 ## 先決條件（執行 Phase A 前）
 
 - gcloud CLI 已裝、登入 `peter_ting@artogo.co`（或具同等權限的 ARTOGO 帳號）
-- terraform CLI ≥ 1.10
+- terraform CLI ≥ 1.15
 - GCP project `artogo-v2` 寫權限（roles/editor + roles/iap.admin）
 - Cloudflare API token（管 `artogo.co` zone）
 

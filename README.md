@@ -109,9 +109,10 @@ Artway-quote-system/
 
 | 層 | 用什麼 |
 |---|---|
-| 後端 | Go 1.23 + chi + pgx + sqlc + goose |
-| 資料庫 | Cloud SQL Postgres (db-f1-micro) |
-| 前端 | Vite + React 18 + TypeScript + Radix UI + Module SCSS |
+| 後端 | Go **1.26** + chi/v5 + pgx/v5 + sqlc + goose/v3 |
+| 資料庫 | Cloud SQL Postgres **16**（共用既有 `artogo-auth-db` instance）|
+| 前端 | Vite **8** + React **19.2** + TypeScript **6.0** + unified `radix-ui` + Module SCSS（Sass）|
+| Node | **24-alpine**（Active LTS）|
 | 託管 | Cloud Run（前後端合一 service，Go embed Vite dist）|
 | 認證 | GCP IAP（Workspace SSO）|
 | CI/CD | GitHub Actions + Workload Identity Federation |
