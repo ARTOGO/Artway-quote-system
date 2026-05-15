@@ -1,0 +1,43 @@
+# ─── Secrets / Env ─────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*-credentials.json
+service-account*.json
+gcp-key*.json
+
+# ─── Node / Frontend ───────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+*.tsbuildinfo
+.eslintcache
+
+# ─── Go / Backend ──────────────────────────────────────────
+backend/server
+backend/server.exe
+backend/tmp/
+backend/coverage.out
+backend/dist/
+# sqlc generated 仍 commit（編譯期保證），不 ignore
+
+# ─── Docker ────────────────────────────────────────────────
+backend/.docker/
+
+# ─── IDE / Editor ──────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ─── Build / CI artifacts ──────────────────────────────────
+*.log
+.cache/
+
+# ─── Local override ────────────────────────────────────────
+*.local
