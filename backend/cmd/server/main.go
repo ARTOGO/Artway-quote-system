@@ -1,14 +1,15 @@
 // Command server is the Cloud Run entrypoint for the quote-app backend.
 //
-// Pipeline (M4):
+// Pipeline (M5):
 //   request → chi middleware (RequestID/RealIP/Recoverer/Timeout)
 //          → /healthz, /readyz       (no auth — Cloud Run probes)
 //          → /api/*                  → auth.Middleware (IAP)
-//                                    → M5 handlers (quotes / me)
+//                                    → /me + /quotes/* (7 endpoints)
 //
-// Config is read once at startup via config.Load(). Errors abort the
-// process before ListenAndServe so Cloud Run treats it as a crash and
-// surfaces the env var problem.
+// Wiring order in main:
+//   config.Load() → db.New(pool) → quotes.NewRepository(pool)
+//                                → quotes.NewHandler(repo)
+//                                → newRouter(authCfg, handler)
 package main
 
 import (
@@ -23,7 +24,9 @@ import (
 
 	"github.com/ARTOGO/Artway-quote-system/backend/internal/auth"
 	"github.com/ARTOGO/Artway-quote-system/backend/internal/config"
+	"github.com/ARTOGO/Artway-quote-system/backend/internal/db"
 	"github.com/ARTOGO/Artway-quote-system/backend/internal/health"
+	"github.com/ARTOGO/Artway-quote-system/backend/internal/quotes"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -49,12 +52,22 @@ func main() {
 	}
 	slog.Info("config loaded", "env", cfg.Env, "port", cfg.Port)
 
+	ctx := context.Background()
+	pool, err := db.New(ctx, cfg.DatabaseURL)
+	if err != nil {
+		slog.Error("db connect failed", "error", err)
+		os.Exit(1)
+	}
+	defer pool.Close()
+	slog.Info("db pool initialised")
+
 	authCfg := auth.Config{
 		Env:          string(cfg.Env),
 		DevUserEmail: cfg.DevUserEmail,
 	}
+	handler := quotes.NewHandler(quotes.NewRepository(pool))
 
-	r := newRouter(authCfg)
+	r := newRouter(authCfg, handler)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
@@ -87,12 +100,9 @@ func main() {
 	slog.Info("server stopped")
 }
 
-// newRouter wires HTTP routes. Probes (/healthz, /readyz) sit on the root
-// outside auth — Cloud Run hits them without an IAP context. Application
-// routes live under /api/* behind the IAP middleware. Extracted from main
-// so M5 router-level integration tests can exercise the full stack via
-// httptest.NewServer without spinning a real HTTP listener.
-func newRouter(authCfg auth.Config) *chi.Mux {
+// newRouter wires HTTP routes. Probes sit on the root outside auth;
+// application routes live under /api/* behind IAP middleware.
+func newRouter(authCfg auth.Config, h *quotes.Handler) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -100,14 +110,14 @@ func newRouter(authCfg auth.Config) *chi.Mux {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(requestTimeout))
 
-	// Probes — no auth. Cloud Run does not inject IAP headers on these.
+	// Probes — no auth.
 	r.Get("/healthz", health.Healthz)
 	r.Get("/readyz", health.Readyz)
 
-	// Application routes — IAP-gated. /api/me + /api/quotes/* added in M5.
+	// Application routes — IAP-gated.
 	r.Route("/api", func(r chi.Router) {
 		r.Use(auth.Middleware(authCfg))
-		// (no endpoints yet — M5)
+		quotes.Mount(r, h)
 	})
 
 	return r
