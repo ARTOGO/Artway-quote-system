@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="refresh" content="0; url=frontend/legacy.html">
   <link rel="canonical" href="https://artogo.github.io/Artway-quote-system/frontend/legacy.html">
+  <!--
+    JS fallback：meta http-equiv="refresh" 跨路徑跳轉時 hash 不保留，
+    這段確保 #/history、#/quote/AW-... 等 deep link 書籤的 hash 帶到
+    legacy.html，且比 meta refresh 立即生效（沒延遲）。
+  -->
+  <script>
+    (function () {
+      if (typeof window === 'undefined') return;
+      window.location.replace('frontend/legacy.html' + window.location.hash);
+    })();
+  </script>
   <title>ARTWAY 報價單系統</title>
   <style>
     html, body { height: 100%; margin: 0; }

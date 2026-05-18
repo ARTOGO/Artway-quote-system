@@ -3,6 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      GitHub Pages 過渡期跳轉：PR #1 改名 index.html→legacy.html 之後，
+      這個 Vite shell 沒 build 就直接 serve 會是空殼（/src/main.tsx 在
+      GitHub Pages 拿到 raw TS 跑不起來）。在 github.io hostname 上直接
+      bounce 到同目錄的 legacy.html，保留 hash 以救回 #/history、
+      #/quote/AW-... 等 deep link 書籤。
+      本機 localhost / Cloud Run quote.artogo.co 不會觸發此分支，Vite
+      dev / prod build 照常運作。
+    -->
+    <script>
+      (function () {
+        if (typeof window === 'undefined') return;
+        if (window.location.hostname.endsWith('github.io')) {
+          window.location.replace('legacy.html' + window.location.hash);
+        }
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/logo/SVG/logo_simple-fix.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
