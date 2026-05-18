@@ -3,8 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="refresh" content="0; url=frontend/">
-  <link rel="canonical" href="https://artogo.github.io/Artway-quote-system/frontend/">
+  <meta http-equiv="refresh" content="0; url=frontend/legacy.html">
+  <link rel="canonical" href="https://artogo.github.io/Artway-quote-system/frontend/legacy.html">
+  <!--
+    JS fallback：meta http-equiv="refresh" 跨路徑跳轉時 hash 不保留，
+    這段確保 #/history、#/quote/AW-... 等 deep link 書籤的 hash 帶到
+    legacy.html，且比 meta refresh 立即生效（沒延遲）。
+  -->
+  <script>
+    (function () {
+      if (typeof window === 'undefined') return;
+      window.location.replace('frontend/legacy.html' + window.location.hash);
+    })();
+  </script>
   <title>ARTWAY 報價單系統</title>
   <style>
     html, body { height: 100%; margin: 0; }
@@ -29,10 +40,11 @@
 <body>
   <div class="wrap">
     <h1>ARTWAY 報價單系統</h1>
-    <p>本頁正在自動跳轉到 <code>frontend/</code> 子目錄…</p>
-    <p>若沒有自動跳轉，請點 <a href="frontend/">這裡進入報價系統</a>。</p>
+    <p>本頁正在自動跳轉到 <code>frontend/legacy.html</code> …</p>
+    <p>若沒有自動跳轉，請點 <a href="frontend/legacy.html">這裡進入報價系統</a>。</p>
     <p style="margin-top:32px; font-size:11.5px; opacity:0.5;">
-      過渡期重定向（PR #1 後）— Repo 重組為 <code>frontend/</code> + <code>backend/</code> 結構，<br>
+      過渡期重定向（PR #1 後）— Repo 重組為 <code>frontend/</code> + <code>backend/</code> 結構；<br>
+      原 4228 行單檔搬到 <code>frontend/legacy.html</code>，React 重構期間繼續服務舊版。<br>
       重構完成後將遷至 <code>quote.artogo.co</code>（GCP Cloud Run + IAP）。
     </p>
   </div>
