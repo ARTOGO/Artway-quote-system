@@ -1,0 +1,73 @@
+# 本機開發 — 一鍵起 Postgres 16 + 自動跑 goose migrations + 後端 server。
+#
+# Usage:
+#   docker compose up                 # 起所有 services
+#   docker compose up -d              # 背景跑
+#   docker compose logs -f server     # 看 server log
+#   docker compose down               # stop（保留 DB 資料）
+#   docker compose down -v            # stop + 砍 DB volume（reset 整個 DB）
+#
+# Endpoints (after up):
+#   http://localhost:8080/healthz
+#   http://localhost:8080/readyz
+#   http://localhost:8080/api/me              (回 dev@artogo.co)
+#   http://localhost:8080/api/quotes/next-number  (POST)
+#   ...
+#
+# 詳細：docs/LOCAL_DEV.md
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: quote-app-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: quote_app
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_DB: quotes
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quote_app -d quotes"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  # One-shot migration runner: goose up against the freshly-started DB.
+  # Exits 0 after applying; depends_on with service_completed_successfully
+  # gates the server on this completing.
+  migrate:
+    image: ghcr.io/kukymbr/goose-docker:3.27.1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/migrations
+    environment:
+      GOOSE_DRIVER: postgres
+      GOOSE_DBSTRING: "postgres://quote_app:dev_password@postgres:5432/quotes?sslmode=disable"
+      GOOSE_MIGRATION_DIR: /migrations
+    command: ["up"]
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quote-app-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      # postgres host = service name within compose network
+      DATABASE_URL: "postgres://quote_app:dev_password@postgres:5432/quotes?sslmode=disable"
+      ENV: "dev"
+      DEV_USER_EMAIL: "dev@artogo.co"
+
+volumes:
+  pgdata:
