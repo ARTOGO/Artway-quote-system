@@ -30,10 +30,24 @@
 
 ## 2. 認證 / 權限
 
-**無認證**（內部信任模式）。任何能連到 API 的人都能 read/write。
+**Phase A 起走 GCP IAP**（Identity-Aware Proxy）— 員工身分驗證在網路層完成、後端不需要實作 auth 邏輯。
 
-若擔心被外面打：建議加 IP 允許清單 或簡單 shared token（可選）。
-**CORS 必須允許**：`https://artogo.github.io`（GET, POST, PUT, DELETE, OPTIONS）
+**後端要做的**：
+- 讀 HTTP header `X-Goog-Authenticated-User-Email`（格式：`accounts.google.com:peter@artogo.co`，取冒號後段為 email）
+- 用 email 寫入 `created_by` / `updated_by` 欄位做 audit
+- **不要**自己驗 JWT、不要查 JWKS — IAP 已驗過
+
+**本機開發**（`ENV=dev`）：bypass IAP、讀 env var `DEV_USER_EMAIL=peter@artogo.co` 模擬使用者。
+
+**安全要求**：Cloud Run service 必須設 `ingress = internal-and-cloud-load-balancing`，拒絕從外部直接打 `.run.app` URL（否則繞過 IAP）。
+
+### CORS
+
+**Phase A（前後端合一 Cloud Run）**：同 origin、**不需要 CORS** 設定。
+
+**未來若前後端分離部署**：`Access-Control-Allow-Origin: https://quote.artogo.co`（GET, POST, PUT, DELETE, OPTIONS）。
+
+> ⚠️ 已棄用：舊版規格 allow `https://artogo.github.io`。新版用 Cloud Run + 自訂域名，不再對外開放跨域。
 
 ---
 
@@ -43,8 +57,10 @@
 ```
 POST /quotes/next-number
 ```
-**邏輯**：依今日（伺服器時區）已配發過的最大 NNN + 1，3 位數補零，每日歸零。
+**邏輯**：依今日（**Asia/Taipei 時區**）已配發過的最大 NNN + 1，3 位數補零，每日歸零。
 需要 atomic 操作避免 race condition。
+
+> ⚠️ Cloud Run 預設 UTC、台灣晚上 8 點後（UTC 12:00 後）會跨日，必須明確用 Asia/Taipei 計算日期。Go 實作用 `time.Now().In(time.FixedZone("Asia/Taipei", 8*60*60))` 或 `time.LoadLocation("Asia/Taipei")`；PostgreSQL 用 `current_date AT TIME ZONE 'Asia/Taipei'`。
 
 **Response 200:**
 ```json

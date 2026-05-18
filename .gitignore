@@ -1,0 +1,59 @@
+# ─── Secrets / Env ─────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*-credentials.json
+service-account*.json
+gcp-key*.json
+
+# ─── Node / Frontend ───────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+*.tsbuildinfo
+.eslintcache
+
+# ─── Go / Backend ──────────────────────────────────────────
+backend/server
+backend/server.exe
+backend/tmp/
+backend/coverage.out
+backend/dist/
+# sqlc generated 仍 commit（編譯期保證），不 ignore
+
+# ─── Docker ────────────────────────────────────────────────
+backend/.docker/
+
+# ─── Terraform ─────────────────────────────────────────────
+# state 含 secret（DB password / SA key 等），永遠不該 commit
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# ─── IDE / Editor ──────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ─── Build / CI artifacts ──────────────────────────────────
+*.log
+.cache/
+
+# ─── Local override ────────────────────────────────────────
+*.local
