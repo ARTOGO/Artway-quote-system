@@ -1,0 +1,71 @@
+@use '../../styles/tokens.scss' as *;
+
+// Module SCSS — class names are locally scoped, accessed via `styles.button` etc.
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-1_5;
+  padding: $space-2 $space-4;
+  border: $border-width-thin solid transparent;
+  border-radius: $radius-base;
+  font-family: $font-family-base;
+  font-size: $font-size-md-plus;
+  font-weight: $font-weight-medium;
+  line-height: $line-height-tight;
+  letter-spacing: $letter-spacing-normal;
+  cursor: pointer;
+  transition:
+    background $transition-fast,
+    border-color $transition-fast,
+    color $transition-fast;
+  user-select: none;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-focus-ring;
+    outline-offset: 2px;
+  }
+}
+
+.primary {
+  background: $color-gold;
+  color: $color-surface-paper;
+
+  &:not(:disabled):hover {
+    background: $color-gold-warm;
+  }
+
+  &:not(:disabled):active {
+    background: $color-gold-mute;
+  }
+}
+
+.secondary {
+  background: transparent;
+  color: $color-gold;
+  border-color: $color-gold;
+
+  &:not(:disabled):hover {
+    background: $overlay-gold-08;
+  }
+
+  &:not(:disabled):active {
+    background: $overlay-gold-18;
+  }
+}
+
+.ghost {
+  background: transparent;
+  color: $color-text-secondary;
+
+  &:not(:disabled):hover {
+    background: $overlay-gold-08;
+    color: $color-text-primary;
+  }
+}
