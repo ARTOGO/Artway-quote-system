@@ -1,0 +1,286 @@
+// ARTOGO Quote-app Design Tokens (SCSS)
+//
+// Source of truth: extracted from the 4228-line frontend/index.html original
+// (PR #1 frozen snapshot). Every magic value in the legacy CSS lives here as
+// a named token. PR 4 (1:1 復刻) imports from this file — components never
+// hard-code colors / sizes / radii / shadows.
+//
+// Naming:
+//   - $color-*   : hex colors (with semantic meaning where derivable)
+//   - $overlay-* : rgba semi-transparents (mostly the gold #BA9972 ramps)
+//   - $font-*    : typography (family / size / weight / line-height)
+//   - $space-*   : spacing scale (4-point grid)
+//   - $radius-*  : border-radius
+//   - $shadow-*  : box-shadow
+//   - $z-*       : z-index stack
+//   - $page-*    : A4 print page geometry (used by PR 4 print stylesheet)
+//
+// Heads up: the legacy file mixes a couple of inconsistent values (e.g.
+// rgba(186,153,114,0.08) vs rgba(186, 153, 114, 0.08)). We normalised to
+// a single canonical form per opacity step.
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Brand colors
+// ═══════════════════════════════════════════════════════════════════════════
+
+$color-gold: #ba9972; // primary brand (金棕主色) — borders, accents, status pills
+$color-gold-warm: #d4b080; // light gold — highlights, hover
+$color-gold-mute: #9a8b7a; // muted / disabled gold (draft status)
+$color-gold-deep: #7a6f62; // deep gold-gray (tertiary text-on-light)
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Surfaces (backgrounds / cards / dividers)
+// ═══════════════════════════════════════════════════════════════════════════
+
+$color-surface-void: #0d0804; // body bg (deep brown-black)
+$color-surface-deep: #1a1510; // panel bg (slightly lighter than void)
+$color-surface-ink: #2a1d11; // dark accent on dark mode
+$color-surface-paper: #ffffff; // report card / A4 page
+$color-surface-cream: #faf8f5; // off-white (subtle bg variation)
+$color-surface-bg: #f0eae0; // light section bg
+$color-surface-warm: #efe9df; // appendix section bg
+$color-surface-soft: #ede6da; // table header bg
+$color-surface-stroke: #e8e3dc; // divider / hairline (light mode)
+$color-surface-frost: #e4ddd2; // disabled / placeholder bg
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Ink (text colors, with hierarchy)
+// ═══════════════════════════════════════════════════════════════════════════
+
+$color-ink-deep: #2c1f10; // primary text on light (paper)
+$color-ink-base: #3d2a1a; // body text on cream
+$color-ink-soft: #4a3f32; // secondary text
+$color-ink-muted: #5a4f40; // tertiary text / metadata
+$color-ink-faded: #6b5f50; // hint text
+$color-ink-quiet: #b3a898; // disabled text
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Status colors (quote workflow + alerts)
+// ═══════════════════════════════════════════════════════════════════════════
+
+$color-status-draft: #9a8b7a; // draft (muted gold)
+$color-status-sent: #ba9972; // sent (gold, same as brand)
+$color-status-signed: #7aa88c; // signed (mint green)
+$color-status-executed: #6fa0c9; // executed (sky blue)
+
+$color-alert-error: #8b2635; // destructive / error
+$color-alert-warning: #c45c6e; // warning (rose)
+$color-alert-soft: #e89aaa; // warning bg / soft alert
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Overlays (rgba ramps — mostly the gold #BA9972 at varying opacity)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Gold overlay scale (light → opaque)
+$overlay-gold-05: rgba(186, 153, 114, 0.05);
+$overlay-gold-08: rgba(186, 153, 114, 0.08);
+$overlay-gold-12: rgba(186, 153, 114, 0.12);
+$overlay-gold-18: rgba(186, 153, 114, 0.18);
+$overlay-gold-25: rgba(186, 153, 114, 0.25);
+$overlay-gold-35: rgba(186, 153, 114, 0.35);
+$overlay-gold-50: rgba(186, 153, 114, 0.5);
+
+// Black overlay (shadows / scrim)
+$overlay-black-13: rgba(0, 0, 0, 0.13);
+$overlay-black-18: rgba(0, 0, 0, 0.18);
+$overlay-black-20: rgba(0, 0, 0, 0.2);
+$overlay-black-30: rgba(0, 0, 0, 0.3);
+$overlay-black-50: rgba(0, 0, 0, 0.5);
+$overlay-black-60: rgba(0, 0, 0, 0.6);
+$overlay-black-72: rgba(0, 0, 0, 0.72);
+
+// Brand-deep overlay (void-ish scrim)
+$overlay-void-78: rgba(13, 8, 4, 0.78);
+
+// Alert overlay
+$overlay-error-20: rgba(139, 38, 53, 0.2);
+$overlay-error-30: rgba(139, 38, 53, 0.3);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Typography
+// ═══════════════════════════════════════════════════════════════════════════
+
+$font-family-base: 'Roboto', 'Noto Sans TC', sans-serif;
+$font-family-mono: 'Roboto Mono', 'Roboto', monospace;
+
+// Font sizes (legacy uses dense scale incl. half-px values for print fit)
+$font-size-2xs: 8px;
+$font-size-xs: 8.5px;
+$font-size-sm: 9px;
+$font-size-sm-plus: 9.5px;
+$font-size-base: 10px;
+$font-size-base-plus: 10.5px;
+$font-size-md: 11px;
+$font-size-md-plus: 11.5px; // 預設 body font (legacy default)
+$font-size-lg: 12px;
+$font-size-lg-plus: 12.5px;
+$font-size-xl: 13px;
+$font-size-xl-plus: 13.5px;
+$font-size-2xl: 14px;
+$font-size-3xl: 15px;
+$font-size-3xl-plus: 15.5px;
+$font-size-4xl: 16px;
+$font-size-5xl: 17px;
+$font-size-6xl: 18px;
+$font-size-7xl: 20px;
+$font-size-8xl: 21px;
+$font-size-9xl: 25px;
+$font-size-10xl: 26px;
+$font-size-display: 31px; // quote no / hero
+
+$font-weight-light: 300;
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+$line-height-tight: 1.2;
+$line-height-snug: 1.4;
+$line-height-base: 1.55; // legacy default
+$line-height-relaxed: 1.7;
+
+$letter-spacing-tight: -0.01em;
+$letter-spacing-normal: 0;
+$letter-spacing-wide: 0.04em;
+$letter-spacing-wider: 0.08em;
+$letter-spacing-widest: 0.16em;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Spacing scale (4-point grid + a few semantic stops)
+// ═══════════════════════════════════════════════════════════════════════════
+
+$space-0: 0;
+$space-px: 1px;
+$space-0_5: 2px;
+$space-1: 4px;
+$space-1_5: 6px;
+$space-2: 8px;
+$space-2_5: 10px;
+$space-3: 12px;
+$space-3_5: 14px;
+$space-4: 16px;
+$space-5: 20px;
+$space-6: 24px;
+$space-7: 28px;
+$space-8: 32px;
+$space-9: 36px;
+$space-10: 40px;
+$space-12: 48px;
+$space-14: 56px;
+$space-16: 64px;
+$space-20: 80px;
+$space-24: 96px;
+$space-32: 128px;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Border radius
+// ═══════════════════════════════════════════════════════════════════════════
+
+$radius-none: 0;
+$radius-xs: 1px;
+$radius-sm: 2px;
+$radius-base: 3px; // most common (legacy 預設)
+$radius-md: 4px;
+$radius-lg: 6px;
+$radius-xl: 8px;
+$radius-2xl: 10px;
+$radius-3xl: 11px;
+$radius-4xl: 12px;
+$radius-full: 50%;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Shadows / elevation
+// ═══════════════════════════════════════════════════════════════════════════
+
+$shadow-none: none;
+$shadow-soft: 0 3px 24px $overlay-black-13; // section card
+$shadow-medium: 0 4px 12px $overlay-black-18; // popover / dropdown
+$shadow-modal: 0 12px 40px $overlay-black-60; // modal backdrop'd card
+
+// Inset accent (legacy report header gold stripe)
+$shadow-accent-top: inset 0 4px 0 0 $color-gold;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Z-index stack (avoids ad-hoc z-index magic numbers)
+// ═══════════════════════════════════════════════════════════════════════════
+
+$z-base: 1;
+$z-builder-panel: 5;
+$z-dropdown: 10;
+$z-tooltip: 15;
+$z-divider-handle: 20;
+$z-sticky: 30;
+$z-overlay: 50;
+$z-modal: 100;
+$z-toast: 200;
+$z-debug: 9999;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Borders
+// ═══════════════════════════════════════════════════════════════════════════
+
+$border-width-hairline: 0.5px;
+$border-width-thin: 1px;
+$border-width-base: 2px;
+$border-width-thick: 3px;
+
+$border-base: $border-width-thin solid $color-surface-stroke;
+$border-gold: $border-width-thin solid $color-gold;
+$border-accent: $border-width-thick solid $color-gold;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Transitions
+// ═══════════════════════════════════════════════════════════════════════════
+
+$transition-fast: 120ms ease-out;
+$transition-base: 200ms ease-out;
+$transition-slow: 320ms ease-out;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Print / A4 page geometry
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// PR 4 print stylesheet uses these. Legacy preview hard-codes the same
+// values inline — we centralise so cover-page / appendix / table all
+// reference one source.
+
+$page-width: 210mm;
+$page-height: 297mm;
+$page-padding: 12mm; // outer margin
+$page-padding-narrow: 8mm; // appendix tighter margin
+
+$page-color-paper: $color-surface-paper;
+$page-color-stripe: $color-gold; // edge-to-edge top stripe (legacy signature)
+$page-stripe-height: 4px; // ditto
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Builder panel / preview layout
+// ═══════════════════════════════════════════════════════════════════════════
+
+$builder-panel-width-default: 520px;
+$builder-panel-width-min: 320px;
+$builder-panel-width-max: 800px;
+$builder-divider-width: 6px;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Semantic aliases (for clarity in component scss)
+// ═══════════════════════════════════════════════════════════════════════════
+
+$color-bg-app: $color-surface-void;
+$color-bg-panel: $color-surface-deep;
+$color-bg-paper: $color-surface-paper;
+$color-bg-section: $color-surface-warm;
+$color-bg-table-head: $color-surface-soft;
+
+$color-text-primary: $color-ink-deep;
+$color-text-secondary: $color-ink-soft;
+$color-text-tertiary: $color-ink-faded;
+$color-text-disabled: $color-ink-quiet;
+$color-text-on-dark: $color-surface-paper;
+
+$color-border-default: $color-surface-stroke;
+$color-border-emphasis: $color-gold;
+$color-border-strong: $color-gold;
+
+$color-link: $color-gold;
+$color-focus-ring: $color-gold-warm;

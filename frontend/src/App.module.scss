@@ -1,0 +1,25 @@
+// App-level placeholder layout. PR 4 will replace the per-page placeholders
+// with real Builder / History / QuoteDetail trees and these classes will
+// likely be removed or absorbed into page-specific modules.
+
+@use './styles/tokens.scss' as *;
+
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: $space-10;
+}
+
+.subtitle {
+  margin-top: $space-2;
+  color: $color-text-secondary;
+}
+
+.nav {
+  margin-top: $space-6;
+}
+
+.quoteNo {
+  font-family: $font-family-mono;
+  font-size: $font-size-md-plus;
+}
