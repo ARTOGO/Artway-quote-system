@@ -1,0 +1,10 @@
+dist
+node_modules
+coverage
+public
+pnpm-lock.yaml
+*.min.js
+*.min.css
+
+# 4228 行原 HTML、PR 4 會 1:1 復刻成 React 後刪、過渡期不 reformat
+index.html
