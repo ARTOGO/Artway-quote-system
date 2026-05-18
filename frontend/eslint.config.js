@@ -18,7 +18,10 @@ import prettier from 'eslint-config-prettier';
 
 export default [
   {
-    ignores: ['dist', 'node_modules', 'coverage', 'public', '**/*.config.{js,ts,cjs,mjs}'],
+    // Narrowed (reviewer Gemini #3257443985): ignore only generated /
+    // vendored output. Build configs (vite.config.ts / vitest.config.ts /
+    // eslint.config.js) should be lint-checked too.
+    ignores: ['dist', 'node_modules', 'coverage', 'public'],
   },
   ...tseslint.configs.recommended,
   {

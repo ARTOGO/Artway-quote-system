@@ -50,7 +50,15 @@ export function parseHash(hash: string): Route {
   }
   const quoteMatch = /^quote\/(.+)$/.exec(clean);
   if (quoteMatch) {
-    return { name: 'quote-detail', quoteNo: decodeURIComponent(quoteMatch[1]) };
+    // decodeURIComponent throws URIError on malformed percent encoding
+    // (e.g. `%E0%A4%A` from a truncated bookmark, or just `%`). Fall back
+    // to Builder rather than crash the whole app on initial load.
+    // Reviewer flagged: Gemini #3257443997 + Codex #3257453832 (both P1).
+    try {
+      return { name: 'quote-detail', quoteNo: decodeURIComponent(quoteMatch[1]) };
+    } catch {
+      return { name: 'builder' };
+    }
   }
   // Unknown route — fall back to Builder rather than 404.
   // (Legacy behaviour; safer for business than a hard 404 page.)

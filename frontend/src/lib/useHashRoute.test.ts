@@ -46,4 +46,14 @@ describe('parseHash', () => {
     expect(parseHash('#history')).toEqual({ name: 'history' });
     expect(parseHash('history')).toEqual({ name: 'history' });
   });
+
+  it('falls back to builder when quote_no has malformed percent encoding', () => {
+    // decodeURIComponent throws URIError on incomplete / invalid percent
+    // escapes. Reviewer flagged (Gemini #3257443997 + Codex #3257453832 P1):
+    // pasted bookmarks or truncated URLs must not crash the app.
+    expect(parseHash('#/quote/%E0%A4%A')).toEqual({ name: 'builder' }); // truncated UTF-8 sequence
+    expect(parseHash('#/quote/%')).toEqual({ name: 'builder' }); // lone percent
+    expect(parseHash('#/quote/%ZZ')).toEqual({ name: 'builder' }); // non-hex after %
+    expect(parseHash('#/quote/abc%')).toEqual({ name: 'builder' }); // trailing %
+  });
 });
