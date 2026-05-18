@@ -1,0 +1,63 @@
+// Global styles — minimal reset + body baseline.
+// Imported once by main.tsx so it applies to the whole app.
+//
+// PR 4 will add print stylesheets (@media print) for the A4 PDF flow;
+// keeping that separate so this file stays small and editable.
+
+@use './tokens.scss' as *;
+
+// ─── Reset ────────────────────────────────────────────────────────────────
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+// ─── Document baseline ───────────────────────────────────────────────────
+html,
+body {
+  height: 100%;
+  // Legacy quote-app prints PDFs; force background colours to be honoured
+  // by default so the gold stripe / table backgrounds aren't dropped.
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+body {
+  font-family: $font-family-base;
+  font-size: $font-size-md-plus;
+  line-height: $line-height-base;
+  color: $color-text-primary;
+  background: $color-bg-app;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+// ─── Anchors ─────────────────────────────────────────────────────────────
+a {
+  color: $color-link;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-focus-ring;
+    outline-offset: 2px;
+    border-radius: $radius-xs;
+  }
+}
+
+// ─── Form basics (PR 4 拓展) ─────────────────────────────────────────────
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
