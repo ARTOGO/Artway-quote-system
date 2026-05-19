@@ -38,6 +38,8 @@ export interface QuoteSales {
 }
 
 export interface QuoteItem {
+  id: string; // stable React key + reorder anchor
+  sub_group: string; // Category column (e.g. A-1, B-2, or free text in manual)
   name: string;
   unit: string;
   qty: number;
@@ -47,6 +49,14 @@ export interface QuoteItem {
 
 export interface QuoteGroup {
   id: string;
+  /**
+   * Immutable group sequence number — drives default title "A-<seq>". Stays
+   * stable when the user renames the title, so subsequent + 新增組 calls
+   * never collide on `A-1` even if the first group's `A-1` prefix was
+   * removed. Mirrors legacy `nextGroupNum` counter (legacy.html line 2560).
+   * Reviewer (Codex C2).
+   */
+  seq: number;
   title: string;
   items: QuoteItem[];
 }
@@ -86,6 +96,18 @@ export type QuoteAction =
   | { type: 'SET_META'; field: keyof QuoteMeta; value: string }
   | { type: 'SET_CLIENT'; field: keyof QuoteClient; value: string }
   | { type: 'SET_SALES'; field: keyof QuoteSales; value: string }
+  // ─── Groups ────────────────────────────────────────────────────────────
+  | { type: 'ADD_GROUP'; group: QuoteGroup }
+  | { type: 'REMOVE_GROUP'; gid: string }
+  | { type: 'RENAME_GROUP'; gid: string; title: string }
+  | { type: 'ADD_ITEM'; gid: string; item: QuoteItem }
+  | { type: 'REMOVE_ITEM'; gid: string; itemId: string }
+  | {
+      type: 'UPDATE_ITEM';
+      gid: string;
+      itemId: string;
+      patch: Partial<Omit<QuoteItem, 'id'>>;
+    }
   | { type: 'RESET'; quote: Quote }
   | { type: 'LOAD'; quote: Quote };
 

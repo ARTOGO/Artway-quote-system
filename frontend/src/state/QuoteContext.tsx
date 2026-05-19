@@ -25,6 +25,8 @@ import type {
   Quote,
   QuoteAction,
   QuoteClient,
+  QuoteGroup,
+  QuoteItem,
   QuoteMeta,
   QuoteSales,
   QuoteStatus,
@@ -41,6 +43,14 @@ interface QuoteContextValue {
   setSales: (field: keyof QuoteSales, value: string) => void;
   reset: (quote?: Quote) => void;
   load: (quote: Quote) => void;
+
+  // ─── Groups (Session 2) ────────────────────────────────────────────────
+  addGroup: (group: QuoteGroup) => void;
+  removeGroup: (gid: string) => void;
+  renameGroup: (gid: string, title: string) => void;
+  addItem: (gid: string, item: QuoteItem) => void;
+  removeItem: (gid: string, itemId: string) => void;
+  updateItem: (gid: string, itemId: string, patch: Partial<Omit<QuoteItem, 'id'>>) => void;
 
   // ─── Quote-number allocation side-channel (Codex F10/F14) ──────────────
   // BuilderPanel's allocation effect depends on `fetchToken`; bumping it
@@ -105,6 +115,27 @@ export function QuoteProvider({ children, initial }: QuoteProviderProps): JSX.El
   );
   const load = useCallback((quote: Quote) => dispatch({ type: 'LOAD', quote }), []);
 
+  // ─── Groups (Session 2) ────────────────────────────────────────────────
+  const addGroup = useCallback((group: QuoteGroup) => dispatch({ type: 'ADD_GROUP', group }), []);
+  const removeGroup = useCallback((gid: string) => dispatch({ type: 'REMOVE_GROUP', gid }), []);
+  const renameGroup = useCallback(
+    (gid: string, title: string) => dispatch({ type: 'RENAME_GROUP', gid, title }),
+    [],
+  );
+  const addItem = useCallback(
+    (gid: string, item: QuoteItem) => dispatch({ type: 'ADD_ITEM', gid, item }),
+    [],
+  );
+  const removeItem = useCallback(
+    (gid: string, itemId: string) => dispatch({ type: 'REMOVE_ITEM', gid, itemId }),
+    [],
+  );
+  const updateItem = useCallback(
+    (gid: string, itemId: string, patch: Partial<Omit<QuoteItem, 'id'>>) =>
+      dispatch({ type: 'UPDATE_ITEM', gid, itemId, patch }),
+    [],
+  );
+
   // ─── Allocation side-channel (Codex F10 / F14) ─────────────────────────
   const [fetchToken, setFetchToken] = useState(0);
   const retry = useCallback(() => setFetchToken((n) => n + 1), []);
@@ -130,6 +161,12 @@ export function QuoteProvider({ children, initial }: QuoteProviderProps): JSX.El
       setSales,
       reset,
       load,
+      addGroup,
+      removeGroup,
+      renameGroup,
+      addItem,
+      removeItem,
+      updateItem,
       fetchToken,
       retry,
       newQuote,
@@ -145,6 +182,12 @@ export function QuoteProvider({ children, initial }: QuoteProviderProps): JSX.El
       setSales,
       reset,
       load,
+      addGroup,
+      removeGroup,
+      renameGroup,
+      addItem,
+      removeItem,
+      updateItem,
       fetchToken,
       retry,
       newQuote,

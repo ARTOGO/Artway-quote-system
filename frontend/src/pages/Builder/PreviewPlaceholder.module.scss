@@ -174,3 +174,185 @@
 .partyInfoLine {
   display: block;
 }
+
+// ─── 01 專案報價內容 (Session 2 Groups) ─────────────────────────────────
+// Mirrors legacy `.section-wrap` / `.section-hd` / `.quote-group` / `.qt` /
+// `.totals-box` (legacy.html line 880-940). Tokens-only — no magic hex.
+
+.sectionWrap {
+  margin: 0 0 $space-5;
+  page-break-inside: avoid;
+}
+
+.sectionHd {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  margin-bottom: $space-2_5;
+}
+
+.sectionNum {
+  font-size: $font-size-9xl; // 25px (legacy `.section-num`)
+  font-weight: $font-weight-bold;
+  color: $color-gold;
+  line-height: 1;
+}
+
+.sectionZh {
+  font-size: $font-size-lg-plus; // 12.5px (legacy `.section-zh`)
+  font-weight: $font-weight-semibold;
+  color: $color-ink-deep;
+  letter-spacing: $letter-spacing-wide;
+}
+
+.sectionEn {
+  font-size: $font-size-2xs; // 8px (legacy `.section-en`)
+  color: $color-gold-deep;
+  letter-spacing: $letter-spacing-widest;
+  margin-top: 2px;
+}
+
+.quoteGroup {
+  margin-bottom: $space-3_5; // 14px (legacy `.quote-group`)
+  page-break-inside: avoid;
+}
+
+.groupTitle {
+  font-size: $font-size-md; // 11px
+  font-weight: $font-weight-semibold;
+  color: $color-ink-table; // #2C1F10 (legacy 用 ink-table 系)
+  background: $color-bg-table-head;
+  padding: $space-1_5 $space-2_5;
+  margin-bottom: $space-1_5;
+  border-left: 3px solid $color-gold;
+}
+
+// Quotation table column widths (legacy `.qt thead th` inline widths).
+.colNo {
+  width: 36px;
+}
+.colCategory {
+  width: 95px;
+}
+.colDesc {
+  // explicit class so we can later override (currently auto-fills)
+}
+.colQty {
+  width: 60px;
+}
+.colUnitPrice {
+  width: 68px;
+}
+.colAmount {
+  width: 78px;
+}
+
+// Quotation table (legacy `.qt`)
+.qt {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-sm-plus; // 9.5px (legacy `.qt`)
+  table-layout: fixed;
+
+  thead {
+    display: table-header-group;
+  }
+
+  thead tr {
+    background: $color-surface-ink; // #2A1D11
+  }
+
+  thead th {
+    padding: 6px 8px;
+    color: $color-surface-cream;
+    font-weight: $font-weight-semibold;
+    text-align: left;
+    letter-spacing: $letter-spacing-wide;
+  }
+
+  tbody tr {
+    border-bottom: $border-width-thin solid $color-bg-table-head;
+  }
+
+  tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  tbody td {
+    padding: 6px 8px;
+    color: $color-ink-table;
+    vertical-align: top;
+  }
+
+  .r {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  thead th.r,
+  thead .r {
+    text-align: right;
+  }
+
+  .qtyUnit {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    text-align: right;
+  }
+
+  .no {
+    color: $color-gold-deep;
+    font-size: $font-size-xs;
+    white-space: nowrap;
+  }
+
+  .subCat {
+    white-space: pre-wrap;
+    font-size: $font-size-md;
+  }
+
+  .desc {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+.qtEmpty {
+  text-align: center;
+  color: $color-ink-quiet;
+  padding: $space-3;
+  font-size: $font-size-md;
+}
+
+// Group totals (Subtotal / Tax / Grand)
+.groupTotals {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: $space-2;
+}
+
+.totalsBox {
+  min-width: 240px;
+  border-top: $border-width-thin solid $overlay-gold-35;
+}
+
+.totalsRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-md-plus;
+  color: $color-ink-soft;
+  padding: 2px $space-2;
+}
+
+.totalsGrand {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-lg-plus; // 12.5px
+  font-weight: $font-weight-semibold;
+  color: $color-surface-cream;
+  background: $color-gold;
+  padding: $space-1_5 $space-2;
+  margin-top: $space-1;
+}

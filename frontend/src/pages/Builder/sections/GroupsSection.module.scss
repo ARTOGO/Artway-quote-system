@@ -1,0 +1,366 @@
+// Groups section styles — Session 2.
+//
+// Visually maps to legacy `.bp-group / .bp-group-hd / .bp-items / .bp-picker
+// / .bp-add-row` (legacy.html line 258-510). Tokens come from tokens.scss.
+
+@use '../../../styles/tokens.scss' as *;
+
+// `+ 新增組` button shown in the section title (mini variant of bp-btn).
+.miniBtn {
+  background: transparent;
+  border: $border-width-thin solid $color-gold;
+  color: $color-gold;
+  padding: 4px 10px; // legacy `.bp-btn-mini`: font 11.5 / padding 4 10
+  border-radius: $radius-base;
+  font-size: $font-size-md-plus; // 11.5px
+  font-family: inherit;
+  letter-spacing: $letter-spacing-wide;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: $line-height-snug;
+  transition:
+    background $transition-fast,
+    color $transition-fast;
+
+  &:hover {
+    background: $color-gold;
+    color: $color-surface-deep;
+  }
+}
+
+.empty,
+.emptyItems {
+  color: $overlay-gold-50;
+  font-size: $font-size-md-plus;
+  text-align: center;
+  padding: $space-3 0;
+}
+
+// Group card (one per QuoteGroup) — legacy `.bp-group`
+.card {
+  background: $overlay-gold-08;
+  border: $border-width-thin solid $overlay-gold-25;
+  border-radius: $radius-md;
+  padding: $space-3; // 12px (legacy)
+  margin-bottom: $space-3_5; // 14px (legacy)
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin-bottom: $space-2;
+}
+
+.titleInput {
+  flex: 1;
+  background: $color-surface-void;
+  border: $border-width-thin solid $overlay-gold-30;
+  border-radius: $radius-base;
+  color: $color-surface-cream;
+  padding: $space-1_5 $space-2_5;
+  font-size: $font-size-xl-plus; // 13.5px
+  font-family: inherit;
+  font-weight: $font-weight-medium;
+
+  &:focus {
+    outline: none;
+    border-color: $color-gold;
+  }
+}
+
+.removeGroup {
+  background: transparent;
+  border: $border-width-thin solid $color-alert-warning;
+  color: $color-alert-warning;
+  padding: 2px 8px;
+  border-radius: $radius-base;
+  cursor: pointer;
+  font-size: $font-size-xl;
+  font-family: inherit;
+  line-height: $line-height-tight;
+
+  &:hover {
+    background: $color-alert-error;
+    color: $color-surface-paper;
+    border-color: $color-alert-error;
+  }
+}
+
+// Items list
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1_5;
+}
+
+.itemRow {
+  background: $overlay-gold-05;
+  border: $border-width-thin solid $overlay-gold-18;
+  border-radius: $radius-base;
+  padding: $space-2 $space-2_5;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1_5;
+}
+
+.itemTop {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.itemSubGroup {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-gold;
+  letter-spacing: $letter-spacing-wide;
+  flex: 0 0 60px;
+}
+
+.itemName {
+  flex: 1;
+  min-width: 0;
+  font-size: $font-size-md-plus;
+  color: $color-surface-cream;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemRemove {
+  background: transparent;
+  border: $border-width-thin solid $overlay-gold-35;
+  color: $color-gold;
+  width: 22px;
+  height: 22px;
+  border-radius: $radius-base;
+  cursor: pointer;
+  font-size: $font-size-md-plus;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: $color-alert-error;
+    color: $color-surface-paper;
+    border-color: $color-alert-error;
+  }
+}
+
+.itemFields {
+  display: flex;
+  align-items: flex-end;
+  gap: $space-2;
+}
+
+.miniField {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+
+  > span {
+    font-size: $font-size-xs; // 8.5px (legacy bp-field-mini)
+    color: $overlay-gold-70;
+    letter-spacing: $letter-spacing-wide;
+    text-transform: uppercase;
+  }
+
+  > input {
+    width: 100%;
+    background: $color-surface-void;
+    border: $border-width-thin solid $overlay-gold-25;
+    border-radius: $radius-sm;
+    color: $color-surface-cream;
+    padding: 4px 6px;
+    font-size: $font-size-md;
+    font-family: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: $color-gold;
+    }
+  }
+}
+
+.miniRow {
+  display: flex;
+  gap: $space-2;
+}
+
+.itemAmount {
+  flex: 0 0 auto;
+  font-size: $font-size-md-plus;
+  font-weight: $font-weight-medium;
+  color: $color-gold-warm;
+  white-space: nowrap;
+  text-align: right;
+  min-width: 80px;
+}
+
+// Add buttons + picker
+.addRow {
+  display: flex;
+  gap: $space-2;
+  margin-top: $space-2_5;
+}
+
+.addBtn {
+  flex: 1;
+  background: $overlay-gold-06;
+  border: $border-width-thin dashed $overlay-gold-35;
+  color: $color-gold;
+  padding: $space-1_5 $space-2;
+  border-radius: $radius-base;
+  cursor: pointer;
+  font-size: $font-size-md-plus;
+  font-family: inherit;
+  letter-spacing: $letter-spacing-wide;
+
+  &:hover {
+    border-style: solid;
+    border-color: $color-gold;
+    background: $overlay-gold-12;
+  }
+}
+
+.picker {
+  margin-top: $space-2_5;
+  background: $color-surface-deep;
+  border: $border-width-thin solid $color-gold;
+  border-radius: $radius-md;
+  padding: $space-2_5;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.pickerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: $font-size-md-plus;
+  font-weight: $font-weight-semibold;
+  color: $color-gold;
+}
+
+.pickerCancel {
+  background: transparent;
+  border: none;
+  color: $color-gold;
+  cursor: pointer;
+  font-size: $font-size-lg;
+  padding: 2px 6px;
+  border-radius: $radius-base;
+
+  &:hover {
+    background: $overlay-gold-12;
+  }
+}
+
+.pickerSearch {
+  width: 100%;
+  background: $color-surface-void;
+  border: $border-width-thin solid $overlay-gold-30;
+  border-radius: $radius-base;
+  color: $color-surface-cream;
+  padding: $space-1_5 $space-2_5;
+  font-size: $font-size-md-plus;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: $color-gold;
+  }
+}
+
+.pickerList {
+  max-height: 240px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pickerEmpty {
+  text-align: center;
+  padding: $space-3;
+  color: $overlay-gold-50;
+  font-size: $font-size-md;
+}
+
+.pickerItem {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  align-items: center;
+  gap: $space-2;
+  background: $overlay-gold-05;
+  border: $border-width-thin solid $overlay-gold-18;
+  border-radius: $radius-base;
+  padding: $space-1_5 $space-2;
+  color: $color-surface-cream;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  font-size: $font-size-md-plus;
+
+  &:hover {
+    background: $overlay-gold-18;
+    border-color: $color-gold;
+  }
+}
+
+.pickerItemCat {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-gold;
+  letter-spacing: $letter-spacing-wide;
+}
+
+.pickerItemName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pickerItemPrice {
+  font-size: $font-size-md;
+  color: $color-gold-warm;
+  white-space: nowrap;
+}
+
+.manualSubmit {
+  width: 100%;
+  margin-top: $space-1_5;
+}
+
+// Totals
+.totals {
+  margin-top: $space-3;
+  padding-top: $space-2_5;
+  border-top: $border-width-thin dashed $overlay-gold-25;
+}
+
+.totalsRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-md-plus;
+  color: $color-gold-warm;
+  padding: 2px 0;
+}
+
+.totalsGrand {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-gold;
+  margin-top: $space-1_5;
+  padding-top: $space-1_5;
+  border-top: $border-width-thin solid $overlay-gold-35;
+}
