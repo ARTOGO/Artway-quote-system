@@ -21,7 +21,8 @@
 import { useState, type JSX } from 'react';
 
 import { Button } from '../../../components/Button/Button';
-import { newGroupId, newItemId, nextGroupTitle } from '../../../lib/groupId';
+import { NumberInput } from '../../../components/NumberInput/NumberInput';
+import { groupTitleFor, newGroupId, newItemId, nextGroupSeq } from '../../../lib/groupId';
 import { ITEMS_CATALOG_FIXTURE, searchItems, type CatalogItem } from '../../../lib/itemsCatalog';
 import {
   calcGroupSubtotal,
@@ -40,8 +41,11 @@ export function GroupsSection(): JSX.Element {
   const groups = state.groups;
 
   function handleAddGroup(): void {
-    const title = nextGroupTitle(groups.map((g) => g.title));
-    addGroup({ id: newGroupId(), title, items: [] });
+    // C2 fix: use immutable `seq` (max+1) rather than regex-extracting from
+    // the editable title. A user renaming "A-1 ..." → "設計費" no longer
+    // collapses the next + 新增組 back to A-1.
+    const seq = nextGroupSeq(groups);
+    addGroup({ id: newGroupId(), seq, title: groupTitleFor(seq), items: [] });
   }
 
   function handleRemoveGroup(gid: string): void {
@@ -207,14 +211,7 @@ function ItemRow({ item, onUpdate, onRemove }: ItemRowProps): JSX.Element {
       <div className={styles.itemFields}>
         <label className={styles.miniField}>
           <span>數量</span>
-          <input
-            type="number"
-            min={0}
-            step="any"
-            value={item.qty}
-            onChange={(e) => onUpdate({ qty: parseFloat(e.target.value) || 0 })}
-            aria-label="數量"
-          />
+          <NumberInput value={item.qty} onCommit={(qty) => onUpdate({ qty })} aria-label="數量" />
         </label>
         <label className={styles.miniField}>
           <span>單位</span>
@@ -227,12 +224,9 @@ function ItemRow({ item, onUpdate, onRemove }: ItemRowProps): JSX.Element {
         </label>
         <label className={styles.miniField}>
           <span>單價</span>
-          <input
-            type="number"
-            min={0}
-            step={1}
+          <NumberInput
             value={item.unitPrice}
-            onChange={(e) => onUpdate({ unitPrice: parseFloat(e.target.value) || 0 })}
+            onCommit={(unitPrice) => onUpdate({ unitPrice })}
             aria-label="單價"
           />
         </label>

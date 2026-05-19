@@ -168,7 +168,48 @@ describe('GroupsSection — item editing', () => {
     const qtyInput = screen.getByLabelText('數量') as HTMLInputElement;
     await user.clear(qtyInput);
     await user.type(qtyInput, '7');
+    // NumberInput commits on blur (Codex C1 — preserves intermediate `0.`)
+    await user.tab();
     expect(screen.getByTestId('first-item-amount').textContent).toBe('700');
+  });
+
+  it('preserves fractional qty entered as 0.5 (Codex C1 regression test)', async () => {
+    const { user } = mount();
+    await user.click(screen.getByRole('button', { name: '+ 新增組' }));
+    await user.click(screen.getByRole('button', { name: /手動新增/ }));
+    const dialog = await screen.findByRole('dialog', { name: '手動新增品項' });
+    await user.type(within(dialog).getByLabelText('品項名稱'), 'half day');
+    await user.type(within(dialog).getByLabelText('單價'), '1000');
+    await user.click(within(dialog).getByRole('button', { name: '加入' }));
+
+    const qtyInput = screen.getByLabelText('數量') as HTMLInputElement;
+    await user.clear(qtyInput);
+    await user.type(qtyInput, '0.5');
+    // While focused the dot survives — NOT collapsed to 0
+    expect(qtyInput.value).toBe('0.5');
+    await user.tab();
+    // After blur: parseFloat('0.5') = 0.5 → amount = 500 (not 5000)
+    expect(screen.getByTestId('first-item-amount').textContent).toBe('500');
+  });
+
+  it('renaming the first group to non-A-N text keeps next + 新增組 at A-2 (Codex C2)', async () => {
+    const { user } = mount();
+    const addBtn = screen.getByRole('button', { name: '+ 新增組' });
+    await user.click(addBtn);
+    expect(screen.getByTestId('first-group-title').textContent).toMatch(/^A-1．/);
+
+    // Remove the A-1 prefix via rename
+    const titleInput = screen.getByLabelText('組別名稱') as HTMLInputElement;
+    await user.clear(titleInput);
+    await user.type(titleInput, '設計費');
+    expect(screen.getByTestId('first-group-title').textContent).toBe('設計費');
+
+    // Next + 新增組 must NOT collide back to A-1
+    await user.click(addBtn);
+    const titles = screen.getAllByLabelText('組別名稱').map((el) => (el as HTMLInputElement).value);
+    expect(titles).toContain('設計費');
+    expect(titles.some((t) => t.startsWith('A-2'))).toBe(true);
+    expect(titles.filter((t) => t.startsWith('A-1')).length).toBe(0);
   });
 
   it('removing an item clears it from state', async () => {

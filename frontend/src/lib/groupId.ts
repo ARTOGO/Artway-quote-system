@@ -20,19 +20,18 @@ export function newItemId(now: number = Date.now()): string {
 }
 
 /**
- * Default group title: `A-1．（請輸入組別名稱）` — `A-1` for the first group,
- * `A-2` for the second, etc. Legacy `nextGroupNum` counter (line 2560).
- * We compute from existing groups so it's stateless / pure.
+ * Next group sequence number — `max(existing seq) + 1`, or 1 when empty.
+ * Reviewer (Codex C2): drives default title via an *immutable* seq field
+ * on each group rather than regex-matching the editable title, so removing
+ * the `A-1` prefix via rename no longer collapses the next + 新增組 back
+ * to `A-1`.
  */
-export function nextGroupTitle(existingTitles: ReadonlyArray<string>): string {
-  // Find max numeric suffix in `A-<n>` prefix
-  let max = 0;
-  for (const t of existingTitles) {
-    const m = /^A-(\d+)/.exec(t);
-    if (m) {
-      const n = parseInt(m[1], 10);
-      if (n > max) max = n;
-    }
-  }
-  return `A-${max + 1}．（請輸入組別名稱）`;
+export function nextGroupSeq(existing: ReadonlyArray<{ seq: number }>): number {
+  if (existing.length === 0) return 1;
+  return existing.reduce((m, g) => (g.seq > m ? g.seq : m), 0) + 1;
+}
+
+/** Default title for a freshly-added group: `A-<seq>．（請輸入組別名稱）`. */
+export function groupTitleFor(seq: number): string {
+  return `A-${seq}．（請輸入組別名稱）`;
 }

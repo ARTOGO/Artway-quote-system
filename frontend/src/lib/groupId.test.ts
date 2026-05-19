@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { newGroupId, newItemId, nextGroupTitle } from './groupId';
+import { groupTitleFor, newGroupId, newItemId, nextGroupSeq } from './groupId';
 
 describe('newGroupId', () => {
   it('produces a `g_<ts>_<rand>` shape', () => {
@@ -21,20 +21,34 @@ describe('newItemId', () => {
   });
 });
 
-describe('nextGroupTitle', () => {
-  it('returns A-1 for empty list', () => {
-    expect(nextGroupTitle([])).toBe('A-1．（請輸入組別名稱）');
+describe('nextGroupSeq', () => {
+  it('returns 1 for an empty list', () => {
+    expect(nextGroupSeq([])).toBe(1);
   });
 
-  it('increments past the max existing A-N', () => {
-    expect(nextGroupTitle(['A-1．設計', 'A-2．實作'])).toBe('A-3．（請輸入組別名稱）');
+  it('returns max(seq) + 1', () => {
+    expect(nextGroupSeq([{ seq: 1 }, { seq: 2 }])).toBe(3);
+    expect(nextGroupSeq([{ seq: 7 }])).toBe(8);
   });
 
-  it('ignores non-A prefix titles', () => {
-    expect(nextGroupTitle(['Custom title', 'B-1 ignored'])).toBe('A-1．（請輸入組別名稱）');
+  it('handles non-contiguous sequences (after a delete)', () => {
+    // Legacy `nextGroupNum` never decrements after delete — we mirror that
+    // by always returning max+1 even if there are gaps.
+    expect(nextGroupSeq([{ seq: 1 }, { seq: 3 }])).toBe(4);
   });
 
-  it('handles gaps (A-1, A-3) correctly by using max+1', () => {
-    expect(nextGroupTitle(['A-1', 'A-3'])).toBe('A-4．（請輸入組別名稱）');
+  it('is independent of the title — renaming A-1 to anything keeps next at 2', () => {
+    // C2 root cause: the OLD `nextGroupTitle(titles)` regex would miss a
+    // renamed first group and produce A-1 again. New seq-based version is
+    // immune.
+    const groups = [{ seq: 1 }]; // imagine title was renamed to "設計費"
+    expect(nextGroupSeq(groups)).toBe(2);
+  });
+});
+
+describe('groupTitleFor', () => {
+  it('formats the legacy default placeholder', () => {
+    expect(groupTitleFor(1)).toBe('A-1．（請輸入組別名稱）');
+    expect(groupTitleFor(12)).toBe('A-12．（請輸入組別名稱）');
   });
 });

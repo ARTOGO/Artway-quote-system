@@ -24,7 +24,7 @@ function item(qty: number, unitPrice: number, overrides: Partial<QuoteItem> = {}
 }
 
 function group(items: QuoteItem[]): QuoteGroup {
-  return { id: 'g_' + Math.random().toString(36).slice(2), title: 'A-1', items };
+  return { id: 'g_' + Math.random().toString(36).slice(2), seq: 1, title: 'A-1', items };
 }
 
 describe('calcItemAmount', () => {

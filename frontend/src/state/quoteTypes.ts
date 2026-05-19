@@ -49,6 +49,14 @@ export interface QuoteItem {
 
 export interface QuoteGroup {
   id: string;
+  /**
+   * Immutable group sequence number — drives default title "A-<seq>". Stays
+   * stable when the user renames the title, so subsequent + 新增組 calls
+   * never collide on `A-1` even if the first group's `A-1` prefix was
+   * removed. Mirrors legacy `nextGroupNum` counter (legacy.html line 2560).
+   * Reviewer (Codex C2).
+   */
+  seq: number;
   title: string;
   items: QuoteItem[];
 }
