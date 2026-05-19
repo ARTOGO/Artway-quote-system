@@ -226,7 +226,9 @@ function ItemRow({ item, onUpdate, onRemove }: ItemRowProps): JSX.Element {
           <span>單價</span>
           <NumberInput
             value={item.unitPrice}
-            onCommit={(unitPrice) => onUpdate({ unitPrice })}
+            // Round to integer NTD on commit (Gemini G3): money fields
+            // never carry fractional cents in the quote.
+            onCommit={(unitPrice) => onUpdate({ unitPrice: Math.round(unitPrice) })}
             aria-label="單價"
           />
         </label>
@@ -311,7 +313,7 @@ function ManualPicker({
       name: name.trim(),
       unit: unit.trim(),
       qty: 1,
-      unitPrice: parseFloat(price) || 0,
+      unitPrice: Math.round(parseFloat(price) || 0), // integer NTD (Gemini G4)
       priceTier: 'manual',
     });
   }

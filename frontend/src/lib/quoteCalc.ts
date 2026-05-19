@@ -19,7 +19,11 @@ const TAX_RATE = 0.05; // 5% 營業稅 (Session 2 fixed rate, configurable later
 export function calcItemAmount(item: Pick<QuoteItem, 'qty' | 'unitPrice'>): number {
   const qty = Number(item.qty) || 0;
   const price = Number(item.unitPrice) || 0;
-  return Math.max(0, qty) * Math.max(0, price);
+  // Round to integer NTD (no fractional cents in the final quote total).
+  // Reviewer (Gemini G2): fractional qty (0.5 day, 1.5 場) × price can
+  // produce decimals; we floor those out at the item level so subtotal,
+  // tax, and grand total all stay integer-aligned.
+  return Math.round(Math.max(0, qty) * Math.max(0, price));
 }
 
 /** Sum of all item amounts in a group (the 小計 Subtotal row). */

@@ -8,7 +8,10 @@
 // Format: `<prefix>_<timestamp>_<4-char-random>`.
 
 function rand4(): string {
-  return Math.random().toString(36).slice(2, 6);
+  // Math.random().toString(36) can produce a short string for clean values
+  // like 0.5 (=> '0.i'); pad to 4 chars so IDs always match `[a-z0-9]{4}`.
+  // Reviewer (Gemini G1).
+  return Math.random().toString(36).slice(2, 6).padEnd(4, '0');
 }
 
 export function newGroupId(now: number = Date.now()): string {

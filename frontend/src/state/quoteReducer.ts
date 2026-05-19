@@ -92,10 +92,13 @@ export function quoteReducer(state: Quote, action: QuoteAction): Quote {
     case 'REMOVE_GROUP':
       return { ...state, groups: state.groups.filter((g) => g.id !== action.gid) };
     case 'RENAME_GROUP': {
+      // Reviewer (Gemini G5): the prior version always created a new
+      // `{ ...g, title }` object even when the title was unchanged, so the
+      // every-strict-equal guard never short-circuited. Only spawn a new
+      // group object when the title actually differs.
       const groups = state.groups.map((g) =>
-        g.id === action.gid ? { ...g, title: action.title } : g,
+        g.id === action.gid && g.title !== action.title ? { ...g, title: action.title } : g,
       );
-      // Reference-equality guard so no-op renames don't trigger re-renders
       if (groups.every((g, i) => g === state.groups[i])) return state;
       return { ...state, groups };
     }
