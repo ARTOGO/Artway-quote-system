@@ -1,28 +1,30 @@
-// Date helpers — local-timezone yyyy-mm-dd (matches legacy line 2129-2137).
+// Date helpers — Asia/Taipei yyyy-mm-dd (aligns with backend's dateKey,
+// see HISTORY_BACKEND_SPEC §3.1 + backend/internal/quotes/quotenum.go).
 //
-// Browser local time is used (Asia/Taipei for ARTOGO staff). When PR 5 wires
-// the backend `/api/quotes/next-number`, the server-side dateKey will use
-// Asia/Taipei explicitly (per HISTORY_BACKEND_SPEC §3.1). Mismatch only
-// occurs if an employee runs the tool from a non-TW timezone, which doesn't
-// happen today.
+// Reviewer (Gemini #3265370142): the prior version used browser local time
+// which silently mismatches the backend dateKey for staff on holiday in a
+// non-TW timezone, OR running the app from a Cloud Run instance whose
+// process tz defaults to UTC. `toLocaleDateString('sv-SE', { timeZone:
+// 'Asia/Taipei' })` is the canonical way to get an ISO yyyy-mm-dd string
+// in a specific timezone — Swedish locale formats dates as ISO and the
+// timezone option overrides the JS engine's local interpretation.
 
-function pad2(n: number): string {
-  return String(n).padStart(2, '0');
-}
+const TAIPEI_TZ = 'Asia/Taipei';
 
 /**
- * Returns today's date as `yyyy-mm-dd` using the browser's local timezone.
+ * Returns the given Date's calendar date in Asia/Taipei as `yyyy-mm-dd`.
+ * Default base is `new Date()` (today, in Taipei).
  */
 export function todayISO(date: Date = new Date()): string {
-  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+  return date.toLocaleDateString('sv-SE', { timeZone: TAIPEI_TZ });
 }
 
 /**
- * Returns today + `days` as `yyyy-mm-dd` using the browser's local timezone.
- * Negative values supported (returns past dates).
+ * Returns `base + days` as `yyyy-mm-dd` in Asia/Taipei. Negative values
+ * supported (returns past dates).
  */
 export function addDaysISO(days: number, base: Date = new Date()): string {
   const d = new Date(base);
-  d.setDate(d.getDate() + days);
+  d.setUTCDate(d.getUTCDate() + days);
   return todayISO(d);
 }

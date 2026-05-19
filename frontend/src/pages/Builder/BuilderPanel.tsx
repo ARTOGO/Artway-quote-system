@@ -114,8 +114,14 @@ export function BuilderPanel(): JSX.Element {
         <div role="alert" className={styles.apiError} data-testid="api-error">
           <div>{apiError}</div>
           <div className={styles.apiErrorHint}>
-            請確認後端已啟動（本機：<code>cd backend && docker compose up</code>），
-            然後點下方「重試」。
+            {import.meta.env.DEV ? (
+              <>
+                請確認後端已啟動（本機：<code>cd backend && docker compose up</code>），
+                然後點下方「重試」。
+              </>
+            ) : (
+              <>請確認網路連線正常或後端服務已啟動，然後點下方「重試」。</>
+            )}
           </div>
           <button
             type="button"
