@@ -1,0 +1,70 @@
+@use '../../styles/tokens.scss' as *;
+
+.panel {
+  width: $builder-panel-width-default;
+  min-width: $builder-panel-width-min;
+  flex-shrink: 0;
+  background: $color-surface-deep;
+  color: $color-surface-stroke;
+  padding: 0;
+  overflow-y: auto;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  font-size: $font-size-2xl; // 14px
+}
+
+.body {
+  padding: 18px 22px 80px; // legacy exact
+}
+
+// Inline error banner — shown when the backend `/api/quotes/next-number`
+// call fails (typically: backend not running in dev). Session 4 can
+// upgrade this to a Toast via Radix.
+.apiError {
+  margin: $space-3 $space-5 0;
+  padding: $space-2_5 $space-3;
+  border: $border-width-thin solid $color-alert-warning;
+  border-radius: $radius-base;
+  background: $overlay-error-20;
+  color: $color-alert-soft;
+  font-size: $font-size-md-plus;
+  line-height: $line-height-snug;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+
+  code {
+    font-family: $font-family-mono;
+    font-size: $font-size-md;
+    background: $overlay-black-30;
+    padding: 1px $space-1_5;
+    border-radius: $radius-xs;
+  }
+}
+
+.apiErrorHint {
+  font-size: $font-size-md;
+  color: $color-gold-warm;
+  opacity: 0.85;
+}
+
+.apiErrorRetry {
+  align-self: flex-start;
+  background: transparent;
+  border: $border-width-thin solid $color-alert-warning;
+  color: $color-alert-soft;
+  padding: $space-1_5 $space-3_5;
+  border-radius: $radius-base;
+  font-family: inherit;
+  font-size: $font-size-md-plus;
+  cursor: pointer;
+  transition:
+    background $transition-fast,
+    color $transition-fast;
+
+  &:hover {
+    background: $color-alert-warning;
+    color: $color-surface-paper;
+  }
+}

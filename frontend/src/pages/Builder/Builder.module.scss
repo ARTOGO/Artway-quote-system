@@ -1,0 +1,35 @@
+@use '../../styles/tokens.scss' as *;
+
+.root {
+  display: flex;
+  align-items: stretch;
+  min-height: 100vh;
+}
+
+.divider {
+  width: $builder-divider-width;
+  flex-shrink: 0;
+  background: $color-surface-void;
+  border-left: $border-width-thin solid $color-gold;
+  border-right: $border-width-thin solid $overlay-gold-25;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: $z-dropdown; // 10 (legacy exact)
+  transition:
+    background $transition-fast,
+    border-color $transition-fast;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 56px;
+    background: $overlay-gold-50;
+    border-radius: $radius-xs;
+    pointer-events: none;
+  }
+}

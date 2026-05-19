@@ -27,13 +27,25 @@ body {
 
 body {
   font-family: $font-family-base;
-  font-size: $font-size-md-plus;
+  font-size: $font-size-md; // 11px (legacy exact)
   line-height: $line-height-base;
   color: $color-text-primary;
   background: $color-bg-app;
+  display: flex; // legacy exact (panel | divider | preview side-by-side)
+  align-items: stretch;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+// React inserts an extra #root wrapper between body and the app tree
+// (legacy has panel/divider/preview as direct flex children of body).
+// Make #root grow so wide viewports still fill the preview area
+// background instead of stopping at panel + A4 page width.
+// Reviewer (Codex final R1 P2).
+#root {
+  flex: 1;
+  min-width: 0;
 }
 
 // ─── Anchors ─────────────────────────────────────────────────────────────
