@@ -38,6 +38,8 @@ export interface QuoteSales {
 }
 
 export interface QuoteItem {
+  id: string; // stable React key + reorder anchor
+  sub_group: string; // Category column (e.g. A-1, B-2, or free text in manual)
   name: string;
   unit: string;
   qty: number;
@@ -86,6 +88,18 @@ export type QuoteAction =
   | { type: 'SET_META'; field: keyof QuoteMeta; value: string }
   | { type: 'SET_CLIENT'; field: keyof QuoteClient; value: string }
   | { type: 'SET_SALES'; field: keyof QuoteSales; value: string }
+  // ─── Groups ────────────────────────────────────────────────────────────
+  | { type: 'ADD_GROUP'; group: QuoteGroup }
+  | { type: 'REMOVE_GROUP'; gid: string }
+  | { type: 'RENAME_GROUP'; gid: string; title: string }
+  | { type: 'ADD_ITEM'; gid: string; item: QuoteItem }
+  | { type: 'REMOVE_ITEM'; gid: string; itemId: string }
+  | {
+      type: 'UPDATE_ITEM';
+      gid: string;
+      itemId: string;
+      patch: Partial<Omit<QuoteItem, 'id'>>;
+    }
   | { type: 'RESET'; quote: Quote }
   | { type: 'LOAD'; quote: Quote };
 

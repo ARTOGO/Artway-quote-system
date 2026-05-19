@@ -8,7 +8,16 @@
 
 import type { JSX } from 'react';
 
+import {
+  calcGroupSubtotal,
+  calcGroupTax,
+  calcGroupTotal,
+  calcItemAmount,
+  displaySubGroup,
+  formatMoney,
+} from '../../lib/quoteCalc';
 import { useQuoteState } from '../../state/QuoteContext';
+import type { QuoteGroup } from '../../state/quoteTypes';
 import styles from './PreviewPlaceholder.module.scss';
 
 // Hardcoded ARTWAY company info on the From party — legacy renders these
@@ -96,17 +105,95 @@ export function PreviewPlaceholder(): JSX.Element {
             </div>
           </div>
         </div>
+        {/* 01 專案報價內容 — Session 2 (Groups) */}
+        {state.groups.length > 0 && (
+          <section className={styles.sectionWrap}>
+            <div className={styles.sectionHd}>
+              <span className={styles.sectionNum}>01</span>
+              <div>
+                <div className={styles.sectionZh}>專案報價內容</div>
+                <div className={styles.sectionEn}>PROJECT QUOTATION</div>
+              </div>
+            </div>
+            {state.groups.map((g) => (
+              <GroupBlock key={g.id} group={g} />
+            ))}
+          </section>
+        )}
         {/*
-          Session 2-3 將在此補上：
-          - 01 專案報價內容（Groups 表格 + 小計 / Tax / 總價）
+          Session 3 將在此補上：
           - ◎ 本案交付物（Deliverables）
           - 02 服務說明摘要
           - 03 備註（Remarks）
           - 付款條件 table
           - 客戶 / ARTWAY 簽章區塊
-          Session 1 範圍只到 parties，下方刻意留白、不放假 placeholder。
         */}
       </article>
     </main>
+  );
+}
+
+// ─── 01 專案報價內容 Group block ──────────────────────────────────────────
+
+function GroupBlock({ group }: { group: QuoteGroup }): JSX.Element {
+  const subtotal = calcGroupSubtotal(group);
+  const tax = calcGroupTax(subtotal);
+  const total = calcGroupTotal(group);
+
+  return (
+    <div className={styles.quoteGroup}>
+      <div className={styles.groupTitle}>{group.title}</div>
+      <table className={styles.qt}>
+        <thead>
+          <tr>
+            <th className={styles.colNo}>No.</th>
+            <th className={styles.colCategory}>Category</th>
+            <th className={styles.colDesc}>Description</th>
+            <th className={`${styles.qtyUnit} ${styles.colQty}`}>Qty</th>
+            <th className={`${styles.r} ${styles.colUnitPrice}`}>Unit Price</th>
+            <th className={`${styles.r} ${styles.colAmount}`}>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {group.items.length === 0 ? (
+            <tr>
+              <td colSpan={6} className={styles.qtEmpty}>
+                （左側加入品項後會顯示在這裡）
+              </td>
+            </tr>
+          ) : (
+            group.items.map((it, i) => (
+              <tr key={it.id}>
+                <td className={styles.no}>{String(i + 1).padStart(2, '0')}</td>
+                <td className={styles.subCat}>{displaySubGroup(it.sub_group)}</td>
+                <td className={styles.desc}>{it.name}</td>
+                <td className={styles.qtyUnit}>
+                  {it.qty}
+                  {it.unit ? ' ' + it.unit : ''}
+                </td>
+                <td className={styles.r}>{formatMoney(Number(it.unitPrice))}</td>
+                <td className={styles.r}>{formatMoney(calcItemAmount(it))}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+      <div className={styles.groupTotals}>
+        <div className={styles.totalsBox}>
+          <div className={styles.totalsRow}>
+            <span>小計 Subtotal</span>
+            <span>NT$ {formatMoney(subtotal)}</span>
+          </div>
+          <div className={styles.totalsRow}>
+            <span>營業稅 Tax 5%</span>
+            <span>NT$ {formatMoney(tax)}</span>
+          </div>
+          <div className={styles.totalsGrand}>
+            <span>{group.title}　總價</span>
+            <span>NT$ {formatMoney(total)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

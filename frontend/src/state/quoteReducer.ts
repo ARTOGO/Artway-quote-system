@@ -86,6 +86,41 @@ export function quoteReducer(state: Quote, action: QuoteAction): Quote {
       if (state.sales[action.field] === action.value) return state;
       return { ...state, sales: { ...state.sales, [action.field]: action.value } };
     }
+    // ─── Groups ──────────────────────────────────────────────────────────
+    case 'ADD_GROUP':
+      return { ...state, groups: [...state.groups, action.group] };
+    case 'REMOVE_GROUP':
+      return { ...state, groups: state.groups.filter((g) => g.id !== action.gid) };
+    case 'RENAME_GROUP': {
+      const groups = state.groups.map((g) =>
+        g.id === action.gid ? { ...g, title: action.title } : g,
+      );
+      // Reference-equality guard so no-op renames don't trigger re-renders
+      if (groups.every((g, i) => g === state.groups[i])) return state;
+      return { ...state, groups };
+    }
+    case 'ADD_ITEM': {
+      const groups = state.groups.map((g) =>
+        g.id === action.gid ? { ...g, items: [...g.items, action.item] } : g,
+      );
+      return { ...state, groups };
+    }
+    case 'REMOVE_ITEM': {
+      const groups = state.groups.map((g) =>
+        g.id === action.gid ? { ...g, items: g.items.filter((it) => it.id !== action.itemId) } : g,
+      );
+      return { ...state, groups };
+    }
+    case 'UPDATE_ITEM': {
+      const groups = state.groups.map((g) => {
+        if (g.id !== action.gid) return g;
+        const items = g.items.map((it) =>
+          it.id === action.itemId ? { ...it, ...action.patch } : it,
+        );
+        return { ...g, items };
+      });
+      return { ...state, groups };
+    }
     case 'RESET':
       return action.quote;
     case 'LOAD':
