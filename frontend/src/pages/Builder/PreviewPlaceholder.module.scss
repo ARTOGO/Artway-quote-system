@@ -1,0 +1,176 @@
+// Preview area + A4 page chrome — values mirror legacy `.preview-area`,
+// `.page#page1`, `.doc-header`, `.parties` computed styles measured via
+// playwright on artogo.github.io/Artway-quote-system/frontend/legacy.html.
+
+@use '../../styles/tokens.scss' as *;
+
+.area {
+  flex: 1;
+  overflow-y: auto;
+  height: 100vh;
+  background: $color-surface-stroke;
+  padding: $space-6 0; // 24px 0 (legacy exact)
+}
+
+.page {
+  width: $page-width; // 210mm
+  min-height: $page-height; // 297mm
+  background: $page-color-paper;
+  margin: 0 auto $space-6;
+  padding: 10mm 16mm 18mm; // legacy exact (37.79px 60.47px 68.03px at 96dpi)
+  position: relative;
+  box-shadow: $shadow-soft;
+  color: $color-ink-deep;
+  font-size: $font-size-xl; // 13px (legacy A4 body text)
+  line-height: $line-height-base;
+  border-top: 6mm solid $page-color-stripe; // ≈ 22px (legacy exact)
+}
+
+// ─── doc-header ──────────────────────────────────────────────────────────
+// Legacy: flex row, space-between, align-start, border-bottom 2px gold,
+// padding 0 0 10px, margin 0 0 14px.
+.docHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0 0 10px;
+  margin: 0 0 14px;
+  border-bottom: $border-width-base solid $color-gold; // 2px solid (legacy)
+  flex-shrink: 0; // legacy exact
+}
+
+.logoZone {
+  display: block;
+
+  img {
+    display: block;
+    width: 220px; // legacy exact
+    height: 65px; // legacy exact (box; image preserves aspect via object-fit)
+    object-fit: contain;
+    object-position: left center; // legacy: logo aligned to left edge of zone
+  }
+}
+
+.headerRight {
+  display: block;
+  width: 175px; // legacy exact
+  text-align: right; // legacy exact (QUOTATION + meta values right-align)
+}
+
+.docTitle {
+  font-size: $font-size-9xl; // 25px (legacy exact)
+  font-weight: $font-weight-bold;
+  letter-spacing: 3.5px; // legacy exact (= 0.14em at 25px)
+  color: $color-ink-deep;
+  margin: 0 0 $space-2; // 8px (legacy exact)
+  line-height: 1.55;
+  text-align: right; // legacy exact
+}
+
+.metaTable {
+  border-collapse: collapse;
+  // font-size intentionally NOT set — inherits .page 13px (legacy);
+  // each td overrides to 12px below.
+  width: 175px; // legacy table width = headerRight width
+  margin-left: auto; // sit at right edge of headerRight
+
+  td {
+    font-size: $font-size-lg; // 12px (legacy td override)
+    line-height: 18.6px;
+  }
+
+  // First column = label (legacy: gold-deep, regular weight, LEFT align,
+  // letter-spacing 0.6px).
+  td:first-child {
+    padding: 1px 12px 1px 0;
+    color: $color-gold-deep;
+    font-weight: $font-weight-regular;
+    letter-spacing: 0.6px; // legacy exact (= 0.05em at 12px)
+    text-align: left; // legacy exact (overrides parent right-align)
+  }
+
+  // Last column = value (legacy: ink-deep, medium weight, no letter-spacing,
+  // RIGHT align — uses parent's right-align default).
+  td:last-child {
+    padding: 1px 0;
+    color: $color-ink-deep;
+    font-weight: $font-weight-medium;
+    letter-spacing: normal; // legacy exact (NOT 0.6px)
+    text-align: right; // legacy exact
+  }
+}
+
+// ─── doc-title-band (optional) ───────────────────────────────────────────
+// Visible only when state.meta.title is non-empty. Legacy: dark band
+// starting flush at the page left edge (negative margin escapes the 16mm
+// page padding), then sized to fit content + padding — NOT full-width.
+// `display: inline-block` matches legacy computed.
+.docTitleBand {
+  display: inline-block; // legacy: shrink-to-fit, NOT full-width
+  background: $color-surface-ink; // #2A1D11 (legacy exact)
+  color: $color-surface-cream; // #FAF8F5 (legacy exact)
+  padding: 10px 24px 10px 16mm; // legacy exact (left pad = page pad-left)
+  margin: 6px 0 16px (-16mm); // negative left → flush to page edge
+  font-size: $font-size-2xl; // 14px (legacy exact)
+  font-weight: $font-weight-medium;
+  letter-spacing: 0.84px; // legacy exact (= 0.06em)
+  text-align: start;
+  border-radius: 0 $radius-base $radius-base 0; // 0 3px 3px 0 (flag shape)
+}
+
+// ─── parties ─────────────────────────────────────────────────────────────
+// Legacy: flex row, gap 0, padding 0 0 14px, margin 0 0 16px,
+// border-bottom 1px solid rgba(186,153,114,0.28).
+.parties {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  padding: 0 0 14px;
+  margin: 0 0 16px;
+  border-bottom: $border-width-thin solid $overlay-gold-25; // ~0.28 (closest)
+  flex-shrink: 0; // legacy exact
+}
+
+.party {
+  flex: 1;
+  display: block;
+
+  // Legacy: vertical divider between the two party columns
+  & + & {
+    margin-left: 20px;
+    padding-left: 20px;
+    border-left: $border-width-thin solid $color-surface-frost; // #E4DDD2
+  }
+}
+
+.partyLabel {
+  font-size: $font-size-base; // 10px (legacy exact)
+  font-weight: $font-weight-semibold;
+  letter-spacing: 1.6px; // legacy exact (= 0.16em at 10px)
+  text-transform: uppercase; // legacy exact (affects Latin chars only)
+  color: $color-gold;
+  padding: 0 0 $space-1; // 0 0 4px
+  margin: 0 0 $space-1_5; // 0 0 6px
+  border-bottom: $border-width-thin solid $color-surface-soft; // rgb(237,230,218)
+  break-after: avoid; // legacy exact (print: keep label with name)
+}
+
+.partyName {
+  font-size: $font-size-3xl-plus; // 15.5px (legacy exact)
+  font-weight: $font-weight-semibold;
+  color: $color-ink-deep;
+  margin: 0 0 $space-1; // 0 0 4px
+  line-height: 1.55;
+}
+
+.partyInfo {
+  font-size: $font-size-md-plus; // 11.5px (legacy exact)
+  font-weight: $font-weight-regular;
+  color: $color-ink-soft; // rgb(74,63,50)
+  line-height: 20.125px;
+}
+
+.partyInfoLine {
+  display: block;
+}

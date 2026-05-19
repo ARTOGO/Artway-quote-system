@@ -1,0 +1,35 @@
+@use '../../styles/tokens.scss' as *;
+
+.section {
+  margin-bottom: 22px; // legacy exact
+  padding-bottom: 18px; // legacy exact
+  border-bottom: $border-width-thin solid $overlay-gold-18;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.title {
+  font-size: $font-size-xl; // 13px
+  font-weight: $font-weight-semibold;
+  color: $color-gold;
+  letter-spacing: 0.12em; // legacy exact (between $letter-spacing-wider 0.08 and -widest 0.16)
+  text-transform: uppercase;
+  margin-bottom: $space-3_5; // 14px
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+// `.compact` is reserved for future per-section overrides; currently a no-op
+// because compact spacing is controlled at the BPField level.
+.compact {
+  // intentionally empty — placeholder hook for section-wide compact tweaks
+}

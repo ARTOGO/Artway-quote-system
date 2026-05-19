@@ -1,0 +1,134 @@
+@use '../../styles/tokens.scss' as *;
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  background: $color-surface-void;
+  padding: 18px 22px; // legacy exact
+  border-bottom: $border-width-thin solid $color-gold;
+  z-index: $z-builder-panel;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: $space-3_5;
+}
+
+.logo {
+  height: 52px;
+  width: auto;
+  flex-shrink: 0;
+  display: block;
+}
+
+.titleBlock {
+  flex: 1;
+  min-width: 0;
+}
+
+.titleBlock h1 {
+  font-size: $font-size-5xl; // 17px
+  font-weight: $font-weight-semibold;
+  color: $color-gold;
+  letter-spacing: $letter-spacing-wider;
+  margin-bottom: $space-1;
+  line-height: $line-height-tight;
+}
+
+.sub {
+  font-size: $font-size-md-plus; // 11.5px
+  color: $overlay-gold-70; // legacy exact 0.7
+  letter-spacing: $letter-spacing-wide;
+  line-height: $line-height-snug;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap; // legacy exact
+  gap: 6px; // legacy exact
+  margin-top: 12px; // legacy exact
+}
+
+.btnGhost {
+  background: $overlay-gold-06; // legacy exact (subtle gold tint)
+  border: $border-width-thin solid $color-gold;
+  color: $color-gold;
+  padding: 6px 10px; // legacy exact
+  border-radius: $radius-base;
+  cursor: pointer;
+  font-size: $font-size-lg; // 12px (legacy exact)
+  font-family: inherit;
+  letter-spacing: $letter-spacing-wide;
+  text-decoration: none;
+  white-space: nowrap; // legacy exact (avoid wrap)
+  line-height: normal; // legacy exact (browser default, not inherited 1.55)
+  transition:
+    background $transition-fast,
+    color $transition-fast;
+
+  &:hover {
+    background: $color-gold;
+    color: $color-surface-deep;
+  }
+}
+
+.statusWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1_5; // 6px (legacy exact)
+  padding: 4px 8px 4px 10px; // legacy exact (asymmetric: left wider)
+  border: $border-width-thin solid $overlay-gold-35;
+  border-radius: $radius-base;
+  background: $overlay-gold-06; // legacy exact (subtle gold tint, not dark)
+  margin-left: auto; // legacy: pushes status pill to the right edge
+}
+
+.statusDot {
+  width: 8px; // legacy exact (was 10)
+  height: 8px;
+  border-radius: $radius-full;
+  display: inline-block;
+  flex-shrink: 0;
+  background: $color-status-draft; // safe default
+
+  // Reviewer (Codex P3 F4): replace inline-style hex with data-attr-driven
+  // CSS so status colors stay token-routed (CLAUDE.md：禁止 inline style
+  // / magic number — 一律 tokens.scss). One rule per QuoteStatus.
+  &[data-status='draft'] {
+    background: $color-status-draft;
+  }
+  &[data-status='sent'] {
+    background: $color-status-sent;
+  }
+  &[data-status='signed'] {
+    background: $color-status-signed;
+  }
+  &[data-status='executed'] {
+    background: $color-status-executed;
+  }
+}
+
+.statusSelect {
+  background: transparent;
+  border: none;
+  color: $color-surface-cream; // legacy exact (cream, not gold)
+  font-size: $font-size-lg; // 12px (legacy exact)
+  font-family: inherit;
+  cursor: pointer;
+  padding: 2px 2px 2px 0; // legacy exact (asymmetric — no left padding)
+  letter-spacing: 0.48px; // legacy exact (= 0.04em at 12px)
+  outline: none;
+
+  &:focus-visible {
+    outline: 2px solid $color-focus-ring;
+    outline-offset: 2px;
+    border-radius: $radius-xs;
+  }
+
+  option {
+    background: $color-surface-deep;
+    color: $color-surface-cream;
+  }
+}

@@ -1,0 +1,14 @@
+@use '../../../styles/tokens.scss' as *;
+
+// `.bp-row` legacy: two fields side-by-side.
+.row {
+  display: flex;
+  gap: $space-2;
+  margin-bottom: 7px; // legacy exact
+
+  > * {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0; // legacy: bp-field inside bp-row drops its own 7px
+  }
+}

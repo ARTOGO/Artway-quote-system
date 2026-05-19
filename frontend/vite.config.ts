@@ -20,6 +20,15 @@ export default defineConfig({
     strictPort: true, // fail loud if port busy (CI / dev consistency)
     host: '127.0.0.1',
     open: false,
+    // /api/* → Go backend (docker compose up serves on :8080). Prod
+    // Cloud Run serves frontend + backend from the same origin so the
+    // proxy is dev-only and `API_BASE = '/api'` works in both envs.
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8080',
+        changeOrigin: false,
+      },
+    },
   },
 
   // pnpm preview — serves built dist/ at port 4173

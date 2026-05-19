@@ -51,6 +51,14 @@ override.tf.json
 .DS_Store
 Thumbs.db
 
+# ─── AI tooling (per-machine state, never commit) ──────────
+# Claude Code 的 ScheduleWakeup / loop / scheduled_tasks 會在這裡寫
+# session id / pid / timestamp lock；屬於本機運行狀態，不該進 git。
+.claude/
+# Playwright MCP 每次 verification run 寫 page snapshots + console
+# logs；本機暫存、不該進 repo（否則每次 review run 都會 churn diff）。
+.playwright-mcp/
+
 # ─── Build / CI artifacts ──────────────────────────────────
 *.log
 .cache/

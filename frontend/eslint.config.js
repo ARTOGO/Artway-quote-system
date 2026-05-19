@@ -21,7 +21,7 @@ export default [
     // Narrowed (reviewer Gemini #3257443985): ignore only generated /
     // vendored output. Build configs (vite.config.ts / vitest.config.ts /
     // eslint.config.js) should be lint-checked too.
-    ignores: ['dist', 'node_modules', 'coverage', 'public'],
+    ignores: ['dist', 'node_modules', 'coverage', 'public', '.vite'],
   },
   ...tseslint.configs.recommended,
   {

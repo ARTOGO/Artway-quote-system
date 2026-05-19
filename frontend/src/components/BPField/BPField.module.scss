@@ -1,0 +1,86 @@
+// BPField — mirrors legacy `.bp-field` + `.bp-section-compact .bp-field`.
+// Tokens come from src/styles/tokens.scss (single source of truth).
+
+@use '../../styles/tokens.scss' as *;
+
+.field {
+  margin-bottom: $space-2_5; // 10px
+
+  label {
+    display: block;
+    font-size: $font-size-md-plus; // 11.5px
+    color: $overlay-gold-90; // legacy: rgba(186,153,114,0.9) — visible gold
+    margin-bottom: 5px; // legacy exact
+    letter-spacing: $letter-spacing-wide;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    background: $color-surface-void;
+    border: $border-width-thin solid $overlay-gold-30; // legacy exact 0.3
+    border-radius: $radius-base;
+    color: $color-surface-cream;
+    padding: $space-2 $space-2_5; // 8px 10px
+    font-size: $font-size-xl-plus; // 13.5px
+    font-family: inherit;
+    line-height: $line-height-snug;
+
+    &:focus {
+      outline: none;
+      border-color: $color-gold;
+      background: $color-surface-deep;
+    }
+
+    &[readonly] {
+      color: $overlay-gold-70; // legacy uses 0.7 for readonly text
+      background: $overlay-gold-05;
+      border-color: $overlay-gold-18;
+      cursor: not-allowed;
+
+      &:focus {
+        border-color: $overlay-gold-18;
+        background: $overlay-gold-05;
+      }
+    }
+  }
+
+  // Date / time input 內建月曆 icon 在深底上看不到 — 反白
+  input[type='date']::-webkit-calendar-picker-indicator,
+  input[type='time']::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(1.4);
+    opacity: 0.75;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 48px;
+  }
+}
+
+// ─── Compact variant (label left, input right) ────────────────────────────
+.compact {
+  display: flex;
+  align-items: center;
+  gap: $space-2_5;
+  margin-bottom: 7px; // legacy uses 7px exactly (between $space-1_5 and $space-2)
+
+  > label {
+    flex: 0 0 80px;
+    margin-bottom: 0;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  > input,
+  > select {
+    flex: 1;
+    min-width: 0;
+  }
+}

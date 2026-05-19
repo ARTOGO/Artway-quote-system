@@ -47,7 +47,8 @@ $color-surface-frost: #e4ddd2; // disabled / placeholder bg
 // Ink (text colors, with hierarchy)
 // ═══════════════════════════════════════════════════════════════════════════
 
-$color-ink-deep: #2c1f10; // primary text on light (paper)
+$color-ink-deep: #1a1510; // primary text on light (paper) — legacy most common
+$color-ink-table: #2c1f10; // secondary ink for quote/service tables (legacy .qt, .svc-*)
 $color-ink-base: #3d2a1a; // body text on cream
 $color-ink-soft: #4a3f32; // secondary text
 $color-ink-muted: #5a4f40; // tertiary text / metadata
@@ -73,12 +74,16 @@ $color-alert-soft: #e89aaa; // warning bg / soft alert
 
 // Gold overlay scale (light → opaque)
 $overlay-gold-05: rgba(186, 153, 114, 0.05);
+$overlay-gold-06: rgba(186, 153, 114, 0.06); // legacy btn / status-wrap tint
 $overlay-gold-08: rgba(186, 153, 114, 0.08);
 $overlay-gold-12: rgba(186, 153, 114, 0.12);
 $overlay-gold-18: rgba(186, 153, 114, 0.18);
 $overlay-gold-25: rgba(186, 153, 114, 0.25);
+$overlay-gold-30: rgba(186, 153, 114, 0.3);
 $overlay-gold-35: rgba(186, 153, 114, 0.35);
 $overlay-gold-50: rgba(186, 153, 114, 0.5);
+$overlay-gold-70: rgba(186, 153, 114, 0.7);
+$overlay-gold-90: rgba(186, 153, 114, 0.9); // legacy field label (visible)
 
 // Black overlay (shadows / scrim)
 $overlay-black-13: rgba(0, 0, 0, 0.13);
@@ -260,7 +265,7 @@ $page-stripe-height: 4px; // ditto
 $builder-panel-width-default: 520px;
 $builder-panel-width-min: 320px;
 $builder-panel-width-max: 800px;
-$builder-divider-width: 6px;
+$builder-divider-width: 8px; // legacy exact
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Semantic aliases (for clarity in component scss)

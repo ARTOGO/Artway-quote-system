@@ -1,0 +1,730 @@
+{
+  "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
+  "updated_at": "2026-05-19T00:00:00+08:00",
+  "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
+  "success_criteria": [
+    "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
+    "報價單號透過後端原子性配發，任何兩位業務同日開新報價都不會撞號",
+    "歷史報價對全公司業務團隊共享、可按業務 / 狀態 / 日期 / 客戶篩選",
+    "列印 PDF 視覺與舊版 GitHub Pages 1:1 一致（A4、金色頂條、版面、字級、表格皆對齊）",
+    "舊 GitHub Pages 在 React 版上線後可正常退場，業務舊書籤不會 404",
+    "CI/CD 雙環境（staging / prod）自動部署、main 受分支保護"
+  ],
+  "current_focus": {
+    "feature_id": "F4",
+    "task_id": "F4-T13",
+    "summary": "PR 4 Session 1（Layout / Topbar / state foundation / Meta-Client-Sales 三個 section / backend next-number API wire）等使用者授權 commit + 開 PR"
+  },
+  "conversation_changes": [
+    {
+      "at": "2026-05-18T15:00:00+08:00",
+      "source": "user",
+      "change": "看到 GitHub Pages 顯示空白：要求診斷與修復",
+      "impact": "插隊一個 hotfix PR #4，把 root index.html redirect 從 frontend/ 改成 frontend/legacy.html，並在 frontend/index.html 加 github.io hostname 偵測 + hash 保留 JS。已 merge 04452af，Pages re-build 完成。"
+    },
+    {
+      "at": "2026-05-18T17:30:00+08:00",
+      "source": "user",
+      "change": "Session 1 完成後選 option C：分多 session 做完整 React 復刻",
+      "impact": "建立 Session 1-5 拆分計畫，本輪只做 Layout + Topbar + 3 個簡單 section + state foundation。"
+    },
+    {
+      "at": "2026-05-18T19:00:00+08:00",
+      "source": "user",
+      "change": "對 Codex F1-F4 第一輪 finding 回 '全休（全修）'",
+      "impact": "授權批次修 F1-F4 的 4 個 finding。"
+    },
+    {
+      "at": "2026-05-18T20:00:00+08:00",
+      "source": "user",
+      "change": "質疑：為啥你自己決定沒有等我選擇",
+      "impact": "承認 F5-F8 自作主張、違反 CLAUDE.md commit gate。改為每輪 Codex finding 都需使用者拍板才能修。"
+    },
+    {
+      "at": "2026-05-18T21:30:00+08:00",
+      "source": "user",
+      "change": "對 F9（撞號 P2）回 '該怎麼做怎麼做、錯的就要修'",
+      "impact": "把 F9 從 'defer to PR 5' 升級為立即修 — 本 session 提前實作 backend API client + Vite proxy + nextQuoteNumber wire。等於把 PR 5 的部分 scope 拉前。"
+    },
+    {
+      "at": "2026-05-19T00:00:00+08:00",
+      "source": "user",
+      "change": "提示重讀 CLAUDE.md 看是否該做進度說明頁面",
+      "impact": "發現 CLAUDE.md L240-284 進度儀表板 Gate 從一開始就漏做。補建 progress.json + progress.html。"
+    }
+  ],
+  "goal_groups": [
+    {
+      "id": "g-product",
+      "title": "報價系統 React 重構 + Cloud Run + IAP 上線（核心目標）",
+      "summary": "把舊單檔 HTML 重構成可內網部署的 React + Go 應用，並完成業務 cutover。",
+      "kind": "primary",
+      "feature_ids": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11"],
+      "outcomes": [
+        {
+          "id": "O1",
+          "title": "Repo / 後端 / 前端骨架可獨立執行於本機",
+          "description": "三層基礎建設就緒：repo 拆分、Go backend MVP 通過測試、Vite + React + tokens 可跑 pnpm dev",
+          "feature_ids": ["F1", "F2", "F3"]
+        },
+        {
+          "id": "O2",
+          "title": "Builder 頁完整 1:1 復刻舊版 UX",
+          "description": "Topbar / 三個基本 section / Groups / 預覽 / History / Modals / Print 全部對齊舊版，業務能完成所有操作",
+          "feature_ids": ["F4", "F5", "F6", "F7", "F8"]
+        },
+        {
+          "id": "O3",
+          "title": "前端 → 後端 API 全打通、流水號原子配發",
+          "description": "POST /api/quotes/next-number 由後端原子配發；create/update/list/get/delete 全部接通；報價單號不會撞號",
+          "feature_ids": ["F9"]
+        },
+        {
+          "id": "O4",
+          "title": "Cloud Run + IAP 部署可達、業務 SSO 登入可用",
+          "description": "Phase A 完成、quote.artogo.co 上線、@artogo.co 員工可登入；CI/CD 雙環境自動部署、main 受分支保護",
+          "feature_ids": ["F10", "F11"]
+        }
+      ]
+    },
+    {
+      "id": "g-codex-polish",
+      "title": "Codex review iteration 修補（本輪附帶）",
+      "summary": "9 輪 Codex review 共 15 個 findings 的補丁工作。屬於本輪附帶品質提升，不灌入核心目標進度。",
+      "kind": "side",
+      "feature_ids": ["F-side-codex"],
+      "outcomes": [
+        {
+          "id": "O-side-1",
+          "title": "Session 1 程式碼通過 Codex 結構審查",
+          "description": "F1-F15 涵蓋 legacy parity / StrictMode / 焦點 a11y / backend wire / retry / 日期保留等",
+          "feature_ids": ["F-side-codex"]
+        }
+      ]
+    },
+    {
+      "id": "g-hotfix",
+      "title": "GitHub Pages 過渡期止血（本輪附帶、已完成）",
+      "summary": "業務舊網址在 PR #3 後變空白；hotfix 已 merge 04452af、Pages re-build 200 OK。",
+      "kind": "side",
+      "feature_ids": ["F-side-hotfix"],
+      "outcomes": [
+        {
+          "id": "O-side-2",
+          "title": "舊 GitHub Pages URL 在 Cloud Run 上線前持續可用",
+          "description": "root + frontend/index.html 同時偵測 github.io 並 redirect 到 frontend/legacy.html（保留 hash）",
+          "feature_ids": ["F-side-hotfix"]
+        }
+      ]
+    }
+  ],
+  "features": [
+    {
+      "id": "F1",
+      "title": "Repo Foundation（PR #1）",
+      "summary": "repo 重組為 frontend/ + backend/ + docs/ + infra/，搬 index.html → legacy.html、加 CLAUDE.md / AGENTS.md / spec 等基礎文件。",
+      "weight": 1,
+      "goal_contributions": [
+        {
+          "outcome_id": "O1",
+          "why": "後續所有開發都依賴此目錄結構與規格文件",
+          "completion_signal": "main branch 有 docs/HISTORY_BACKEND_SPEC.md、CLAUDE.md、frontend/legacy.html 等檔，目錄拆分完成"
+        }
+      ],
+      "status": "verified",
+      "tasks": [
+        {
+          "id": "F1-T1",
+          "title": "Repo 目錄重組與 legacy 搬遷",
+          "status": "verified",
+          "workstream": "Infra",
+          "priority": "P1",
+          "progress_percent": 100,
+          "files": ["frontend/legacy.html", "docs/HISTORY_BACKEND_SPEC.md", "CLAUDE.md", "AGENTS.md"],
+          "evidence": [
+            { "type": "git", "ref": "c5bd96b Merge PR #1", "result": "已 merge main" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F2",
+      "title": "Backend MVP（PR #2）",
+      "summary": "Go 1.26 + chi + pgx + sqlc + goose；8 個 endpoints；IAP middleware；Docker multi-stage build。",
+      "weight": 2,
+      "goal_contributions": [
+        {
+          "outcome_id": "O1",
+          "why": "報價單儲存、流水號配發、歷史查詢需要 server-side atomic logic",
+          "completion_signal": "docker compose up 跑通，curl 可建立、查詢、更新、刪除報價"
+        }
+      ],
+      "status": "verified",
+      "tasks": [
+        {
+          "id": "F2-T1",
+          "title": "Backend 8 endpoints + 38 個測試 + Docker image",
+          "status": "verified",
+          "workstream": "Backend",
+          "priority": "P0",
+          "progress_percent": 100,
+          "files": [
+            "backend/cmd/server/main.go",
+            "backend/internal/quotes/handler.go",
+            "backend/internal/quotes/repo.go",
+            "backend/internal/auth/iap.go",
+            "backend/migrations/0001_init.sql",
+            "backend/Dockerfile",
+            "backend/docker-compose.yml"
+          ],
+          "evidence": [
+            { "type": "git", "ref": "57dd086 Merge PR #2", "result": "已 merge main" },
+            { "type": "test", "ref": "go test ./...", "result": "38 個測試通過" },
+            { "type": "build", "ref": "docker build", "result": "distroless image ~20MB" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F3",
+      "title": "Frontend Scaffold（PR #3）",
+      "summary": "pnpm + Vite 8 + React 19.2 + TS 6 + Sass 1.99；tokens.scss 286 行 / 160+ tokens；hash router；Button、Vitest 設定。",
+      "weight": 2,
+      "goal_contributions": [
+        {
+          "outcome_id": "O1",
+          "why": "Builder UI 復刻所需的工具鏈、design tokens、router、第一個元件範本",
+          "completion_signal": "pnpm dev 可啟動、pnpm test 通過、tokens.scss 完整、Button 元件範本到位"
+        }
+      ],
+      "status": "verified",
+      "tasks": [
+        {
+          "id": "F3-T1",
+          "title": "Frontend M1-M6 + reviewer feedback round 1",
+          "status": "verified",
+          "workstream": "Frontend",
+          "priority": "P0",
+          "progress_percent": 100,
+          "files": [
+            "frontend/package.json",
+            "frontend/vite.config.ts",
+            "frontend/vitest.config.ts",
+            "frontend/src/styles/tokens.scss",
+            "frontend/src/lib/useHashRoute.ts",
+            "frontend/src/components/Button/Button.tsx"
+          ],
+          "evidence": [
+            { "type": "git", "ref": "330b7d7 Merge PR #3", "result": "已 merge main" },
+            { "type": "test", "ref": "pnpm test", "result": "14 tests pass" },
+            { "type": "review", "ref": "PR #3 review", "result": "5 findings 全部處理（4 fix + 1 駁回 false positive）" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F4",
+      "title": "Builder UI Session 1（PR #4 Session 1）",
+      "summary": "Layout shell + Topbar + 三個基本 section（Meta / Client / Sales）+ state foundation（useReducer + Context）+ backend next-number API wire。",
+      "weight": 4,
+      "goal_contributions": [
+        {
+          "outcome_id": "O2",
+          "why": "Builder 頁的骨架與最簡單 3 個 section、state 模型決定後續 4 個 session 的可行性",
+          "completion_signal": "本機 pnpm dev 可看到 Builder layout、填表即時更新右側 preview placeholder、quoteNo 由後端配發"
+        },
+        {
+          "outcome_id": "O3",
+          "why": "提前實作 POST /api/quotes/next-number 客戶端（原本計畫在 PR 5），消除撞號風險",
+          "completion_signal": "BuilderPanel 進場時呼叫 backend、retry button 可重試、newQuote 動作可重新配發"
+        }
+      ],
+      "status": "done",
+      "tasks": [
+        {
+          "id": "F4-T1",
+          "title": "State foundation（quoteTypes / quoteReducer / QuoteContext）",
+          "status": "verified",
+          "workstream": "Frontend",
+          "priority": "P0",
+          "progress_percent": 100,
+          "files": [
+            "frontend/src/state/quoteTypes.ts",
+            "frontend/src/state/quoteReducer.ts",
+            "frontend/src/state/quoteReducer.test.ts",
+            "frontend/src/state/QuoteContext.tsx",
+            "frontend/src/state/QuoteContext.test.tsx"
+          ],
+          "evidence": [
+            { "type": "test", "ref": "pnpm test src/state", "result": "22 tests pass" }
+          ]
+        },
+        {
+          "id": "F4-T2",
+          "title": "lib helpers（dates、quoteNumber 已移除 / api client）",
+          "status": "verified",
+          "workstream": "Frontend",
+          "priority": "P0",
+          "progress_percent": 100,
+          "files": [
+            "frontend/src/lib/dates.ts",
+            "frontend/src/lib/dates.test.ts",
+            "frontend/src/api/client.ts",
+            "frontend/src/api/client.test.ts",
+            "frontend/src/api/quotes.ts",
+            "frontend/src/api/quotes.test.ts"
+          ],
+          "evidence": [
+            { "type": "test", "ref": "pnpm test src/lib src/api", "result": "9 + 7 + 3 tests pass" }
+          ]
+        },
+        {
+          "id": "F4-T3",
+          "title": "UI primitives（BPField / BPSection）",
+          "status": "verified",
+          "workstream": "Frontend",
+          "priority": "P1",
+          "progress_percent": 100,
+          "files": [
+            "frontend/src/components/BPField/BPField.tsx",
+            "frontend/src/components/BPField/BPField.module.scss",
+            "frontend/src/components/BPField/BPField.test.tsx",
+            "frontend/src/components/BPSection/BPSection.tsx",
+            "frontend/src/components/BPSection/BPSection.module.scss",
+            "frontend/src/components/BPSection/BPSection.test.tsx"
+          ],
+          "evidence": [
+            { "type": "test", "ref": "pnpm test", "result": "7 + 5 tests pass" }
+          ]
+        },
+        {
+          "id": "F4-T4",
+          "title": "Topbar（含狀態 dot data-attr / 新報價 button / focus a11y）",
+          "status": "verified",
+          "workstream": "Frontend",
+          "priority": "P0",
+          "progress_percent": 100,
+          "files": [
+            "frontend/src/pages/Builder/Topbar.tsx",
+            "frontend/src/pages/Builder/Topbar.module.scss",
+            "frontend/src/pages/Builder/Topbar.test.tsx"
+          ],
+          "evidence": [
+            { "type": "test", "ref": "pnpm test src/pages/Builder/Topbar", "result": "7 tests pass" }
+          ]
+        },
+        {
+          "id": "F4-T5",
+          "title": "Meta / Client / Sales 三個 section",
+          "status": "done",
+          "workstream": "Frontend",
+          "priority": "P0",
+          "progress_percent": 90,
+          "files": [
+            "frontend/src/pages/Builder/sections/MetaSection.tsx",
+            "frontend/src/pages/Builder/sections/ClientSection.tsx",
+            "frontend/src/pages/Builder/sections/SalesSection.tsx",
+            "frontend/src/pages/Builder/sections/sections.module.scss"
+          ],
+          "evidence": [
+            { "type": "test", "ref": "pnpm test", "result": "整合至 BuilderPanel 測試覆蓋" }
+          ],
+          "notes": "尚未由使用者本機 dogfood 確認填表 UX、需配合 docker compose up 後端跑通 next-number"
+        },
+        {
+          "id": "F4-T6",
+          "title": "BuilderPanel + Preview placeholder + Builder layout",
+          "status": "done",
+          "workstream": "Frontend",
+          "priority": "P0",
+          "progress_percent": 95,
+          "files": [
+            "frontend/src/pages/Builder/BuilderPanel.tsx",
+            "frontend/src/pages/Builder/BuilderPanel.module.scss",
+            "frontend/src/pages/Builder/BuilderPanel.test.tsx",
+            "frontend/src/pages/Builder/PreviewPlaceholder.tsx",
+            "frontend/src/pages/Builder/PreviewPlaceholder.module.scss",
+            "frontend/src/pages/Builder/Builder.tsx",
+            "frontend/src/pages/Builder/Builder.module.scss"
+          ],
+          "evidence": [
+            { "type": "test", "ref": "pnpm test", "result": "13 tests pass（含 F7 / F11 / F13 / F14 / F15 retry/date scenarios）" }
+          ]
+        },
+        {
+          "id": "F4-T7",
+          "title": "App.tsx wire（QuoteProvider 升 App-level）",
+          "status": "verified",
+          "workstream": "Frontend",
+          "priority": "P0",
+          "progress_percent": 100,
+          "files": ["frontend/src/App.tsx"],
+          "evidence": [
+            { "type": "test", "ref": "pnpm test", "result": "88 tests pass" }
+          ],
+          "notes": "Codex F6 finding：QuoteProvider 升到 App.tsx，Builder ⇄ History 切換不再 unmount state。"
+        },
+        {
+          "id": "F4-T8",
+          "title": "API client / Vite proxy / nextQuoteNumber wire（提前 PR 5）",
+          "status": "verified",
+          "workstream": "Frontend",
+          "priority": "P0",
+          "progress_percent": 100,
+          "files": [
+            "frontend/src/api/client.ts",
+            "frontend/src/api/quotes.ts",
+            "frontend/vite.config.ts"
+          ],
+          "evidence": [
+            { "type": "test", "ref": "pnpm test src/api", "result": "10 tests pass" },
+            { "type": "review", "ref": "Codex round 5 F9", "result": "改用後端原子配發，撞號風險消除" }
+          ]
+        },
+        {
+          "id": "F4-T9",
+          "title": "ESLint .vite ignore / .prettierignore 維護",
+          "status": "verified",
+          "workstream": "Frontend",
+          "priority": "P2",
+          "progress_percent": 100,
+          "files": ["frontend/eslint.config.js", "frontend/.prettierignore"],
+          "evidence": [
+            { "type": "lint", "ref": "pnpm lint", "result": "0 error / 0 warning" }
+          ]
+        },
+        {
+          "id": "F4-T10",
+          "title": "Quality gates 全綠",
+          "status": "verified",
+          "workstream": "QA / Release",
+          "priority": "P0",
+          "progress_percent": 100,
+          "evidence": [
+            { "type": "test", "ref": "pnpm test --run", "result": "88 / 88 tests pass" },
+            { "type": "build", "ref": "pnpm build", "result": "204 KB JS / 64 KB gzip" },
+            { "type": "lint", "ref": "pnpm lint + pnpm format:check", "result": "全綠" }
+          ]
+        },
+        {
+          "id": "F4-T11",
+          "title": "Codex review iteration round 1-9（15 findings 全部修）",
+          "status": "done",
+          "workstream": "QA / Release",
+          "priority": "P1",
+          "progress_percent": 95,
+          "evidence": [
+            { "type": "review", "ref": "Codex round 1-9", "result": "F1-F15 全部解決、各輪附驗證 trail" }
+          ],
+          "notes": "Round 10 尚未跑於 F15 修補後（split-effect refactor），嚴格說沒有最終 clean 簽核。"
+        },
+        {
+          "id": "F4-T12",
+          "title": "本機 dogfood（使用者人工驗證 Builder）",
+          "status": "blocked",
+          "workstream": "QA / Release",
+          "priority": "P0",
+          "blocker": "尚未由使用者實際打開瀏覽器測試填表流程",
+          "blocked_by": "等使用者授權 + 啟動 docker compose backend",
+          "owner": "user",
+          "needed_by": "commit Session 1 前",
+          "progress_percent": 0
+        },
+        {
+          "id": "F4-T13",
+          "title": "Commit Session 1 + 開 PR",
+          "status": "blocked",
+          "workstream": "QA / Release",
+          "priority": "P0",
+          "blocker": "等使用者授權（之前 F5-F8 自作主張被質疑後改為每輪都等）",
+          "blocked_by": "等使用者選 A / B / C 之一",
+          "owner": "user",
+          "needed_by": "Session 2 開工前",
+          "progress_percent": 0
+        }
+      ]
+    },
+    {
+      "id": "F5",
+      "title": "Builder Groups Session 2",
+      "summary": "報價內容 Groups + 品項 Item picker + 金額計算 + 群組 add/remove/sort。",
+      "weight": 4,
+      "goal_contributions": [
+        {
+          "outcome_id": "O2",
+          "why": "Groups 是 Builder 最複雜的區塊；金額計算是業務核心",
+          "completion_signal": "業務可加群組、加品項、自動帶單價、自動計算總額"
+        }
+      ],
+      "status": "todo",
+      "tasks": [
+        { "id": "F5-T1", "title": "Groups reducer + Group/Item types", "status": "todo", "workstream": "Frontend", "priority": "P0" },
+        { "id": "F5-T2", "title": "Item picker（Radix Popover 包裝）", "status": "todo", "workstream": "Frontend", "priority": "P0" },
+        { "id": "F5-T3", "title": "金額計算 lib + 測試", "status": "todo", "workstream": "Frontend", "priority": "P0" }
+      ]
+    },
+    {
+      "id": "F6",
+      "title": "Builder Preview Session 3",
+      "summary": "右側 A4 預覽全部 binding（從 placeholder 升級為真實 1:1 復刻）+ Print CSS + 交付項目 / 服務內容 / 備註 / 付款條件 4 個 section。",
+      "weight": 3,
+      "goal_contributions": [
+        {
+          "outcome_id": "O2",
+          "why": "預覽 PDF 視覺與舊版 1:1 一致是業務 cutover 的硬條件",
+          "completion_signal": "Cmd+P 列印與舊 GitHub Pages 1:1、邊到邊金色帶、A4 尺寸、頁碼分頁正確"
+        }
+      ],
+      "status": "todo",
+      "tasks": [
+        { "id": "F6-T1", "title": "A4 Preview 真實 binding（取代 placeholder）", "status": "todo", "workstream": "Frontend", "priority": "P0" },
+        { "id": "F6-T2", "title": "4 個剩餘 section", "status": "todo", "workstream": "Frontend", "priority": "P0" },
+        { "id": "F6-T3", "title": "@media print stylesheet", "status": "todo", "workstream": "Frontend", "priority": "P0" }
+      ]
+    },
+    {
+      "id": "F7",
+      "title": "Builder Session 4 — History + Radix Modals",
+      "summary": "History page（filter / list / load / delete）+ Radix DropdownMenu / AlertDialog / Toast 改造。",
+      "weight": 3,
+      "goal_contributions": [
+        {
+          "outcome_id": "O2",
+          "why": "歷史頁是業務日常查詢入口；Modals 把 window.confirm 替換為符合品牌的對話框",
+          "completion_signal": "業務可載入過去報價、刪除、切狀態；Toast 顯示成功 / 失敗訊息"
+        }
+      ],
+      "status": "todo",
+      "tasks": [
+        { "id": "F7-T1", "title": "History 頁面（filter + list）", "status": "todo", "workstream": "Frontend", "priority": "P0" },
+        { "id": "F7-T2", "title": "Radix DropdownMenu 改造 Status select", "status": "todo", "workstream": "Frontend", "priority": "P1" },
+        { "id": "F7-T3", "title": "Radix AlertDialog 替換 window.confirm", "status": "todo", "workstream": "Frontend", "priority": "P1" },
+        { "id": "F7-T4", "title": "Toast 通知", "status": "todo", "workstream": "Frontend", "priority": "P1" }
+      ]
+    },
+    {
+      "id": "F8",
+      "title": "Builder Session 5 — Hash router 完整接 + 列印驗證 + polish",
+      "summary": "deep-link 載入歷史報價進 Builder、列印 PDF 對比驗證、可拖拉 divider、final visual polish。",
+      "weight": 2,
+      "goal_contributions": [
+        {
+          "outcome_id": "O2",
+          "why": "Session 1-4 的整合驗證 + 業務舊書籤 deep-link 不可破",
+          "completion_signal": "業務從 history 點報價單號 → Builder 載入該筆 → Cmd+P 印出與舊版視覺一致"
+        }
+      ],
+      "status": "todo",
+      "tasks": [
+        { "id": "F8-T1", "title": "Hash router 完整接 load 動作", "status": "todo", "workstream": "Frontend", "priority": "P0" },
+        { "id": "F8-T2", "title": "列印 PDF 對比驗證（與舊版 1:1）", "status": "todo", "workstream": "QA / Release", "priority": "P0" },
+        { "id": "F8-T3", "title": "可拖拉 divider", "status": "todo", "workstream": "Frontend", "priority": "P2" }
+      ]
+    },
+    {
+      "id": "F9",
+      "title": "Frontend MOCK → fetch backend（PR 5 剩餘部分）",
+      "summary": "Session 1 已先做 next-number；剩餘 create / update / list / get / delete / distinct-sales 6 個 endpoints 接通。",
+      "weight": 2,
+      "goal_contributions": [
+        {
+          "outcome_id": "O3",
+          "why": "完整 CRUD 才能讓業務真的儲存報價",
+          "completion_signal": "業務在 Builder 按儲存 → list 上看得到、可載回編輯、可刪除"
+        }
+      ],
+      "status": "doing",
+      "tasks": [
+        { "id": "F9-T1", "title": "nextQuoteNumber（Session 1 提前完成）", "status": "verified", "workstream": "Frontend", "priority": "P0",
+          "evidence": [{ "type": "test", "ref": "pnpm test src/api", "result": "10 tests pass" }] },
+        { "id": "F9-T2", "title": "createQuote + updateQuote", "status": "todo", "workstream": "Frontend", "priority": "P0" },
+        { "id": "F9-T3", "title": "listQuotes（含 filter / pagination）", "status": "todo", "workstream": "Frontend", "priority": "P0" },
+        { "id": "F9-T4", "title": "getQuote + deleteQuote", "status": "todo", "workstream": "Frontend", "priority": "P0" },
+        { "id": "F9-T5", "title": "distinctSales（filter 下拉用）", "status": "todo", "workstream": "Frontend", "priority": "P1" }
+      ]
+    },
+    {
+      "id": "F10",
+      "title": "Phase A 基礎建設部署",
+      "summary": "Cloud Run + Cloud SQL + LB host rule + IAP + DNS。第一個可由業務瀏覽的 staging URL。",
+      "weight": 3,
+      "goal_contributions": [
+        {
+          "outcome_id": "O4",
+          "why": "上線必經，沒有 Cloud Run 就無法 cutover",
+          "completion_signal": "quote-staging.artogo.co 可從瀏覽器開、IAP 跳 Google 登入、登入後看到 Builder"
+        }
+      ],
+      "status": "todo",
+      "tasks": [
+        { "id": "F10-T1", "title": "Cloud Run service + Artifact Registry", "status": "todo", "workstream": "Infra", "priority": "P0" },
+        { "id": "F10-T2", "title": "Cloud SQL database quotes_staging + quotes_prod", "status": "todo", "workstream": "Infra", "priority": "P0" },
+        { "id": "F10-T3", "title": "LB host rule（quote.artogo.co → Cloud Run）", "status": "todo", "workstream": "Infra", "priority": "P0" },
+        { "id": "F10-T4", "title": "IAP enable + Workspace domain policy", "status": "todo", "workstream": "Infra", "priority": "P0" },
+        { "id": "F10-T5", "title": "DNS A 紀錄 + TLS cert", "status": "todo", "workstream": "Infra", "priority": "P0" }
+      ]
+    },
+    {
+      "id": "F11",
+      "title": "CI/CD prod + 業務 cutover",
+      "summary": "GitHub Actions deploy-staging + deploy-prod workflow；main 分支保護；舊 GitHub Pages 退場。",
+      "weight": 2,
+      "goal_contributions": [
+        {
+          "outcome_id": "O4",
+          "why": "讓未來的 PR 自動部署、避免手動操作風險",
+          "completion_signal": "push staging branch → 自動上 staging；merge main → 自動上 prod；舊 URL 顯示退場公告"
+        }
+      ],
+      "status": "todo",
+      "tasks": [
+        { "id": "F11-T1", "title": "WIF + GitHub Actions deploy-staging.yml", "status": "todo", "workstream": "Infra", "priority": "P1" },
+        { "id": "F11-T2", "title": "deploy-prod.yml + 分支保護", "status": "todo", "workstream": "Infra", "priority": "P1" },
+        { "id": "F11-T3", "title": "業務 cutover + 舊 URL 退場公告", "status": "todo", "workstream": "Ops", "priority": "P1" }
+      ]
+    },
+    {
+      "id": "F-side-codex",
+      "title": "Codex iteration（本輪附帶）",
+      "summary": "9 輪 Codex review、F1-F15 共 15 個 finding 的修補追蹤。",
+      "weight": 1,
+      "goal_contributions": [
+        {
+          "outcome_id": "O-side-1",
+          "why": "提升 Session 1 程式碼品質與符合 CLAUDE.md commit gate",
+          "completion_signal": "所有 finding 已 fix 並透過後續輪次 Codex 確認"
+        }
+      ],
+      "status": "doing",
+      "tasks": [
+        { "id": "F-side-codex-T1", "title": "F1-F4 修補（15-day default / StrictMode / 新報價 button / data-status）", "status": "verified", "workstream": "Frontend", "priority": "P2",
+          "evidence": [{ "type": "review", "ref": "Codex round 2", "result": "clean" }] },
+        { "id": "F-side-codex-T2", "title": "F5-F6 修補（sessionStorage 太黏 / provider unmount 丟 state）", "status": "verified", "workstream": "Frontend", "priority": "P2",
+          "evidence": [{ "type": "review", "ref": "Codex round 3", "result": "clean" }] },
+        { "id": "F-side-codex-T3", "title": "F7 修補（midnight stale dates）", "status": "verified", "workstream": "Frontend", "priority": "P2",
+          "evidence": [{ "type": "review", "ref": "Codex round 4", "result": "clean except F8 housekeeping" }] },
+        { "id": "F-side-codex-T4", "title": "F8 修補（.claude/ gitignore）", "status": "verified", "workstream": "Infra", "priority": "P3",
+          "evidence": [{ "type": "git", "ref": ".gitignore + .claude/", "result": "no longer untracked" }] },
+        { "id": "F-side-codex-T5", "title": "F9 修補（撞號 → backend API）", "status": "verified", "workstream": "Frontend", "priority": "P0",
+          "evidence": [{ "type": "test", "ref": "src/api 10 tests", "result": "atomic backend allocation" }] },
+        { "id": "F-side-codex-T6", "title": "F10 修補（retry path broken）", "status": "verified", "workstream": "Frontend", "priority": "P2",
+          "evidence": [{ "type": "test", "ref": "BuilderPanel.test retry-button", "result": "retry invokes fetch" }] },
+        { "id": "F-side-codex-T7", "title": "F11 + F12 修補（retry 蓋未來日期 / focus a11y）", "status": "verified", "workstream": "Frontend", "priority": "P2",
+          "evidence": [{ "type": "test", "ref": "BuilderPanel 12 tests", "result": "preserves future dates" }] },
+        { "id": "F-side-codex-T8", "title": "F13 + F14 修補（remount 蓋日期 / newQuote 空 state 不重 fetch）", "status": "verified", "workstream": "Frontend", "priority": "P2",
+          "evidence": [{ "type": "test", "ref": "fetchToken context-lifted", "result": "BuilderPanel 12 tests pass" }] },
+        { "id": "F-side-codex-T9", "title": "F15 修補（back-dated edit 被蓋）", "status": "done", "workstream": "Frontend", "priority": "P2",
+          "notes": "已實作 datesInitialised flag + 拆兩個 useEffect；Codex round 10 尚未跑驗證",
+          "evidence": [{ "type": "test", "ref": "BuilderPanel.test 13 tests", "result": "preserves past dates" }] },
+        { "id": "F-side-codex-T10", "title": "Codex round 10 確認 F15 修補 clean", "status": "blocked",
+          "workstream": "QA / Release", "priority": "P2",
+          "blocker": "尚未跑 round 10",
+          "blocked_by": "等使用者選 A（直接 commit）或 B（再跑 round 10）",
+          "owner": "user" }
+      ]
+    },
+    {
+      "id": "F-side-hotfix",
+      "title": "GitHub Pages 過渡期 hotfix（PR #4 已 merge）",
+      "summary": "root index.html 跳轉 + frontend/index.html github.io guard，保留 hash 給 deep link 書籤。",
+      "weight": 1,
+      "goal_contributions": [
+        {
+          "outcome_id": "O-side-2",
+          "why": "業務舊網址在 Cloud Run 上線前不能空白",
+          "completion_signal": "curl https://artogo.github.io/Artway-quote-system/ 顯示 4228 行 legacy.html"
+        }
+      ],
+      "status": "verified",
+      "tasks": [
+        { "id": "F-side-hotfix-T1", "title": "PR #4 hotfix merge + Pages re-build + 線上驗證", "status": "verified",
+          "workstream": "Infra", "priority": "P0", "progress_percent": 100,
+          "files": ["index.html", "frontend/index.html"],
+          "evidence": [
+            { "type": "git", "ref": "04452af merge commit", "result": "已 merge main" },
+            { "type": "curl", "ref": "https://artogo.github.io/Artway-quote-system/frontend/legacy.html", "result": "200 / text/html / 4228 lines" }
+          ]
+        }
+      ]
+    }
+  ],
+  "blockers": [
+    {
+      "title": "等使用者授權 commit Session 1 PR",
+      "reason": "Codex round 1 後我曾自作主張批次修 F5-F8，使用者明確要求之後每輪都拍板。Session 1 完成但需明確授權才能 commit。",
+      "blocked_by": "使用者選 A（直接 commit）/ B（再跑 round 10）/ C（先 dogfood）",
+      "owner": "user",
+      "needed_by": "Session 2 開工前",
+      "impact": "F4 無法標 verified、Session 2-5 無法開工、F9 / F10 / F11 連動延後",
+      "impact_chain": ["F4-T13 → F5 開工 → F6 → F7 → F8 → F9 → F10 → F11"],
+      "unblock_checklist": [
+        "使用者選 A/B/C 之一",
+        "若選 A：跑 git commit + gh pr create",
+        "若選 B：跑 codex review --uncommitted round 10",
+        "若選 C：等使用者完成 dogfood 回報"
+      ],
+      "status": "open"
+    },
+    {
+      "title": "本機 dogfood 需先啟動後端",
+      "reason": "F9 已改為 backend API、F4 完整體驗依賴 docker compose up；目前後端 Cloud Run 尚未部署",
+      "blocked_by": "使用者啟動 backend/docker-compose.yml 或 Phase A 完成",
+      "owner": "user",
+      "needed_by": "F4-T12 dogfood",
+      "impact": "F4-T12 無法執行、看不到完整 Builder 流程（會看到 api-error 重試 banner）",
+      "impact_chain": ["F4-T12 → F4-T13 commit 風險增加（少了 e2e 驗證）"],
+      "unblock_checklist": [
+        "cd backend && docker compose up",
+        "確認 :8080 監聽中",
+        "pnpm dev 看到 quoteNo 自動帶入"
+      ],
+      "status": "open"
+    },
+    {
+      "title": "Codex round 10 尚未跑於 F15 修補後",
+      "reason": "我為了結束 iteration loop 自決定停在 round 9 後，但 round 10 應該確認 F15（split-effect + datesInitialised flag）是 clean",
+      "blocked_by": "等使用者選 A（接受跳過 round 10）或 B（跑）",
+      "owner": "user",
+      "needed_by": "commit 前",
+      "impact": "嚴格而言 Session 1 程式碼沒有 'Codex 全 clean' 終結簽核",
+      "impact_chain": ["F-side-codex-T10 → F4-T11 完整 verified → F4-T13 commit"],
+      "unblock_checklist": [
+        "使用者選 A → 跳過 round 10、進 commit",
+        "使用者選 B → 跑 codex review --uncommitted、若 clean 才 commit"
+      ],
+      "status": "open"
+    }
+  ],
+  "decisions": [
+    {
+      "title": "Session 1 PR 是否要等 round 10 clean 才能 commit",
+      "context": "9 輪每輪都找新 edge case，停 iteration 是務實但違反「事後跑 Codex review」精神",
+      "owner": "user",
+      "needed_by": "commit 前",
+      "impact": "決定 ship 速度 vs 形式嚴謹度",
+      "status": "open"
+    },
+    {
+      "title": "Session 1 是否要在 PR description 加 follow-up TODO list",
+      "context": "若 round 10 找到新 finding 又不修，需明文列為 follow-up PR scope",
+      "owner": "user",
+      "needed_by": "PR description 起草前",
+      "impact": "未來 sessions 是否會延續處理這些 finding",
+      "status": "open"
+    }
+  ],
+  "next_actions": [
+    "使用者選 A / B / C（commit / round 10 / dogfood）",
+    "若 A：git add + commit + gh pr create + 等 reviewer / 自決 merge",
+    "若 B：codex review --uncommitted → 等 90s 回讀 → 視結果再決定",
+    "若 C：本機 docker compose up + pnpm dev + 開瀏覽器測試 → 回報問題或授權 commit"
+  ],
+  "not_covered": [
+    "Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動",
+    "列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）",
+    "Cross-browser 測試（Safari / Firefox / Edge）",
+    "IAP 登入流程（Phase A 部署後才有 staging URL 可測）",
+    "Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）",
+    "Codex round 10 對 F15 拆 useEffect refactor 的清白簽核"
+  ]
+}
