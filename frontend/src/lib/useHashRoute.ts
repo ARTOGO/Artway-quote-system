@@ -92,12 +92,24 @@ export function useHashRoute(): Route {
  * Programmatic navigation. Setting `window.location.hash` fires `hashchange`
  * so subscribed components re-render automatically.
  *
+ * Pass `{ replace: true }` to replace the current history entry instead of
+ * pushing a new one — used when normalizing the #/quote/{quote_no} deep link to
+ * #/ after a successful load, so Back returns to History rather than the stale
+ * deep link (which would reload + re-replace, trapping the user). Codex review.
+ *
  * Example:
- *   navigate('/history')           // → #/history
- *   navigate('/quote/AW-260516-001')
+ *   navigate('/history')                  // → #/history (push)
+ *   navigate('/', { replace: true })      // replace #/quote/... with #/
  */
-export function navigate(to: string): void {
+export function navigate(to: string, opts?: { replace?: boolean }): void {
   // Ensure leading '/' so #/history and #history both work the same.
   const normalised = to.startsWith('/') ? to : `/${to}`;
-  window.location.hash = normalised;
+  if (opts?.replace) {
+    // history.replaceState doesn't fire hashchange — dispatch it so subscribers
+    // (useHashRoute) re-parse the now-updated location.hash.
+    window.history.replaceState(null, '', `#${normalised}`);
+    window.dispatchEvent(new Event('hashchange'));
+  } else {
+    window.location.hash = normalised;
+  }
 }

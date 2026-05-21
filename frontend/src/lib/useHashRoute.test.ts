@@ -1,6 +1,35 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { parseHash } from './useHashRoute';
+import { navigate, parseHash } from './useHashRoute';
+
+describe('navigate', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    window.location.hash = '';
+  });
+
+  it('pushes a new entry by default (sets location.hash)', () => {
+    const replaceSpy = vi.spyOn(window.history, 'replaceState');
+    navigate('/history');
+    expect(window.location.hash).toBe('#/history');
+    expect(replaceSpy).not.toHaveBeenCalled();
+  });
+
+  it('replaces the current entry (no push) and notifies subscribers when replace:true', () => {
+    const replaceSpy = vi.spyOn(window.history, 'replaceState');
+    let hashChangeFired = false;
+    const onHash = (): void => {
+      hashChangeFired = true;
+    };
+    window.addEventListener('hashchange', onHash);
+    navigate('/', { replace: true });
+    window.removeEventListener('hashchange', onHash);
+
+    expect(replaceSpy).toHaveBeenCalledWith(null, '', '#/');
+    expect(window.location.hash).toBe('#/');
+    expect(hashChangeFired).toBe(true); // replaceState doesn't fire it; we dispatch
+  });
+});
 
 describe('parseHash', () => {
   it('returns builder for empty hash variants', () => {

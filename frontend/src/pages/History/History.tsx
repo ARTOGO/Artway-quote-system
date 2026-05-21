@@ -26,13 +26,25 @@ function statusLabel(v: string): string {
   return (STATUS_OPTIONS.find((o) => o.value === v) ?? STATUS_OPTIONS[0]).label;
 }
 
-// "YYYY-MM-DD HH:mm" from an ISO timestamp (legacy updatedStr, line 3473).
+// "YYYY-MM-DD HH:mm" in Asia/Taipei from an ISO timestamp. The backend stores
+// updated_at as UTC; format explicitly in the company timezone so the displayed
+// time is consistent regardless of the viewer's browser timezone (Gemini review
+// + project timezone rule), not the browser-local time legacy used.
 function fmtUpdated(iso: string): string {
   if (!iso) return '—';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '—';
-  const p = (n: number): string => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  return new Intl.DateTimeFormat('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Taipei',
+  })
+    .format(d)
+    .replace(/\//g, '-');
 }
 
 interface Filters {

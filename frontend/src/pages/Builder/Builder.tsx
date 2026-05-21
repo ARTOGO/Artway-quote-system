@@ -35,10 +35,11 @@ export function Builder(): JSX.Element {
   });
   const [dragging, setDragging] = useState(false);
   const dragOrigin = useRef<{ startX: number; startW: number } | null>(null);
+  // Latest width for the mouseup persist handler — assign in the render body
+  // (not an effect) so it always reflects the current render, with no one-cycle
+  // lag that could let `onUp` read a stale value (Gemini review).
   const latestWidth = useRef(panelWidth);
-  useEffect(() => {
-    latestWidth.current = panelWidth;
-  }, [panelWidth]);
+  latestWidth.current = panelWidth;
 
   const handleDividerMouseDown = useCallback(
     (e: React.MouseEvent) => {

@@ -10,7 +10,7 @@ import { useEffect, useState, type JSX } from 'react';
 
 import styles from './App.module.scss';
 import { getQuoteByNumber } from './api/quotes';
-import { useHashRoute, type Route } from './lib/useHashRoute';
+import { navigate, useHashRoute, type Route } from './lib/useHashRoute';
 import { Builder } from './pages/Builder/Builder';
 import { History } from './pages/History/History';
 import { QuoteProvider, useQuoteState } from './state/QuoteContext';
@@ -39,7 +39,7 @@ function RouteSwitch({ route }: { route: Route }): JSX.Element {
 // the Builder via the by-number endpoint. Shows loading / not-found states.
 function QuoteLoader({ quoteNo }: { quoteNo: string }): JSX.Element {
   const { load, newQuote } = useQuoteState();
-  const [phase, setPhase] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [phase, setPhase] = useState<'loading' | 'error'>('loading');
   const [errMsg, setErrMsg] = useState('');
 
   useEffect(() => {
@@ -47,8 +47,18 @@ function QuoteLoader({ quoteNo }: { quoteNo: string }): JSX.Element {
     setPhase('loading');
     getQuoteByNumber(quoteNo, ctl.signal)
       .then((q) => {
+        // Bail if the user already left this route (e.g. Back to History) before
+        // the request settled — a late success would otherwise yank them back to
+        // Builder and load the quote they just left (Codex P2).
+        if (ctl.signal.aborted) return;
         load(q);
-        setPhase('ready');
+        // Normalize the URL to the Builder route once loaded — staying on the
+        // stale #/quote/{quote_no} deep link means a later 新報價 / edit happens
+        // under the old address, and a refresh would reopen the old quote
+        // instead of the active builder state (Codex PR review P2). Replace (not
+        // push) the deep-link entry so Back returns to History, not back here
+        // (which would reload + re-replace, trapping the user) (Codex P2).
+        navigate('/', { replace: true });
       })
       .catch((e: unknown) => {
         if (ctl.signal.aborted) return;
@@ -57,8 +67,6 @@ function QuoteLoader({ quoteNo }: { quoteNo: string }): JSX.Element {
       });
     return () => ctl.abort();
   }, [quoteNo, load]);
-
-  if (phase === 'ready') return <Builder />;
 
   return (
     <div className={styles.screen}>
