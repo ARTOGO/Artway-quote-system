@@ -45,6 +45,32 @@ export interface QuoteItem {
   qty: number;
   unitPrice: number;
   priceTier?: string;
+  /**
+   * Per-item discount (NTD). Surfaced only when the parent group's
+   * `hasDiscount` is on. `calcItemAmount` subtracts it from qty×unitPrice.
+   * Legacy `it.discount` (legacy.html line 2865).
+   */
+  discount?: number;
+  /**
+   * Catalog service description (sheet "D 欄") carried onto the item so the
+   * 02 服務說明摘要 + appendix derivation doesn't need the catalog at render
+   * time and survives save/load. Empty / undefined for manual items.
+   */
+  service_description?: string;
+  /** True for manually-entered items (no catalog repick affordance). */
+  isManual?: boolean;
+  /**
+   * Catalog list / arts prices carried onto the item (legacy `_priceStandard`
+   * / `_priceArts`). Used by the auto-discount toggle to compute
+   * discount = max(0, priceStandard − priceArts). Undefined for manual items.
+   */
+  priceStandard?: number;
+  priceArts?: number;
+}
+
+export interface QuoteAdjustment {
+  label: string;
+  amount: number; // NTD; negative = 扣款 (議價折讓), positive = 加收 (手續費)
 }
 
 export interface QuoteGroup {
@@ -59,12 +85,27 @@ export interface QuoteGroup {
   seq: number;
   title: string;
   items: QuoteItem[];
+  /** Show the per-item Discount column (legacy `g.hasDiscount`). */
+  hasDiscount?: boolean;
+  /** Auto-fill each item's discount = max(0, price_standard − price_arts). */
+  autoDiscount?: boolean;
+  /** Show the final 議價/手續費 adjustment row (legacy `g.hasAdjustment`). */
+  hasAdjustment?: boolean;
+  /** Adjustment label + amount (legacy `g.adjustment`). */
+  adjustment?: QuoteAdjustment;
 }
 
+/**
+ * Derived per-sub_group service entry (legacy `state.services[]`). Built from
+ * the items present in `groups` (syncServices), with user-editable `summary`
+ * + `includeAppendix` preserved across re-syncs.
+ */
 export interface QuoteService {
-  code: string;
-  name: string;
-  bullets: string[];
+  sub_group: string;
+  summary: string; // user-editable extra summary text
+  service_description: string; // from catalog; drives appendix sections
+  hasAppendix: boolean; // true when service_description is non-empty
+  includeAppendix: boolean; // user toggle: show 「請見附件」 + appendix page
 }
 
 export interface QuotePayment {
@@ -108,6 +149,26 @@ export type QuoteAction =
       itemId: string;
       patch: Partial<Omit<QuoteItem, 'id'>>;
     }
+  | { type: 'MOVE_ITEM'; gid: string; fromIndex: number; toIndex: number }
+  // ─── Group discount / adjustment (Session 2.5) ─────────────────────────
+  | { type: 'SET_GROUP_DISCOUNT'; gid: string; hasDiscount: boolean }
+  | { type: 'SET_GROUP_AUTO_DISCOUNT'; gid: string; autoDiscount: boolean }
+  | { type: 'SET_GROUP_ADJUSTMENT_ENABLED'; gid: string; hasAdjustment: boolean }
+  | { type: 'SET_GROUP_ADJUSTMENT'; gid: string; field: keyof QuoteAdjustment; value: string }
+  // ─── Services (02 服務說明摘要) ─────────────────────────────────────────
+  | {
+      type: 'UPDATE_SERVICE';
+      sub_group: string;
+      patch: Partial<Pick<QuoteService, 'summary' | 'includeAppendix'>>;
+    }
+  // ─── Deliverables / Notes / Payment (Session 3) ────────────────────────
+  | { type: 'ADD_DELIVERABLE'; value?: string }
+  | { type: 'UPDATE_DELIVERABLE'; index: number; value: string }
+  | { type: 'REMOVE_DELIVERABLE'; index: number }
+  | { type: 'ADD_NOTE'; value?: string }
+  | { type: 'UPDATE_NOTE'; index: number; value: string }
+  | { type: 'REMOVE_NOTE'; index: number }
+  | { type: 'SET_PAYMENT'; field: keyof QuotePayment; value: string }
   | { type: 'RESET'; quote: Quote }
   | { type: 'LOAD'; quote: Quote };
 

@@ -1,0 +1,118 @@
+// Shared styles for list-row sections (Deliverables, Notes) + textarea
+// fields used in PaymentSection. Tokens-only.
+
+@use '../../../styles/tokens.scss' as *;
+
+.empty {
+  color: $overlay-gold-50;
+  font-size: $font-size-md-plus;
+  text-align: center;
+  padding: $space-2 0;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-2;
+  margin-bottom: 7px;
+}
+
+.bullet {
+  flex: 0 0 16px;
+  color: $color-gold;
+  font-size: $font-size-md-plus;
+  padding-top: 8px;
+  text-align: center;
+}
+
+.numBullet {
+  flex: 0 0 22px;
+  color: $color-gold;
+  font-size: $font-size-md-plus;
+  padding-top: 8px;
+  text-align: right;
+  font-weight: $font-weight-semibold;
+}
+
+.input,
+.textarea {
+  flex: 1;
+  min-width: 0;
+  background: $color-surface-void;
+  border: $border-width-thin solid $overlay-gold-30;
+  border-radius: $radius-base;
+  color: $color-surface-cream;
+  padding: $space-2 $space-2_5;
+  font-size: $font-size-xl-plus; // 13.5px
+  font-family: inherit;
+  line-height: $line-height-snug;
+
+  &:focus {
+    outline: none;
+    border-color: $color-gold;
+    background: $color-surface-deep;
+  }
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 48px;
+}
+
+.remove {
+  flex: 0 0 22px;
+  background: transparent;
+  border: $border-width-thin solid $overlay-gold-35;
+  color: $color-gold;
+  width: 22px;
+  height: 22px;
+  border-radius: $radius-base;
+  cursor: pointer;
+  font-size: $font-size-md-plus;
+  line-height: 1;
+  padding: 0;
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: $color-alert-error;
+    color: $color-surface-paper;
+    border-color: $color-alert-error;
+  }
+}
+
+// Used by PaymentSection for textarea fields with label on top
+.fieldStacked {
+  display: block;
+  margin-bottom: 7px;
+
+  > span {
+    display: block;
+    font-size: $font-size-md-plus;
+    color: $overlay-gold-90;
+    margin-bottom: 5px;
+    letter-spacing: $letter-spacing-wide;
+  }
+
+  > textarea {
+    width: 100%;
+    background: $color-surface-void;
+    border: $border-width-thin solid $overlay-gold-30;
+    border-radius: $radius-base;
+    color: $color-surface-cream;
+    padding: $space-2 $space-2_5;
+    font-size: $font-size-xl-plus;
+    font-family: inherit;
+    line-height: $line-height-snug;
+    resize: vertical;
+    min-height: 48px;
+
+    &:focus {
+      outline: none;
+      border-color: $color-gold;
+      background: $color-surface-deep;
+    }
+  }
+}

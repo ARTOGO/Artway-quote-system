@@ -37,9 +37,13 @@ import { addDaysISO, todayISO } from '../../lib/dates';
 import { useQuoteState } from '../../state/QuoteContext';
 import styles from './BuilderPanel.module.scss';
 import { ClientSection } from './sections/ClientSection';
+import { DeliverablesSection } from './sections/DeliverablesSection';
 import { GroupsSection } from './sections/GroupsSection';
 import { MetaSection } from './sections/MetaSection';
+import { NotesSection } from './sections/NotesSection';
+import { PaymentSection } from './sections/PaymentSection';
 import { SalesSection } from './sections/SalesSection';
+import { ServicesSection } from './sections/ServicesSection';
 import { Topbar } from './Topbar';
 
 export function BuilderPanel(): JSX.Element {
@@ -139,6 +143,10 @@ export function BuilderPanel(): JSX.Element {
         <ClientSection />
         <SalesSection />
         <GroupsSection />
+        <DeliverablesSection />
+        <ServicesSection />
+        <NotesSection />
+        <PaymentSection />
       </div>
     </aside>
   );

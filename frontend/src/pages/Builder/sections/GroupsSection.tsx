@@ -3,28 +3,32 @@
 // Legacy ref: legacy.html line 1839-1846 (.bp-section #bpGroups), 2559-2860
 // (addQuoteGroup / renderGroupBuilder / openPicker / openManualPicker).
 //
-// Session 2 scope (70% of legacy parity):
+// Implemented (legacy parity):
 //   ✓ add / remove / rename groups
-//   ✓ add items via picker (10-item fixture via lib/itemsCatalog)
-//   ✓ add items via manual form (sub_group / name / unit / qty / unitPrice)
-//   ✓ edit qty + unitPrice inline; remove items
-//   ✓ subtotal / tax / group total displayed live
-//   ✗ Discount column toggle (Session 2.5)
-//   ✗ Auto-discount (priceStandard − priceArts) (Session 2.5)
-//   ✗ Adjustment (議價 / 手續費) row (Session 2.5)
-//   ✗ Reorder up/down (Session 2.5)
-//   ✗ Real items catalog API (PR 5 — needs new backend endpoint)
+//   ✓ cascading 大品項→副品項→品項名稱 picker over the LIVE Google catalog
+//     (useItemsCatalog → api/items, fixture fallback) + manual entry
+//   ✓ editable 副品項 / 品項名稱 / qty / unit / unitPrice; remove items
+//   ✓ Discount column + auto-discount (priceStandard − priceArts)
+//   ✓ Adjustment (議價 / 手續費) row
+//   ✓ reorder via ↑↓ buttons + drag handle; repick (⟲); 定價/優惠價 tier switch
+//   ✓ subtotal / tax / adjustment / group total displayed live
 //
-// Picker UX intentionally inline (vs Radix Popover) for Session 2 minimum;
-// Session 4 (Radix Modals batch) will upgrade.
+// Picker UX is inline (vs Radix Popover); a Radix upgrade is optional polish.
 
 import { useState, type JSX } from 'react';
 
 import { Button } from '../../../components/Button/Button';
 import { NumberInput } from '../../../components/NumberInput/NumberInput';
 import { groupTitleFor, newGroupId, newItemId, nextGroupSeq } from '../../../lib/groupId';
-import { ITEMS_CATALOG_FIXTURE, searchItems, type CatalogItem } from '../../../lib/itemsCatalog';
 import {
+  itemsInSubGroup,
+  listGroups,
+  listSubGroups,
+  type CatalogItem,
+} from '../../../lib/itemsCatalog';
+import { useItemsCatalog } from '../../../lib/useItemsCatalog';
+import {
+  calcGroupAdjustment,
   calcGroupSubtotal,
   calcGroupTax,
   calcGroupTotal,
@@ -55,7 +59,7 @@ export function GroupsSection(): JSX.Element {
 
   return (
     <BPSection
-      title="報價內容"
+      title="01 專案報價內容"
       action={
         <button type="button" className={styles.miniBtn} onClick={handleAddGroup}>
           + 新增組
@@ -83,31 +87,106 @@ interface GroupCardProps {
   onRemove: () => void;
 }
 
+// Catalog fields carried onto an item — shared by add + repick so both paths
+// stay in sync.
+//   - Default tier: 定價 (price_standard). When a row has no valid standard
+//     price but has an arts price, fall back to 優惠價 (legacy buildPicker
+//     line 2824-2829) so it isn't quoted at NT$0 (Codex P2 #4).
+//   - When the group auto-discounts, list price + auto price-gap, matching
+//     legacy applyAutoDiscount; skips rows without a valid standard price
+//     (Codex P2 #1).
+//   - Carries the per-tier prices, but stores a missing/blank price as
+//     `undefined` (NOT 0), mirroring legacy `_priceStandard: isNaN(ps)?null:ps`
+//     (legacy.html line 2838-2839). The tier switch's guard then skips the
+//     unitPrice update for an absent tier instead of zeroing the row to NT$0
+//     (Codex round-3 P2).
+export function catalogItemFields(
+  catItem: CatalogItem,
+  autoDiscount = false,
+): Omit<QuoteItem, 'id' | 'qty'> {
+  const ps = catItem.price_standard;
+  const pa = catItem.price_arts;
+  const hasStandard = ps > 0;
+  const hasArts = pa > 0;
+  let priceTier = hasStandard ? 'price_standard' : 'price_arts';
+  let unitPrice = hasStandard ? ps : pa;
+  let discount = 0;
+  if (autoDiscount && hasStandard) {
+    priceTier = 'price_standard';
+    unitPrice = ps;
+    // Auto price-gap only when an arts price exists. A standard-only row has
+    // no 優惠價 to discount to, so discount stays 0 — matching legacy
+    // applyAutoDiscount `isNaN(pa) ? 0 : max(0, ps−pa)` (legacy.html:2562) and
+    // the SET_GROUP_AUTO_DISCOUNT reducer. Using `ps − 0` here would wrongly
+    // discount the full price and zero the line to NT$0 (Codex round-4 P1).
+    discount = hasArts ? Math.max(0, ps - pa) : 0;
+  }
+  return {
+    sub_group: catItem.sub_group,
+    name: catItem.name,
+    unit: catItem.unit,
+    unitPrice,
+    priceTier,
+    discount,
+    service_description: catItem.service_description,
+    priceStandard: hasStandard ? ps : undefined,
+    priceArts: hasArts ? pa : undefined,
+    isManual: false,
+  };
+}
+
 function GroupCard({ group, onRename, onRemove }: GroupCardProps): JSX.Element {
-  const { addItem, removeItem, updateItem } = useQuoteState();
-  const [openPicker, setOpenPicker] = useState<'standard' | 'manual' | null>(null);
+  const {
+    addItem,
+    removeItem,
+    updateItem,
+    moveItem,
+    setGroupDiscount,
+    setGroupAutoDiscount,
+    setGroupAdjustmentEnabled,
+    setGroupAdjustment,
+  } = useQuoteState();
+  // 'standard' | 'manual' = add picker; { repick: itemId } = replace an item.
+  const [openPicker, setOpenPicker] = useState<'standard' | 'manual' | { repick: string } | null>(
+    null,
+  );
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const hasDiscount = group.hasDiscount ?? false;
+  const hasAdjustment = group.hasAdjustment ?? false;
+  const autoDiscount = group.autoDiscount ?? false;
 
   function handleAddFromCatalog(catItem: CatalogItem): void {
-    const newItem: QuoteItem = {
-      id: newItemId(),
-      sub_group: catItem.sub_group,
-      name: catItem.name,
-      unit: catItem.unit,
-      qty: 1,
-      unitPrice: catItem.price_standard,
-      priceTier: 'price_standard',
-    };
-    addItem(group.id, newItem);
+    addItem(group.id, { id: newItemId(), qty: 1, ...catalogItemFields(catItem, autoDiscount) });
     setOpenPicker(null);
   }
 
   function handleAddManual(item: Omit<QuoteItem, 'id'>): void {
-    addItem(group.id, { id: newItemId(), ...item });
+    addItem(group.id, { id: newItemId(), ...item, isManual: true });
     setOpenPicker(null);
+  }
+
+  // Repick: replace the catalog fields of an existing item in place, keeping
+  // its id + qty (legacy openRePicker, line 2676).
+  function handleRepick(itemId: string, catItem: CatalogItem): void {
+    updateItem(group.id, itemId, catalogItemFields(catItem, autoDiscount));
+    setOpenPicker(null);
+  }
+
+  // Toggle 定價 ↔ 優惠價 for a non-manual item (legacy bp-tier-switch). Locked
+  // when auto-discount drives the prices.
+  function handleTierToggle(it: QuoteItem): void {
+    if (autoDiscount || it.isManual) return;
+    const toArts = it.priceTier !== 'price_arts';
+    const nextPrice = toArts ? it.priceArts : it.priceStandard;
+    updateItem(group.id, it.id, {
+      priceTier: toArts ? 'price_arts' : 'price_standard',
+      ...(nextPrice != null && !Number.isNaN(nextPrice) ? { unitPrice: nextPrice } : {}),
+    });
   }
 
   const subtotal = calcGroupSubtotal(group);
   const tax = calcGroupTax(subtotal);
+  const adjustment = calcGroupAdjustment(group);
   const total = calcGroupTotal(group);
 
   return (
@@ -132,14 +211,79 @@ function GroupCard({ group, onRename, onRemove }: GroupCardProps): JSX.Element {
         </button>
       </div>
 
+      {/* 折扣 / 議價 選項 (Session 2.5) */}
+      <div className={styles.groupOpts}>
+        <label className={styles.groupOpt}>
+          <input
+            type="checkbox"
+            checked={hasDiscount}
+            onChange={(e) => setGroupDiscount(group.id, e.target.checked)}
+          />
+          <span>顯示 Discount 折扣欄位</span>
+        </label>
+        {hasDiscount && (
+          <label className={styles.groupOpt}>
+            <input
+              type="checkbox"
+              checked={group.autoDiscount ?? false}
+              onChange={(e) => setGroupAutoDiscount(group.id, e.target.checked)}
+            />
+            <span>使用折扣：定價-優惠價</span>
+          </label>
+        )}
+        <label className={styles.groupOpt}>
+          <input
+            type="checkbox"
+            checked={hasAdjustment}
+            onChange={(e) => setGroupAdjustmentEnabled(group.id, e.target.checked)}
+          />
+          <span>最後金額異動（議價 / 手續費）</span>
+        </label>
+        {hasAdjustment && (
+          <div className={styles.adjustmentFields}>
+            <input
+              type="text"
+              className={styles.adjLabel}
+              value={group.adjustment?.label ?? ''}
+              onChange={(e) => setGroupAdjustment(group.id, 'label', e.target.value)}
+              placeholder="名稱（例：議價折讓 / 手續費）"
+              aria-label="金額異動名稱"
+            />
+            <input
+              type="number"
+              step={1}
+              className={styles.adjAmount}
+              value={group.adjustment?.amount ?? ''}
+              onChange={(e) => setGroupAdjustment(group.id, 'amount', e.target.value)}
+              placeholder="金額（負數＝扣款）"
+              aria-label="金額異動金額"
+            />
+          </div>
+        )}
+      </div>
+
       <div className={styles.items}>
-        {group.items.map((it) => (
+        {group.items.map((it, idx) => (
           <ItemRow
             key={it.id}
             item={it}
-            hasDiscount={false}
+            index={idx}
+            total={group.items.length}
+            hasDiscount={hasDiscount}
+            autoDiscount={autoDiscount}
+            isDragging={dragIndex === idx}
             onUpdate={(patch) => updateItem(group.id, it.id, patch)}
             onRemove={() => removeItem(group.id, it.id)}
+            onRepick={() => setOpenPicker({ repick: it.id })}
+            onTierToggle={() => handleTierToggle(it)}
+            onMoveUp={() => moveItem(group.id, idx, idx - 1)}
+            onMoveDown={() => moveItem(group.id, idx, idx + 1)}
+            onDragStart={() => setDragIndex(idx)}
+            onDragEnd={() => setDragIndex(null)}
+            onDropOn={() => {
+              if (dragIndex !== null && dragIndex !== idx) moveItem(group.id, dragIndex, idx);
+              setDragIndex(null);
+            }}
           />
         ))}
         {group.items.length === 0 && openPicker === null && (
@@ -158,8 +302,14 @@ function GroupCard({ group, onRename, onRemove }: GroupCardProps): JSX.Element {
         </div>
       ) : openPicker === 'standard' ? (
         <CatalogPicker onCancel={() => setOpenPicker(null)} onPick={handleAddFromCatalog} />
-      ) : (
+      ) : openPicker === 'manual' ? (
         <ManualPicker onCancel={() => setOpenPicker(null)} onAdd={handleAddManual} />
+      ) : (
+        <CatalogPicker
+          repick
+          onCancel={() => setOpenPicker(null)}
+          onPick={(catItem) => handleRepick(openPicker.repick, catItem)}
+        />
       )}
 
       <div className={styles.totals}>
@@ -171,6 +321,14 @@ function GroupCard({ group, onRename, onRemove }: GroupCardProps): JSX.Element {
           <span>營業稅 Tax 5%</span>
           <span>NT$ {formatMoney(tax)}</span>
         </div>
+        {hasAdjustment && (adjustment !== 0 || (group.adjustment?.label ?? '') !== '') && (
+          <div className={styles.totalsRow}>
+            <span>{group.adjustment?.label || '金額異動 Adjustment'}</span>
+            <span>
+              {adjustment < 0 ? '−' : ''}NT$ {formatMoney(Math.abs(adjustment))}
+            </span>
+          </div>
+        )}
         <div className={styles.totalsGrand}>
           <span>{group.title}　總價</span>
           <span>NT$ {formatMoney(total)}</span>
@@ -184,29 +342,148 @@ function GroupCard({ group, onRename, onRemove }: GroupCardProps): JSX.Element {
 
 interface ItemRowProps {
   item: QuoteItem;
+  index: number;
+  total: number;
   hasDiscount: boolean;
+  autoDiscount: boolean;
+  isDragging: boolean;
   onUpdate: (patch: Partial<Omit<QuoteItem, 'id'>>) => void;
   onRemove: () => void;
+  onRepick: () => void;
+  onTierToggle: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  onDropOn: () => void;
 }
 
-function ItemRow({ item, onUpdate, onRemove }: ItemRowProps): JSX.Element {
-  const amount = calcItemAmount(item);
+function ItemRow({
+  item,
+  index,
+  total,
+  hasDiscount,
+  autoDiscount,
+  isDragging,
+  onUpdate,
+  onRemove,
+  onRepick,
+  onTierToggle,
+  onMoveUp,
+  onMoveDown,
+  onDragStart,
+  onDragEnd,
+  onDropOn,
+}: ItemRowProps): JSX.Element {
+  const amount = calcItemAmount(item, hasDiscount);
+  const [dragOver, setDragOver] = useState(false);
+  const isArts = item.priceTier === 'price_arts';
   return (
-    <div className={styles.itemRow}>
+    <div
+      className={`${styles.itemRow} ${isDragging ? styles.itemDragging : ''} ${dragOver ? styles.itemDragOver : ''}`}
+      onDragOver={(e) => {
+        // preventDefault marks this row as a valid drop target; without it
+        // the browser fires no `drop` event. dropEffect drives the cursor.
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (!dragOver) setDragOver(true);
+      }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+        onDropOn();
+      }}
+    >
       <div className={styles.itemTop}>
-        <span className={styles.itemSubGroup}>{item.sub_group || '—'}</span>
-        <span className={styles.itemName} title={item.name}>
-          {item.name}
-        </span>
-        <button
-          type="button"
-          className={styles.itemRemove}
-          onClick={onRemove}
-          aria-label="移除品項"
-          title="移除品項"
+        <span
+          className={styles.itemDrag}
+          draggable
+          onDragStart={(e) => {
+            // HTML5 DnD requires data on the transfer for the drag to be a
+            // valid operation (Firefox won't start the drag otherwise, and
+            // `drop` won't fire reliably). The actual source index is tracked
+            // via React state (onDragStart → setDragIndex); this payload just
+            // makes the gesture valid.
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', String(index));
+            onDragStart();
+          }}
+          onDragEnd={onDragEnd}
+          title="拖曳調整順序"
+          aria-label="拖曳調整順序"
         >
-          ✕
-        </button>
+          ⋮⋮
+        </span>
+        <label className={`${styles.miniField} ${styles.fieldCat}`}>
+          <span>副品項</span>
+          <textarea
+            rows={2}
+            value={item.sub_group}
+            // The item-carried service_description is a cache of the catalog row
+            // captured at add/repick time. Once the user retypes the category it
+            // no longer belongs to that row, so clear it — otherwise syncServices
+            // would print the OLD category's 02 摘要/附件 under the new label.
+            // Legacy re-derives the description from the catalog by sub_group
+            // (legacy.html:2354), which yields empty for a manually-typed
+            // category; clearing matches that effect (Codex round-5 P2).
+            onChange={(e) => onUpdate({ sub_group: e.target.value, service_description: '' })}
+            placeholder="Category"
+            aria-label="副品項"
+          />
+        </label>
+        <label className={`${styles.miniField} ${styles.fieldDesc}`}>
+          <span>品項名稱</span>
+          <textarea
+            rows={2}
+            value={item.name}
+            onChange={(e) => onUpdate({ name: e.target.value })}
+            placeholder="Description"
+            aria-label="品項名稱"
+          />
+        </label>
+        <div className={styles.itemActions}>
+          <div className={styles.itemReorder}>
+            <button
+              type="button"
+              onClick={onMoveUp}
+              disabled={index === 0}
+              aria-label="上移品項"
+              title="上移"
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              onClick={onMoveDown}
+              disabled={index === total - 1}
+              aria-label="下移品項"
+              title="下移"
+            >
+              ↓
+            </button>
+          </div>
+          {!item.isManual && (
+            <button
+              type="button"
+              className={styles.itemRepick}
+              onClick={onRepick}
+              aria-label="重新選擇此品項"
+              title="重新選擇此品項"
+            >
+              ⟲
+            </button>
+          )}
+          <button
+            type="button"
+            className={styles.itemRemove}
+            onClick={onRemove}
+            aria-label="移除品項"
+            title="移除品項"
+          >
+            ✕
+          </button>
+        </div>
       </div>
       <div className={styles.itemFields}>
         <label className={styles.miniField}>
@@ -232,6 +509,31 @@ function ItemRow({ item, onUpdate, onRemove }: ItemRowProps): JSX.Element {
             aria-label="單價"
           />
         </label>
+        {!item.isManual && (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isArts}
+            className={`${styles.tierSwitch} ${isArts ? styles.tierSwitchArts : ''} ${autoDiscount ? styles.tierSwitchDisabled : ''}`}
+            onClick={onTierToggle}
+            disabled={autoDiscount}
+            aria-label="切換 定價 / 優惠價"
+            title={autoDiscount ? '使用折扣模式已鎖定為定價' : '點擊切換 定價/優惠價'}
+          >
+            <span>定價</span>
+            <span>優惠價</span>
+          </button>
+        )}
+        {hasDiscount && (
+          <label className={styles.miniField}>
+            <span>折扣</span>
+            <NumberInput
+              value={item.discount ?? 0}
+              onCommit={(discount) => onUpdate({ discount: Math.round(Math.max(0, discount)) })}
+              aria-label="折扣"
+            />
+          </label>
+        )}
         <span className={styles.itemAmount}>NT$ {formatMoney(amount)}</span>
       </div>
     </div>
@@ -240,51 +542,107 @@ function ItemRow({ item, onUpdate, onRemove }: ItemRowProps): JSX.Element {
 
 // ─── CatalogPicker ────────────────────────────────────────────────────────
 
+// Cascading 大品項 → 副品項 → 品項名稱 dropdowns (legacy buildPicker,
+// legacy.html line 2763-2830). Picking a name surfaces its 定價/優惠價, then
+// 加入 / 替換 commits it.
 function CatalogPicker({
   onCancel,
   onPick,
+  repick = false,
 }: {
   onCancel: () => void;
   onPick: (item: CatalogItem) => void;
+  repick?: boolean;
 }): JSX.Element {
-  const [query, setQuery] = useState('');
-  const results = searchItems(query, ITEMS_CATALOG_FIXTURE);
+  const { catalog, loading, error, live } = useItemsCatalog();
+  const [group, setGroup] = useState('');
+  const [subGroup, setSubGroup] = useState('');
+  const [nameIdx, setNameIdx] = useState('');
+  const groups = listGroups(catalog);
+  const subGroups = group ? listSubGroups(group, catalog) : [];
+  const names = group && subGroup ? itemsInSubGroup(group, subGroup, catalog) : [];
+  const selected = nameIdx !== '' ? names[Number(nameIdx)] : undefined;
+  const label = repick ? '重新選擇品項' : '新增標準品';
+
   return (
-    <div className={styles.picker} role="dialog" aria-label="新增標準品">
+    <div className={styles.picker} role="dialog" aria-label={label}>
       <div className={styles.pickerHead}>
-        <span>新增標準品（{results.length}）</span>
+        <span>{label}</span>
         <button type="button" className={styles.pickerCancel} onClick={onCancel} aria-label="取消">
           ✕
         </button>
       </div>
-      <input
-        type="text"
-        className={styles.pickerSearch}
-        placeholder="搜尋名稱 / 副品項 / 單位…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        autoFocus
-      />
-      <div className={styles.pickerList}>
-        {results.length === 0 ? (
-          <div className={styles.pickerEmpty}>（無符合品項）</div>
-        ) : (
-          results.map((it) => (
-            <button
-              key={`${it.sub_group}-${it.name}`}
-              type="button"
-              className={styles.pickerItem}
-              onClick={() => onPick(it)}
-            >
-              <span className={styles.pickerItemCat}>{it.sub_group}</span>
-              <span className={styles.pickerItemName}>{it.name}</span>
-              <span className={styles.pickerItemPrice}>
-                NT$ {formatMoney(it.price_standard)} / {it.unit}
-              </span>
-            </button>
-          ))
-        )}
+      {repick && <div className={styles.pickerHint}>重新選擇此品項（保留位置與數量）</div>}
+      {loading ? (
+        <div className={styles.pickerHint}>正在載入品項資料…</div>
+      ) : error ? (
+        <div className={styles.pickerHint}>線上品項載入失敗（用內建清單）：{error}</div>
+      ) : live ? (
+        <div className={styles.pickerHint}>已載入 {catalog.length} 筆線上品項</div>
+      ) : null}
+      <select
+        className={styles.pickerSelect}
+        aria-label="大品項"
+        value={group}
+        onChange={(e) => {
+          setGroup(e.target.value);
+          setSubGroup('');
+          setNameIdx('');
+        }}
+      >
+        <option value="">— 大品項 —</option>
+        {groups.map((g) => (
+          <option key={g} value={g}>
+            {g}
+          </option>
+        ))}
+      </select>
+      <select
+        className={styles.pickerSelect}
+        aria-label="副品項"
+        value={subGroup}
+        disabled={group === ''}
+        onChange={(e) => {
+          setSubGroup(e.target.value);
+          setNameIdx('');
+        }}
+      >
+        <option value="">— 副品項 —</option>
+        {subGroups.map((s) => (
+          <option key={s} value={s}>
+            {s}
+          </option>
+        ))}
+      </select>
+      <select
+        className={styles.pickerSelect}
+        aria-label="品項名稱"
+        value={nameIdx}
+        disabled={subGroup === ''}
+        onChange={(e) => setNameIdx(e.target.value)}
+      >
+        <option value="">— 品項名稱 —</option>
+        {names.map((n, i) => (
+          <option key={i} value={i}>
+            {n.name}
+          </option>
+        ))}
+      </select>
+      <div className={styles.pickerPrice}>
+        {selected
+          ? `定價 NT$ ${formatMoney(selected.price_standard)}　·　優惠價 NT$ ${formatMoney(
+              selected.price_arts,
+            )}　·　${selected.unit}`
+          : '請先選擇品項'}
       </div>
+      <Button
+        variant="primary"
+        className={styles.manualSubmit}
+        disabled={!selected}
+        onClick={() => selected && onPick(selected)}
+      >
+        {repick ? '替換' : '加入'}
+      </Button>
     </div>
   );
 }

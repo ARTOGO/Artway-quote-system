@@ -24,11 +24,14 @@ import { createBlankQuote, quoteReducer } from './quoteReducer';
 import type {
   Quote,
   QuoteAction,
+  QuoteAdjustment,
   QuoteClient,
   QuoteGroup,
   QuoteItem,
   QuoteMeta,
+  QuotePayment,
   QuoteSales,
+  QuoteService,
   QuoteStatus,
 } from './quoteTypes';
 
@@ -51,6 +54,28 @@ interface QuoteContextValue {
   addItem: (gid: string, item: QuoteItem) => void;
   removeItem: (gid: string, itemId: string) => void;
   updateItem: (gid: string, itemId: string, patch: Partial<Omit<QuoteItem, 'id'>>) => void;
+  moveItem: (gid: string, fromIndex: number, toIndex: number) => void;
+
+  // ─── Group discount / adjustment (Session 2.5) ─────────────────────────
+  setGroupDiscount: (gid: string, hasDiscount: boolean) => void;
+  setGroupAutoDiscount: (gid: string, autoDiscount: boolean) => void;
+  setGroupAdjustmentEnabled: (gid: string, hasAdjustment: boolean) => void;
+  setGroupAdjustment: (gid: string, field: keyof QuoteAdjustment, value: string) => void;
+
+  // ─── Services (02 服務說明摘要) ─────────────────────────────────────────
+  updateService: (
+    sub_group: string,
+    patch: Partial<Pick<QuoteService, 'summary' | 'includeAppendix'>>,
+  ) => void;
+
+  // ─── Deliverables / Notes / Payment (Session 3) ────────────────────────
+  addDeliverable: (value?: string) => void;
+  updateDeliverable: (index: number, value: string) => void;
+  removeDeliverable: (index: number) => void;
+  addNote: (value?: string) => void;
+  updateNote: (index: number, value: string) => void;
+  removeNote: (index: number) => void;
+  setPayment: (field: keyof QuotePayment, value: string) => void;
 
   // ─── Quote-number allocation side-channel (Codex F10/F14) ──────────────
   // BuilderPanel's allocation effect depends on `fetchToken`; bumping it
@@ -135,6 +160,64 @@ export function QuoteProvider({ children, initial }: QuoteProviderProps): JSX.El
       dispatch({ type: 'UPDATE_ITEM', gid, itemId, patch }),
     [],
   );
+  const moveItem = useCallback(
+    (gid: string, fromIndex: number, toIndex: number) =>
+      dispatch({ type: 'MOVE_ITEM', gid, fromIndex, toIndex }),
+    [],
+  );
+
+  // ─── Group discount / adjustment (Session 2.5) ─────────────────────────
+  const setGroupDiscount = useCallback(
+    (gid: string, hasDiscount: boolean) =>
+      dispatch({ type: 'SET_GROUP_DISCOUNT', gid, hasDiscount }),
+    [],
+  );
+  const setGroupAutoDiscount = useCallback(
+    (gid: string, autoDiscount: boolean) =>
+      dispatch({ type: 'SET_GROUP_AUTO_DISCOUNT', gid, autoDiscount }),
+    [],
+  );
+  const setGroupAdjustmentEnabled = useCallback(
+    (gid: string, hasAdjustment: boolean) =>
+      dispatch({ type: 'SET_GROUP_ADJUSTMENT_ENABLED', gid, hasAdjustment }),
+    [],
+  );
+  const setGroupAdjustment = useCallback(
+    (gid: string, field: keyof QuoteAdjustment, value: string) =>
+      dispatch({ type: 'SET_GROUP_ADJUSTMENT', gid, field, value }),
+    [],
+  );
+
+  // ─── Services (02 服務說明摘要) ─────────────────────────────────────────
+  const updateService = useCallback(
+    (sub_group: string, patch: Partial<Pick<QuoteService, 'summary' | 'includeAppendix'>>) =>
+      dispatch({ type: 'UPDATE_SERVICE', sub_group, patch }),
+    [],
+  );
+
+  // ─── Deliverables / Notes / Payment (Session 3) ────────────────────────
+  const addDeliverable = useCallback(
+    (value?: string) => dispatch({ type: 'ADD_DELIVERABLE', value }),
+    [],
+  );
+  const updateDeliverable = useCallback(
+    (index: number, value: string) => dispatch({ type: 'UPDATE_DELIVERABLE', index, value }),
+    [],
+  );
+  const removeDeliverable = useCallback(
+    (index: number) => dispatch({ type: 'REMOVE_DELIVERABLE', index }),
+    [],
+  );
+  const addNote = useCallback((value?: string) => dispatch({ type: 'ADD_NOTE', value }), []);
+  const updateNote = useCallback(
+    (index: number, value: string) => dispatch({ type: 'UPDATE_NOTE', index, value }),
+    [],
+  );
+  const removeNote = useCallback((index: number) => dispatch({ type: 'REMOVE_NOTE', index }), []);
+  const setPayment = useCallback(
+    (field: keyof QuotePayment, value: string) => dispatch({ type: 'SET_PAYMENT', field, value }),
+    [],
+  );
 
   // ─── Allocation side-channel (Codex F10 / F14) ─────────────────────────
   const [fetchToken, setFetchToken] = useState(0);
@@ -167,6 +250,19 @@ export function QuoteProvider({ children, initial }: QuoteProviderProps): JSX.El
       addItem,
       removeItem,
       updateItem,
+      moveItem,
+      setGroupDiscount,
+      setGroupAutoDiscount,
+      setGroupAdjustmentEnabled,
+      setGroupAdjustment,
+      updateService,
+      addDeliverable,
+      updateDeliverable,
+      removeDeliverable,
+      addNote,
+      updateNote,
+      removeNote,
+      setPayment,
       fetchToken,
       retry,
       newQuote,
@@ -188,6 +284,19 @@ export function QuoteProvider({ children, initial }: QuoteProviderProps): JSX.El
       addItem,
       removeItem,
       updateItem,
+      moveItem,
+      setGroupDiscount,
+      setGroupAutoDiscount,
+      setGroupAdjustmentEnabled,
+      setGroupAdjustment,
+      updateService,
+      addDeliverable,
+      updateDeliverable,
+      removeDeliverable,
+      addNote,
+      updateNote,
+      removeNote,
+      setPayment,
       fetchToken,
       retry,
       newQuote,
