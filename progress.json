@@ -1,6 +1,6 @@
 {
   "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-21T19:27:00+08:00",
+  "updated_at": "2026-05-21T21:00:00+08:00",
   "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
   "success_criteria": [
     "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -11,9 +11,9 @@
     "CI/CD 雙環境（staging / prod）自動部署、main 受分支保護"
   ],
   "current_focus": {
-    "feature_id": "F16",
-    "task_id": "F16-T1",
-    "summary": "Phase 1+2（輸出 PDF + 報價存取 API + 儲存 + 兩段式 save-before-print）commit gate 過：8 輪 Codex、13 findings 全修、R8 乾淨、266 tests 綠。Commit Phase 1+2 → Phase 3 History + load（含 by-quote_no 路由決策）。"
+    "feature_id": "F17",
+    "task_id": "F17-T3",
+    "summary": "Phase 3（History + load）commit gate 過：7 輪 Codex、6 findings 全修、R7 乾淨、273 tests 綠、e2e 閉環驗證。Commit Phase 3 → 全部 1+2+3 開發完成 → /qa-only → push staging → 開 PR。"
   },
   "conversation_changes": [
     {
@@ -147,6 +147,12 @@
       "source": "codex",
       "change": "Phase 1+2 Codex 第八輪乾淨，commit gate 通過。",
       "impact": "save/print 流程經 8 輪 13 findings 硬化（dedup、型別、save-switch race、日期正規化、total 取整、canonical 合併、defer-stamp 保留編輯、Escape 守衛、flash timer race）。可 commit。"
+    },
+    {
+      "at": "2026-05-21T19:30:00+08:00",
+      "source": "user",
+      "change": "Phase 3 路由：選『加後端 by-quote_no 查詢』保書籤。",
+      "impact": "後端加 GET /quotes/by-number/{quote_no}（先文件後 code + Go test）；前端 getQuoteByNumber；History 頁列改連 #/quote/AW-...；載入用 by-quote_no。"
     }
   ],
   "goal_groups": [
@@ -1920,27 +1926,111 @@
           "completion_signal": "建立報價→儲存→History 看到→點進載回 Builder，runtime 驗證"
         }
       ],
-      "status": "todo",
+      "status": "verified",
       "tasks": [
         {
+          "id": "F17-T0",
+          "title": "後端 GET /quotes/by-number/{quote_no}（保 AW-... 書籤）",
+          "status": "verified",
+          "workstream": "Backend",
+          "priority": "P1",
+          "progress_percent": 100,
+          "files": [
+            "backend/internal/quotes/queries.sql",
+            "backend/internal/quotes/repo.go",
+            "backend/internal/quotes/handler.go",
+            "backend/internal/quotes/routes.go",
+            "backend/internal/quotes/handler_test.go",
+            "docs/HISTORY_BACKEND_SPEC.md",
+            "frontend/src/api/quotes.ts"
+          ],
+          "evidence": [
+            {
+              "type": "go-test",
+              "ref": "handler_test GetByNumber happy/404 + go vet/build",
+              "result": "全綠"
+            },
+            {
+              "type": "backend-curl",
+              "ref": "本機 8099 server：by-number/AW-260521-044",
+              "result": "200 + merged body；404 not-found；與 by-id 一致"
+            },
+            {
+              "type": "spec",
+              "ref": "HISTORY_BACKEND_SPEC §3.5a",
+              "result": "已補規格"
+            }
+          ]
+        },
+        {
           "id": "F17-T1",
-          "title": "History 頁（list/filter/page）",
-          "status": "todo",
+          "title": "前端 getQuoteByNumber + History 頁（list/filter/page）",
+          "status": "verified",
           "workstream": "Frontend",
           "priority": "P1",
-          "progress_percent": 0,
-          "files": [],
-          "evidence": []
+          "progress_percent": 100,
+          "files": [
+            "frontend/src/api/quotes.ts",
+            "frontend/src/pages/History/History.tsx",
+            "frontend/src/pages/History/History.module.scss",
+            "frontend/src/pages/History/History.test.tsx"
+          ],
+          "evidence": [
+            {
+              "type": "test",
+              "ref": "getQuoteByNumber(2)+History(4)",
+              "result": "272 tests 綠"
+            },
+            {
+              "type": "gate",
+              "ref": "typecheck/lint/build",
+              "result": "全綠"
+            },
+            {
+              "type": "playwright",
+              "ref": "dev app #/history",
+              "result": "列表共 2 筆（AW-260521-044/041，live）；篩選/分頁/刪除可用；0 console error（fresh load）"
+            }
+          ]
         },
         {
           "id": "F17-T2",
-          "title": "#/quote/AW-xxx 載入回 Builder",
-          "status": "todo",
+          "title": "#/quote/AW-xxx → getQuoteByNumber → LOAD 回 Builder",
+          "status": "verified",
           "workstream": "Frontend",
           "priority": "P1",
-          "progress_percent": 0,
+          "progress_percent": 100,
+          "files": [
+            "frontend/src/App.tsx"
+          ],
+          "evidence": [
+            {
+              "type": "gate",
+              "ref": "typecheck/lint/build 全綠",
+              "result": "QuoteLoader：getQuoteByNumber→LOAD→Builder，loading/404 狀態"
+            },
+            {
+              "type": "playwright",
+              "ref": "#/quote/AW-260521-044 → Builder",
+              "result": "載入 quoteNo/title/client 正確；建立→儲存→歷史→載入 閉環完成"
+            }
+          ]
+        },
+        {
+          "id": "F17-T3",
+          "title": "Phase 3 Codex gate（7 輪，6 findings 全修）",
+          "status": "verified",
+          "workstream": "Frontend",
+          "priority": "P1",
+          "progress_percent": 100,
           "files": [],
-          "evidence": []
+          "evidence": [
+            {
+              "type": "codex",
+              "ref": "R7 CLEAN",
+              "result": "deep sweep + 新報價 reset[P1]、刪除 refetch、pill data-status、可讀淺色面板×2、新報價確認、filter 對比、回報價單 link、刪除清空已載入報價 — 全修。273 tests 綠"
+            }
+          ]
         }
       ]
     }
