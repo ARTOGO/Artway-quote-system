@@ -159,6 +159,25 @@ GET /quotes/{id}
 
 ---
 
+### 3.5a 用報價單號取單筆（deep-link 書籤）
+```
+GET /quotes/by-number/{quote_no}
+```
+
+前端 deep-link 路由是 `#/quote/AW-...`（報價單號，保留業務書籤），但內部主鍵是
+UUID，列表也不支援用 quote_no 篩選。此端點讓 `#/quote/AW-...` 能直接重新載入。
+
+- `quote_no` 有 `UNIQUE` 約束，最多一筆；軟刪除視為不存在。
+- **Response 200:** 與 3.5 完全相同的合併後 Quote JSON（7 個 canonical 外層欄位
+  覆寫 body）。
+- **Response 404:** 找不到或已軟刪除。
+- **Response 400:** `quote_no` 為空。
+
+> 路由註冊順序：`/by-number/{quote_no}` 為字面前綴，必須在 `/{id}` catch-all 之前
+> 註冊（見 `routes.go`）。
+
+---
+
 ### 3.6 軟刪除
 ```
 DELETE /quotes/{id}

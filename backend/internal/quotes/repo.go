@@ -28,6 +28,7 @@ type Repository interface {
 	Update(ctx context.Context, id uuid.UUID, p UpdateParams) (*WriteResult, error)
 	List(ctx context.Context, p ListParams) (*ListResult, error)
 	Get(ctx context.Context, id uuid.UUID) (*Quote, error)
+	GetByQuoteNo(ctx context.Context, quoteNo string) (*Quote, error)
 	SoftDelete(ctx context.Context, id uuid.UUID) error
 	DistinctSales(ctx context.Context) ([]string, error)
 }
@@ -257,6 +258,31 @@ func (r *repo) Get(ctx context.Context, id uuid.UUID) (*Quote, error) {
 		SalesName:     q.SalesName,
 		IssueDate:     dateToTimePtr(q.IssueDate),
 		Body:          q.Body, // pgtype JSONB → raw bytes
+		CreatedBy:     q.CreatedBy,
+		UpdatedBy:     q.UpdatedBy,
+		CreatedAt:     q.CreatedAt.Time,
+		UpdatedAt:     q.UpdatedAt.Time,
+	}, nil
+}
+
+func (r *repo) GetByQuoteNo(ctx context.Context, quoteNo string) (*Quote, error) {
+	q, err := r.q.GetQuoteByNo(ctx, quoteNo)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("get quote by no: %w", err)
+	}
+	return &Quote{
+		ID:            q.ID,
+		QuoteNo:       q.QuoteNo,
+		Status:        q.Status,
+		Title:         q.Title,
+		TotalAmount:   q.TotalAmount,
+		ClientCompany: q.ClientCompany,
+		SalesName:     q.SalesName,
+		IssueDate:     dateToTimePtr(q.IssueDate),
+		Body:          q.Body,
 		CreatedBy:     q.CreatedBy,
 		UpdatedBy:     q.UpdatedBy,
 		CreatedAt:     q.CreatedAt.Time,

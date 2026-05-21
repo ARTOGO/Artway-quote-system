@@ -77,6 +77,13 @@ SELECT *
 FROM quotes
 WHERE id = $1 AND deleted_at IS NULL;
 
+-- name: GetQuoteByNo :one
+-- 用報價單號取單筆完整資料，保留 #/quote/AW-... deep-link 書籤（業務 deep link）。
+-- quote_no 有 UNIQUE 約束，最多一筆；軟刪除的視為不存在（pgx.ErrNoRows）。
+SELECT *
+FROM quotes
+WHERE quote_no = $1 AND deleted_at IS NULL;
+
 -- name: SoftDeleteQuote :execrows
 -- 軟刪除（標記 deleted_at = now()）。:execrows 回 affected rows，handler 用來
 -- 區分「刪除成功」與「找不到 / 已被刪過」(回 0 rows → 404)。

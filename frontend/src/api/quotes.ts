@@ -191,6 +191,19 @@ export async function getQuote(id: string, signal?: AbortSignal): Promise<Quote>
   return fromQuoteResponse(raw);
 }
 
+/**
+ * GET /api/quotes/by-number/{quote_no} — reopen a quote from its 報價單號 so the
+ * `#/quote/AW-...` deep-link / 業務 bookmark works (the route carries the
+ * human-readable number, not the internal UUID). SPEC §3.5a.
+ */
+export async function getQuoteByNumber(quoteNo: string, signal?: AbortSignal): Promise<Quote> {
+  const raw = await apiFetch<Record<string, unknown>>(
+    `/quotes/by-number/${encodeURIComponent(quoteNo)}`,
+    { signal },
+  );
+  return fromQuoteResponse(raw);
+}
+
 /** DELETE /api/quotes/{id} — soft delete (204 No Content). */
 export async function deleteQuote(id: string, signal?: AbortSignal): Promise<void> {
   await apiFetch<void>(`/quotes/${id}`, { method: 'DELETE', signal });

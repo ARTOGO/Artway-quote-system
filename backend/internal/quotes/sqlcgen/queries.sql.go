@@ -156,6 +156,36 @@ func (q *Queries) GetQuote(ctx context.Context, id uuid.UUID) (Quote, error) {
 	return i, err
 }
 
+const getQuoteByNo = `-- name: GetQuoteByNo :one
+SELECT id, quote_no, status, title, total_amount, client_company, sales_name, issue_date, body, created_by, updated_by, created_at, updated_at, deleted_at
+FROM quotes
+WHERE quote_no = $1 AND deleted_at IS NULL
+`
+
+// 用報價單號取單筆完整資料，保留 #/quote/AW-... deep-link 書籤（業務 deep link）。
+// quote_no 有 UNIQUE 約束，最多一筆；軟刪除的視為不存在（pgx.ErrNoRows）。
+func (q *Queries) GetQuoteByNo(ctx context.Context, quoteNo string) (Quote, error) {
+	row := q.db.QueryRow(ctx, getQuoteByNo, quoteNo)
+	var i Quote
+	err := row.Scan(
+		&i.ID,
+		&i.QuoteNo,
+		&i.Status,
+		&i.Title,
+		&i.TotalAmount,
+		&i.ClientCompany,
+		&i.SalesName,
+		&i.IssueDate,
+		&i.Body,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const listQuotes = `-- name: ListQuotes :many
 SELECT
   id, quote_no, status, title, total_amount,

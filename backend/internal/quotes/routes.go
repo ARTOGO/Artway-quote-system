@@ -17,6 +17,8 @@ func Mount(r chi.Router, h *Handler) {
 		r.Post("/", h.Create)
 		r.Post("/next-number", h.NextNumber)
 		r.Get("/distinct-sales", h.DistinctSales)
+		// by-number deep-link (#/quote/AW-...): literal prefix, precedes {id}
+		r.Get("/by-number/{quote_no}", h.GetByNumber)
 
 		// Item routes (literal paths above must come first to avoid {id} catch-all)
 		r.Route("/{id}", func(r chi.Router) {

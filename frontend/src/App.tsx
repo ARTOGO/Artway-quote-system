@@ -1,21 +1,19 @@
 // Top-level app router.
 //
-// Session 1 (this PR) wires the real <Builder /> tree for the root route.
-// History + quote-detail remain placeholders that will be replaced in
-// Sessions 4 + 5 (History page, quote-detail load-into-Builder).
-//
-// Reviewer (Codex round 2 F6): QuoteProvider lives HERE — above the route
-// switch — so navigating Builder → History → back to Builder no longer
-// unmounts the reducer and silently drops the user's typed fields.
-// Session 4's history-load-into-Builder also benefits: History page can
-// call `load(quote)` from the same provider context.
+// QuoteProvider lives HERE — above the route switch — so navigating
+// Builder ⇄ History ⇄ quote-detail doesn't unmount the reducer and drop the
+// user's typed fields (Codex round 2 F6). The quote-detail route reuses the
+// same provider: QuoteLoader fetches the quote by its 報價單號 and dispatches
+// LOAD into this shared state, then renders the Builder.
 
-import type { JSX } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 
 import styles from './App.module.scss';
+import { getQuoteByNumber } from './api/quotes';
 import { useHashRoute, type Route } from './lib/useHashRoute';
 import { Builder } from './pages/Builder/Builder';
-import { QuoteProvider } from './state/QuoteContext';
+import { History } from './pages/History/History';
+import { QuoteProvider, useQuoteState } from './state/QuoteContext';
 
 export default function App(): JSX.Element {
   const route = useHashRoute();
@@ -29,39 +27,67 @@ export default function App(): JSX.Element {
 function RouteSwitch({ route }: { route: Route }): JSX.Element {
   switch (route.name) {
     case 'history':
-      return <HistoryPlaceholder />;
+      return <History />;
     case 'quote-detail':
-      return <QuoteDetailPlaceholder quoteNo={route.quoteNo} />;
+      return <QuoteLoader quoteNo={route.quoteNo} />;
     case 'builder':
       return <Builder />;
   }
 }
 
-function HistoryPlaceholder(): JSX.Element {
-  return (
-    <main className={styles.page}>
-      <h1>歷史紀錄</h1>
-      <p className={styles.subtitle}>Session 4 將復刻：列表 / 篩選 / 載入 / 刪除。</p>
-      <nav className={styles.nav}>
-        <a href="#/">回到 Builder</a>
-      </nav>
-    </main>
-  );
-}
+// Resolve a #/quote/{quote_no} deep link (業務 bookmark) → load that quote into
+// the Builder via the by-number endpoint. Shows loading / not-found states.
+function QuoteLoader({ quoteNo }: { quoteNo: string }): JSX.Element {
+  const { load, newQuote } = useQuoteState();
+  const [phase, setPhase] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [errMsg, setErrMsg] = useState('');
 
-function QuoteDetailPlaceholder({ quoteNo }: { quoteNo: string }): JSX.Element {
+  useEffect(() => {
+    const ctl = new AbortController();
+    setPhase('loading');
+    getQuoteByNumber(quoteNo, ctl.signal)
+      .then((q) => {
+        load(q);
+        setPhase('ready');
+      })
+      .catch((e: unknown) => {
+        if (ctl.signal.aborted) return;
+        setErrMsg(e instanceof Error ? e.message : '載入失敗');
+        setPhase('error');
+      });
+    return () => ctl.abort();
+  }, [quoteNo, load]);
+
+  if (phase === 'ready') return <Builder />;
+
   return (
-    <main className={styles.page}>
-      <h1>報價單詳情</h1>
-      <p className={styles.subtitle}>
-        Quote No: <code className={styles.quoteNo}>{quoteNo}</code>
-      </p>
-      <p className={styles.subtitle}>Session 4-5 將載入該筆資料進 Builder 編輯。</p>
-      <nav className={styles.nav}>
-        <a href="#/history">回歷史紀錄</a>
-        {' · '}
-        <a href="#/">回 Builder</a>
-      </nav>
-    </main>
+    <div className={styles.screen}>
+      <main className={styles.page}>
+        {phase === 'loading' ? (
+          <p className={styles.subtitle}>載入報價單 {quoteNo}…</p>
+        ) : (
+          <>
+            <h1>找不到報價單</h1>
+            <p className={styles.subtitle}>
+              <code className={styles.quoteNo}>{quoteNo}</code>：{errMsg}
+            </p>
+            <nav className={styles.nav}>
+              <a href="#/history">回歷史紀錄</a>
+              {' · '}
+              <a
+                href="#/"
+                onClick={() => {
+                  // Clear the failed-load remnant so Builder opens a true blank
+                  // quote with a fresh number (not the stale failed one).
+                  newQuote();
+                }}
+              >
+                回 Builder（新報價）
+              </a>
+            </nav>
+          </>
+        )}
+      </main>
+    </div>
   );
 }

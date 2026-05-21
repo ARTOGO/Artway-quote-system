@@ -8,6 +8,7 @@ import {
   distinctSales,
   fromQuoteResponse,
   getQuote,
+  getQuoteByNumber,
   listQuotes,
   nextQuoteNumber,
   toQuotePayload,
@@ -274,6 +275,30 @@ describe('quotes CRUD', () => {
     expect(q.id).toBe('uuid-9');
     expect(q.status).toBe('signed');
     expect(q.meta.quoteNo).toBe('AW-260521-009');
+  });
+
+  it('getQuoteByNumber GETs /api/quotes/by-number/{quote_no} and reconstructs the Quote', async () => {
+    const base = createBlankQuote();
+    fetchSpy.mockResolvedValue(
+      jsonResponse({
+        ...base,
+        id: 'uuid-9',
+        quote_no: 'AW-260521-009',
+        status: 'sent',
+        meta: { ...base.meta, quoteNo: 'AW-OLD' },
+      }),
+    );
+    const q = await getQuoteByNumber('AW-260521-009');
+    expect(fetchSpy.mock.calls[0][0]).toBe('/api/quotes/by-number/AW-260521-009');
+    expect(q.meta.quoteNo).toBe('AW-260521-009');
+    expect(q.status).toBe('sent');
+  });
+
+  it('getQuoteByNumber URL-encodes the quote_no', async () => {
+    const base = createBlankQuote();
+    fetchSpy.mockResolvedValue(jsonResponse({ ...base, id: 'x', quote_no: 'AW/1 2', status: 'draft' }));
+    await getQuoteByNumber('AW/1 2');
+    expect(fetchSpy.mock.calls[0][0]).toBe('/api/quotes/by-number/AW%2F1%202');
   });
 
   it('deleteQuote DELETEs /api/quotes/{id} (204 no-content)', async () => {

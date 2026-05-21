@@ -1,0 +1,324 @@
+// History page — list / filter / paginate saved quotes. Tokens-only, on-brand
+// (gold accents on a light surface). Mirrors the legacy .hp-* layout.
+
+@use '../../styles/tokens.scss' as *;
+
+// Full-viewport light surface — the app body bg is the dark $color-bg-app, so
+// without this the light-ink page content renders dark-on-dark (Codex P2).
+.screen {
+  min-height: 100vh;
+  background: $color-surface-bg;
+}
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $space-7 $space-8 $space-16;
+  font-family: $font-family-base;
+  color: $color-text-primary;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $space-4;
+  border-bottom: $border-width-base solid $color-gold;
+  padding-bottom: $space-3;
+  margin-bottom: $space-5;
+
+  h1 {
+    font-size: $font-size-5xl;
+    font-weight: $font-weight-semibold;
+    letter-spacing: $letter-spacing-wide;
+    color: $color-ink-deep;
+    margin: 0;
+  }
+}
+
+.nav {
+  display: flex;
+  align-items: baseline;
+  gap: $space-5;
+}
+
+.nav a {
+  color: $color-gold-deep;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-medium;
+  text-decoration: none;
+
+  &:hover {
+    color: $color-gold-warm;
+    text-decoration: underline;
+  }
+}
+
+// ＋ 新報價 — a button (resets quote state before navigating), styled as the
+// nav link.
+.newBtn {
+  font-family: inherit;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-medium;
+  color: $color-gold-deep;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-gold-warm;
+    text-decoration: underline;
+  }
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: $space-3;
+  padding: $space-4;
+  // Light card — $color-bg-panel aliases the DARK builder surface, which would
+  // make the dark filter labels/button low-contrast on this light page (Codex P2).
+  background: $color-surface-paper;
+  border: $border-width-thin solid $color-border-default;
+  border-radius: $radius-lg;
+  margin-bottom: $space-4;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+
+  span {
+    font-size: $font-size-xs;
+    color: $color-text-tertiary;
+    letter-spacing: $letter-spacing-wide;
+  }
+
+  select,
+  input {
+    font-family: inherit;
+    font-size: $font-size-md;
+    padding: $space-1_5 $space-2_5;
+    border: $border-width-thin solid $color-border-default;
+    border-radius: $radius-md;
+    background: $color-surface-paper;
+    color: $color-text-primary;
+    min-width: 140px;
+
+    &:focus {
+      outline: none;
+      border-color: $color-gold;
+      box-shadow: 0 0 0 $border-width-base $color-focus-ring;
+    }
+  }
+}
+
+.clearBtn {
+  font-family: inherit;
+  font-size: $font-size-md;
+  padding: $space-2 $space-4;
+  border: $border-width-thin solid $color-gold;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-gold-deep;
+  cursor: pointer;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $color-gold-mute;
+  }
+}
+
+.summary {
+  min-height: $space-5;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: $space-2;
+}
+
+.state {
+  padding: $space-12;
+  text-align: center;
+  color: $color-text-tertiary;
+  font-size: $font-size-lg;
+}
+
+.error {
+  color: $color-alert-error;
+}
+
+.empty {
+  padding: $space-16;
+  text-align: center;
+  color: $color-text-secondary;
+  font-size: $font-size-lg;
+
+  span {
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
+    margin-top: $space-2;
+    display: inline-block;
+  }
+}
+
+.tableWrap {
+  border: $border-width-thin solid $color-border-default;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  background: $color-surface-paper; // white card so rows read clearly
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-md;
+
+  thead th {
+    text-align: left;
+    background: $color-bg-table-head;
+    color: $color-gold-deep;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-sm;
+    letter-spacing: $letter-spacing-wide;
+    padding: $space-2_5 $space-3;
+    border-bottom: $border-width-base solid $color-gold;
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: $space-2_5 $space-3;
+    border-bottom: $border-width-thin solid $color-border-default;
+    color: $color-text-secondary;
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover {
+    background: $color-gold-mute;
+  }
+}
+
+.right {
+  text-align: right;
+}
+
+.quoteNo {
+  color: $color-gold-deep;
+  font-weight: $font-weight-medium;
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+
+  &:hover {
+    color: $color-gold-warm;
+    text-decoration: underline;
+  }
+}
+
+.untitled {
+  color: $color-text-disabled;
+  font-style: italic;
+}
+
+.updated {
+  color: $color-text-tertiary;
+  font-size: $font-size-sm;
+  white-space: nowrap;
+}
+
+.pill {
+  display: inline-block;
+  padding: $space-0_5 $space-2;
+  border: $border-width-thin solid currentColor; // border follows the status color
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+
+  // Status colour from tokens via data-status (no inline styles — CLAUDE.md).
+  &[data-status='draft'] {
+    color: $color-status-draft;
+  }
+  &[data-status='sent'] {
+    color: $color-status-sent;
+  }
+  &[data-status='signed'] {
+    color: $color-status-signed;
+  }
+  &[data-status='executed'] {
+    color: $color-status-executed;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: $space-1_5;
+  white-space: nowrap;
+}
+
+.iconBtn {
+  font-family: inherit;
+  font-size: $font-size-sm;
+  padding: $space-1 $space-2_5;
+  border: $border-width-thin solid $color-border-default;
+  border-radius: $radius-md;
+  background: $color-surface-paper;
+  color: $color-text-secondary;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    border-color $transition-fast,
+    color $transition-fast;
+
+  &:hover {
+    border-color: $color-gold;
+    color: $color-gold-deep;
+  }
+}
+
+.danger:hover {
+  border-color: $color-alert-error;
+  color: $color-alert-error;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-4;
+  margin-top: $space-5;
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+
+  button {
+    font-family: inherit;
+    font-size: $font-size-md;
+    padding: $space-1_5 $space-3;
+    border: $border-width-thin solid $color-border-default;
+    border-radius: $radius-md;
+    background: $color-surface-paper;
+    color: $color-text-secondary;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      border-color: $color-gold;
+      color: $color-gold-deep;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}
+
+@media print {
+  .page {
+    display: none;
+  }
+}

@@ -4,10 +4,23 @@
 
 @use './styles/tokens.scss' as *;
 
+// Full-viewport light surface for the QuoteLoader loading / not-found states —
+// the app body bg is the dark $color-bg-app, so without this the dark message
+// text renders dark-on-dark and a bad bookmark can't be recovered (Codex P2).
+.screen {
+  min-height: 100vh;
+  background: $color-surface-bg;
+}
+
 .page {
   max-width: 720px;
   margin: 0 auto;
   padding: $space-10;
+  color: $color-text-primary;
+
+  h1 {
+    color: $color-ink-deep;
+  }
 }
 
 .subtitle {
