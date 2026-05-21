@@ -242,8 +242,8 @@
         <div class="subtitle">ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO：把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。</div>
       </div>
       <div class="timestamp">
-        <p>資料更新：2026-05-20T18:30:00+08:00</p>
-        <p>HTML 產生：2026-05-21T13:49:57+08:00</p>
+        <p>資料更新：2026-05-21T17:20:00+08:00</p>
+        <p>HTML 產生：2026-05-21T17:23:46+08:00</p>
       </div>
     </header>
 
@@ -251,8 +251,8 @@
       <div class="hero-grid">
         <div>
           <span class="pill danger">需處理</span>
-          <h2 style="margin-top: 16px;">Session 4c — 使用者回報修正（分隔線拖曳 / 階層 picker / 後端 502 / 品項可編輯）</h2>
-          <p>修使用者實測回報：後端沒起導致 502、面板分隔線拖不動、品項選擇器跟舊版不同（搜尋框 vs 三層下拉）且目錄太少（只 A-1/A-2）。</p>
+          <h2 style="margin-top: 16px;">Codex commit-gate review（Session 3/4 working tree）— 7 findings 全修</h2>
+          <p>Commit 前 Codex gate（5 輪、共 13 findings 全修）。R1 6、R2 unit 斜線、R3 2、R4 3（含 auto-discount P1）、R5 1：編輯副品項只改 sub_group、留下舊 service_description → syncServices 印錯附件；改為編輯時清掉（= legacy 由 catalog 重推，:2354）。</p>
         </div>
         <div class="hero-card">
           <div class="label">整體進度</div>
@@ -261,8 +261,8 @@
         </div>
         <div class="hero-card">
           <div class="label">目前焦點</div>
-          <div style="font-size: 22px; font-weight: 900; margin-bottom: 10px;">功能 F13 · 任務 F13-T4</div>
-          <p>使用者回報 3 件全修 + 接真實 Google catalog API：① 後端 502 已起 ② 分隔線可拖曳 resize ③ 階層下拉 picker ④ 接真實 API（176 筆真品項 / 8 大品項，live 驗證加入 NT$175,000 真品項）。228 tests 綠。等使用者測 OK → /codex:review → commit。</p>
+          <div style="font-size: 22px; font-weight: 900; margin-bottom: 10px;">功能 F14 · 任務 F14-T9</div>
+          <p>Codex commit gate 通過：6 輪共 13 findings 全修，R6 乾淨（無 finding）。241 tests / typecheck / lint / build 全綠。等使用者拍板 commit 範圍（是否併入輸出 PDF 按鈕）後 commit 這批 Session 3/4 程式碼。</p>
         </div>
       </div>
     </section>
@@ -270,13 +270,13 @@
     <section class="kpi-grid">
       <article class="card">
         <div class="kpi-label">範圍完成</div>
-        <div class="kpi-value">39 / 68</div>
+        <div class="kpi-value">48 / 77</div>
         <div class="kpi-note">已驗證任務才算真正完成；只有完成實作仍需補驗證證據。</div>
       </article>
       <article class="card">
         <div class="kpi-label">目前階段</div>
         <div class="kpi-value">已驗證</div>
-        <div class="kpi-note">接真實 Google catalog API（取代假資料）</div>
+        <div class="kpi-note">第六輪 Codex 確認（working tree）= CLEAN</div>
       </article>
       <article class="card">
         <div class="kpi-label">阻塞項目</div>
@@ -295,7 +295,7 @@
         <section class="card">
           <div class="card-title">
             <h3>里程碑時程</h3>
-            <span class="pill blue">15 個功能</span>
+            <span class="pill blue">16 個功能</span>
           </div>
           <div class="milestones">
 <div class="milestone-row">
@@ -398,6 +398,13 @@
 
 <div class="milestone-row">
   <strong>GitHub Pages 過渡期 hotfix（PR #4 已 merge）</strong>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <strong>100%</strong>
+  <span class="pill success">已驗證</span>
+</div>
+
+<div class="milestone-row">
+  <strong>Codex commit-gate review（Session 3/4 working tree）— 7 findings 全修</strong>
   <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
   <strong>100%</strong>
   <span class="pill success">已驗證</span>
@@ -524,7 +531,7 @@
 
 </div>
 
-<div id="feature-panel-f13-focus" class="feature-focus-panel" data-feature-panel="F13">
+<div id="feature-panel-f13-focus" class="feature-focus-panel" data-feature-panel="F13" hidden>
   
 <div class="feature-focus-card">
   <div>
@@ -536,7 +543,7 @@
     <div class="feature-focus-metric"><small>進度</small><strong>100%</strong></div>
     <div class="feature-focus-metric"><small>任務</small><strong>4/4</strong></div>
     <div class="feature-focus-metric"><small>阻塞</small><strong>0</strong></div>
-    <div class="feature-focus-metric"><small>焦點</small><strong>任務 F13-T4</strong></div>
+    <div class="feature-focus-metric"><small>焦點</small><strong>任務 F13-T1</strong></div>
   </div>
 </div>
 
@@ -685,6 +692,24 @@
 </div>
 
 </div>
+
+<div id="feature-panel-f14-focus" class="feature-focus-panel" data-feature-panel="F14">
+  
+<div class="feature-focus-card">
+  <div>
+    <span class="pill success">目前功能 · 正常</span>
+    <h3>功能 F14：Codex commit-gate review（Session 3/4 working tree）— 7 findings 全修</h3>
+    <p>Commit 前 Codex gate（5 輪、共 13 findings 全修）。R1 6、R2 unit 斜線、R3 2、R4 3（含 auto-discount P1）、R5 1：編輯副品項只改 sub_group、留下舊 service_description → syncServices 印錯附件；改為編輯時清掉（= legacy 由 catalog 重推，:2354）。</p>
+  </div>
+  <div class="feature-focus-meta">
+    <div class="feature-focus-metric"><small>進度</small><strong>100%</strong></div>
+    <div class="feature-focus-metric"><small>任務</small><strong>9/9</strong></div>
+    <div class="feature-focus-metric"><small>阻塞</small><strong>0</strong></div>
+    <div class="feature-focus-metric"><small>焦點</small><strong>任務 F14-T9</strong></div>
+  </div>
+</div>
+
+</div>
 </div>
             <div class="feature-list">
 <button class="feature-list-item" type="button" data-feature-target="F1" aria-controls="feature-panel-f1" aria-pressed="false">
@@ -753,7 +778,7 @@
   <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
 </button>
 
-<button class="feature-list-item active" type="button" data-feature-target="F13" aria-controls="feature-panel-f13" aria-pressed="true">
+<button class="feature-list-item" type="button" data-feature-target="F13" aria-controls="feature-panel-f13" aria-pressed="false">
   <div class="feature-list-top">
     <div>
       <div class="feature-list-title">功能 F13：Session 4c — 使用者回報修正（分隔線拖曳 / 階層 picker / 後端 502 / 品項可編輯）</div>
@@ -846,6 +871,17 @@
     <div>
       <div class="feature-list-title">功能 F-side-hotfix：GitHub Pages 過渡期 hotfix（PR #4 已 merge）</div>
       <div class="feature-list-subtitle">root index.html 跳轉 + frontend/index.html github.io guard，保留 hash 給 deep link 書籤。</div>
+    </div>
+    <span class="pill green">100%</span>
+  </div>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+</button>
+
+<button class="feature-list-item active" type="button" data-feature-target="F14" aria-controls="feature-panel-f14" aria-pressed="true">
+  <div class="feature-list-top">
+    <div>
+      <div class="feature-list-title">功能 F14：Codex commit-gate review（Session 3/4 working tree）— 7 findings 全修</div>
+      <div class="feature-list-subtitle">Commit 前 Codex gate（5 輪、共 13 findings 全修）。R1 6、R2 unit 斜線、R3 2、R4 3（含 auto-discount P1）、R5 1：編輯副品項只改 sub_group、留下舊 service_description → syncServices 印錯附件；改為編輯時清掉（= legacy 由 catalog 重推，:2354）。</div>
     </div>
     <span class="pill green">100%</span>
   </div>
@@ -1158,7 +1194,7 @@
 </div>
 </div>
 
-<div id="feature-panel-f13" class="feature-scope-panel" data-feature-panel="F13">
+<div id="feature-panel-f13" class="feature-scope-panel" data-feature-panel="F13" hidden>
   <div class="scope-map">
 <section class="scope-column">
   <div class="scope-column-head">前端 / UI <span class="pill green">3/3</span></div>
@@ -1561,6 +1597,87 @@
   <div class="task-meta">
     <span class="pill success">已驗證</span>
     <span class="pill blue">任務 F-side-hotfix-T1</span>
+  </div>
+</article>
+
+</section>
+</div>
+</div>
+
+<div id="feature-panel-f14" class="feature-scope-panel" data-feature-panel="F14">
+  <div class="scope-map">
+<section class="scope-column">
+  <div class="scope-column-head">前端 / UI <span class="pill green">9/9</span></div>
+  
+<article class="scope-task">
+  <strong>第一輪 Codex 6 findings 全修 + regression test（使用者核准「6 個全修」）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F14-T1</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>第二輪 Codex P2：預覽 Qty 去掉 unit 前導斜線（stripUnitSlash）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F14-T2</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>第三輪 Codex deep sweep（working tree）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F14-T3</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>第三輪 2 個新 P2 全修（面板寬度 clamp + arts-only tier 不歸零）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F14-T4</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>第四輪 Codex deep sweep（working tree）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F14-T5</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>第四輪 3 findings 全修（auto-discount standard-only / 客戶簽名空白 / 附件列印 @page）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F14-T6</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>第五輪 Codex（重跑）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F14-T7</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>第五輪 P2 修：編輯副品項清掉 stale service_description</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F14-T8</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>第六輪 Codex 確認（working tree）= CLEAN</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F14-T9</span>
   </div>
 </article>
 
@@ -2945,7 +3062,7 @@
 
 </div>
 
-<div class="feature-panel" data-feature-panel="F13">
+<div class="feature-panel" data-feature-panel="F13" hidden>
   
 <section class="card">
   <div class="card-title">
@@ -4938,6 +5055,283 @@
 </section>
 
 </div>
+
+<div class="feature-panel" data-feature-panel="F14">
+  
+<section class="card">
+  <div class="card-title">
+    <h3>所選功能的管理視角</h3>
+    <span class="pill blue">同一範圍，多種視角</span>
+  </div>
+
+  <div class="tab-system">
+    <input type="radio" id="feature-f14-view-overview" name="feature-f14-view-feature-view" data-tab="overview" checked>
+    <input type="radio" id="feature-f14-view-kanban" name="feature-f14-view-feature-view" data-tab="kanban">
+    <input type="radio" id="feature-f14-view-workstream" name="feature-f14-view-feature-view" data-tab="workstream">
+    <input type="radio" id="feature-f14-view-timeline" name="feature-f14-view-feature-view" data-tab="timeline">
+    <input type="radio" id="feature-f14-view-risk" name="feature-f14-view-feature-view" data-tab="risk">
+
+    <div class="tab-labels">
+      <label for="feature-f14-view-overview" data-tab="overview">總覽地圖</label>
+      <label for="feature-f14-view-kanban" data-tab="kanban">看板</label>
+      <label for="feature-f14-view-workstream" data-tab="workstream">工作流</label>
+      <label for="feature-f14-view-timeline" data-tab="timeline">時程</label>
+      <label for="feature-f14-view-risk" data-tab="risk">風險 / 決策</label>
+    </div>
+
+    <div class="tab-panels">
+      <div class="tab-panel overview-panel">
+        <div class="management-grid">
+          <article class="management-card"><h4>目標對齊</h4><div class="detail-value">Commit 前 Codex gate（5 輪、共 13 findings 全修）。R1 6、R2 unit 斜線、R3 2、R4 3（含 auto-discount P1）、R5 1：編輯副品項只改 sub_group、留下舊 service_description → syncServices 印錯附件；改為編輯時清掉（= legacy 由 catalog 重推，:2354）。</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
+        </div>
+        <div class="readiness-gate">
+          <article class="gate-step"><strong>1. 範圍</strong><span class="pill blue">需檢查</span><small>目標與功能關係需可追溯。</small></article>
+          <article class="gate-step"><strong>2. 實作</strong><span class="pill yellow">進行中</span><small>工作必須落到任務與驗證證據。</small></article>
+          <article class="gate-step"><strong>3. 驗證</strong><span class="pill purple">必要</span><small>實作完成不等於已驗證，必須有證據。</small></article>
+          <article class="gate-step"><strong>4. 風險</strong><span class="pill yellow">待處理</span><small>未覆蓋流程必須可見。</small></article>
+          <article class="gate-step"><strong>5. 發布</strong><span class="pill gray">受阻</span><small>skill MVP 不做完整產品化後端。</small></article>
+        </div>
+      </div>
+      <div class="tab-panel kanban-panel"><div class="compact-kanban">
+<section class="mini-lane empty">
+  <div class="mini-lane-title">可開始 <span>0</span></div>
+  <p class="muted small">無任務</p>
+</section>
+
+<section class="mini-lane empty">
+  <div class="mini-lane-title">進行中 <span>0</span></div>
+  <p class="muted small">無任務</p>
+</section>
+
+<section class="mini-lane empty">
+  <div class="mini-lane-title">審查中 <span>0</span></div>
+  <p class="muted small">無任務</p>
+</section>
+
+<section class="mini-lane empty">
+  <div class="mini-lane-title">已阻塞 <span>0</span></div>
+  <p class="muted small">無任務</p>
+</section>
+
+<section class="mini-lane">
+  <div class="mini-lane-title">已完成 <span>9</span></div>
+  
+<article class="task-card">
+  <strong>第一輪 Codex 6 findings 全修 + regression test（使用者核准「6 個全修」）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>第二輪 Codex P2：預覽 Qty 去掉 unit 前導斜線（stripUnitSlash）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>第三輪 Codex deep sweep（working tree）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>第三輪 2 個新 P2 全修（面板寬度 clamp + arts-only tier 不歸零）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>第四輪 Codex deep sweep（working tree）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>第四輪 3 findings 全修（auto-discount standard-only / 客戶簽名空白 / 附件列印 @page）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>第五輪 Codex（重跑）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>第五輪 P2 修：編輯副品項清掉 stale service_description</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>第六輪 Codex 確認（working tree）= CLEAN</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+</section>
+</div></div>
+      <div class="tab-panel workstream-panel"><div class="load-grid">
+<article class="management-card">
+  <h4>前端 / UI</h4>
+  <div class="kpi-value small-value">100%</div>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <div class="kpi-note">0 未完成 / 0 已阻塞</div>
+</article>
+</div></div>
+      <div class="tab-panel timeline-panel">
+<div class="timeline-visual">
+  <div class="timeline-ruler"><span></span><span>範圍</span><span>設計</span><span>實作</span><span>審查</span><span>QA</span><span>發布</span></div>
+  <div class="timeline-board">
+<div class="timeline-track">
+  <div class="timeline-track-label">前端 / UI<small>9 個任務</small></div>
+  
+<div class="timeline-bar success" style="grid-column: 1 / 3;">
+  第一輪 Codex 6 findings 全修 + regression test（使用者核准「6 個全修」）
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 2 / 4;">
+  第二輪 Codex P2：預覽 Qty 去掉 unit 前導斜線（stripUnitSlash）
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 3 / 5;">
+  第三輪 Codex deep sweep（working tree）
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 4 / 6;">
+  第三輪 2 個新 P2 全修（面板寬度 clamp + arts-only tier 不歸零）
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 5 / 7;">
+  第四輪 Codex deep sweep（working tree）
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 6 / 8;">
+  第四輪 3 findings 全修（auto-discount standard-only / 客戶簽名空白 / 附件列印 @page）
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 6 / 8;">
+  第五輪 Codex（重跑）
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 6 / 8;">
+  第五輪 P2 修：編輯副品項清掉 stale service_description
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 6 / 8;">
+  第六輪 Codex 確認（working tree）= CLEAN
+  <small>已驗證 · 100%</small>
+</div>
+
+</div>
+</div>
+  <div class="timeline-now-row"><span></span><div class="timeline-now-line"></div></div>
+</div>
+</div>
+      <div class="tab-panel risk-panel">
+<div class="table-wrap">
+  <table class="risk-table">
+    <thead><tr><th>類型</th><th>內容</th><th>狀態</th></tr></thead>
+    <tbody>
+<tr>
+  <td>未覆蓋</td>
+  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+</tbody>
+  </table>
+</div>
+</div>
+    </div>
+  </div>
+</section>
+
+  
+<section class="card blocker-diagnosis">
+  <div class="card-title">
+    <h3>阻塞診斷</h3>
+    <span class="pill green">無阻塞</span>
+  </div>
+  <div class="blocker-grid">
+    <article class="blocker-card">
+      <h4>目前阻塞節點</h4>
+      <dl class="blocker-field-grid">
+        <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>負責人</dt><dd>待指定</dd>
+        <dt>解除期限</dt><dd>待指定</dd>
+      </dl>
+    </article>
+    <article class="blocker-card">
+      <h4>影響鏈</h4>
+      <div class="impact-chain">無啟用中的影響鏈</div>
+      <h4 style="margin-top: 14px;">解除阻塞清單</h4>
+      <div class="unblock-list"><div class="unblock-item"><span class="unblock-num">1</span><span>補齊卡住原因與負責人</span></div><div class="unblock-item"><span class="unblock-num">2</span><span>確認受影響任務 / 工作流</span></div><div class="unblock-item"><span class="unblock-num">3</span><span>定義解除阻塞所需決策或行動</span></div><div class="unblock-item"><span class="unblock-num">4</span><span>解除後重新跑驗證並更新證據</span></div></div>
+    </article>
+  </div>
+</section>
+
+</div>
 </div>
 
         <section class="card">
@@ -5051,7 +5445,7 @@
   <div>
     <span>G-unassigned-outcome</span>
     <strong>未歸類功能</strong>
-    <em>F13 Session 4c — 使用者回報修正（分隔線拖曳 / 階層 picker / 後端 502 / 品項可編輯）</em>
+    <em>F13 Session 4c — 使用者回報修正（分隔線拖曳 / 階層 picker / 後端 502 / 品項可編輯）, F14 Codex commit-gate review（Session 3/4 working tree）— 7 findings 全修</em>
   </div>
   <b>100%</b>
 </li>
@@ -5078,9 +5472,9 @@
 <div class="status-row tone-success">
   <div class="status-row-label">
     <span>已驗證</span>
-    <strong>39</strong>
+    <strong>48</strong>
   </div>
-  <div class="mini-bar"><span style="width: 57%"></span></div>
+  <div class="mini-bar"><span style="width: 62%"></span></div>
 </div>
 
 <div class="status-row tone-warning">
@@ -5112,7 +5506,7 @@
     <span>待驗證</span>
     <strong>4</strong>
   </div>
-  <div class="mini-bar"><span style="width: 6%"></span></div>
+  <div class="mini-bar"><span style="width: 5%"></span></div>
 </div>
 
 <div class="status-row tone-danger">
@@ -5136,7 +5530,7 @@
     <span>待辦</span>
     <strong>22</strong>
   </div>
-  <div class="mini-bar"><span style="width: 32%"></span></div>
+  <div class="mini-bar"><span style="width: 29%"></span></div>
 </div>
 </div>
             <div><h4>下一步</h4><ol class="action-list">
@@ -5622,7 +6016,7 @@
 
 </div>
 
-<div class="feature-drawer-panel" data-feature-panel="F13">
+<div class="feature-drawer-panel" data-feature-panel="F13" hidden>
   
 <aside class="card side-card">
   <div class="card-title drawer-card-title">
@@ -5633,8 +6027,8 @@
     </div>
   </div>
   <div class="detail-block-static">
-    <div class="detail-label">功能 F13 · 任務 F13-T4</div>
-    <div class="detail-value"><strong>接真實 Google catalog API（取代假資料）</strong></div>
+    <div class="detail-label">功能 F13 · 任務 F13-T1</div>
+    <div class="detail-value"><strong>後端 502 修復（docker compose up）</strong></div>
   </div>
   <div class="progress-detail-row"><strong>進度</strong><div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div><span>100%</span></div>
   <div class="detail-block-static">
@@ -5673,11 +6067,11 @@
   </div>
   <div class="detail-block-static">
     <div class="detail-label">工作流</div>
-    <div class="detail-value">前端 / UI</div>
+    <div class="detail-value">基礎設施</div>
   </div>
   <div class="detail-block-static">
     <div class="detail-label">修改檔案</div>
-    <div class="detail-value"><ul><li>frontend/src/api/items.ts</li><li>frontend/src/api/items.test.ts</li><li>frontend/src/lib/useItemsCatalog.ts</li><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li></ul></div>
+    <div class="detail-value"><p class="muted">尚未連結檔案。</p></div>
   </div>
   <div class="detail-block-static">
     <div class="detail-label">檢查清單 / 子任務</div>
@@ -5685,7 +6079,7 @@
   </div>
   <div class="detail-block-static">
     <div class="detail-label">驗證證據</div>
-    <div class="detail-value"><ul class="evidence"><li><strong>瀏覽器</strong>: Playwright live fetch <span>載入 176 筆真品項 / 8 大品項；A-1~A-7 真實副品項；加入 NT$175,000 真品項並帶入預覽</span></li><li><strong>測試</strong>: items.test 7（normalizeCatalog + fetch cache/error） <span>pass</span></li><li><strong>network</strong>: GET Apps Script exec <span>302→googleusercontent 200；CORS 從瀏覽器可達</span></li></ul></div>
+    <div class="detail-value"><ul class="evidence"><li><strong>請求</strong>: GET :8080/healthz <span>200；migrations 完成；前端配號 AW-260521-xxx 無錯誤橫幅</span></li></ul></div>
   </div>
   <div class="detail-block-static">
     <div class="detail-label">驗收條件 / 連結 / 最新更新</div>
@@ -6270,6 +6664,79 @@
   <div class="detail-block-static">
     <div class="detail-label">驗證證據</div>
     <div class="detail-value"><ul class="evidence"><li><strong>git</strong>: 04452af merge commit <span>已 merge main</span></li><li><strong>請求</strong>: https://artogo.github.io/Artway-quote-system/frontend/legacy.html <span>200 / text/html / 4228 lines</span></li></ul></div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">驗收條件 / 連結 / 最新更新</div>
+    <div class="detail-value"><p class="muted">尚未記錄驗收條件。</p></div>
+  </div>
+</aside>
+
+</div>
+
+<div class="feature-drawer-panel" data-feature-panel="F14">
+  
+<aside class="card side-card">
+  <div class="card-title drawer-card-title">
+    <h3>任務細節抽屜</h3>
+    <div class="drawer-title-actions">
+      <span class="pill success">已驗證</span>
+      <button type="button" class="drawer-close" data-drawer-close aria-label="收合任務細節">收合</button>
+    </div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">功能 F14 · 任務 F14-T9</div>
+    <div class="detail-value"><strong>第六輪 Codex 確認（working tree）= CLEAN</strong></div>
+  </div>
+  <div class="progress-detail-row"><strong>進度</strong><div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div><span>100%</span></div>
+  <div class="detail-block-static">
+    <div class="detail-label">進度拆解</div>
+    <div>
+<div class="progress-detail-row">
+  <strong>規格</strong>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <span>100%</span>
+</div>
+
+<div class="progress-detail-row">
+  <strong>實作</strong>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <span>100%</span>
+</div>
+
+<div class="progress-detail-row">
+  <strong>審查</strong>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 80%;"></div></div>
+  <span>80%</span>
+</div>
+
+<div class="progress-detail-row">
+  <strong>測試</strong>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 40%;"></div></div>
+  <span>40%</span>
+</div>
+
+<div class="progress-detail-row">
+  <strong>文件</strong>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 20%;"></div></div>
+  <span>20%</span>
+</div>
+</div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">工作流</div>
+    <div class="detail-value">前端 / UI</div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">修改檔案</div>
+    <div class="detail-value"><p class="muted">尚未連結檔案。</p></div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">檢查清單 / 子任務</div>
+    <div class="checklist"><p class="muted">尚未拆檢查清單。</p></div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">驗證證據</div>
+    <div class="detail-value"><ul class="evidence"><li><strong>codex</strong>: review (job bil7el1e3) <span>No discrete correctness issues；TS/ESLint pass。6 輪收斂</span></li></ul></div>
   </div>
   <div class="detail-block-static">
     <div class="detail-label">驗收條件 / 連結 / 最新更新</div>
@@ -7163,6 +7630,77 @@
   </div>
 </article>
 
+<article class="goal-feature">
+  <div class="goal-feature-head">
+    <div>
+      <p class="eyebrow">F14</p>
+      <h3>Codex commit-gate review（Session 3/4 working tree）— 7 findings 全修</h3>
+      <p>Commit 前 Codex gate（5 輪、共 13 findings 全修）。R1 6、R2 unit 斜線、R3 2、R4 3（含 auto-discount P1）、R5 1：編輯副品項只改 sub_group、留下舊 service_description → syncServices 印錯附件；改為編輯時清掉（= legacy 由 catalog 重推，:2354）。</p>
+    </div>
+    <strong>100%</strong>
+  </div>
+  <div class="road-track" aria-label="功能進度"><span class="road-segment tone-success" style="width: 11%" title="第一輪 Codex 6 findings 全修 + regression test（使用者核准「6 個全修」）"></span><span class="road-segment tone-success" style="width: 11%" title="第二輪 Codex P2：預覽 Qty 去掉 unit 前導斜線（stripUnitSlash）"></span><span class="road-segment tone-success" style="width: 11%" title="第三輪 Codex deep sweep（working tree）"></span><span class="road-segment tone-success" style="width: 11%" title="第三輪 2 個新 P2 全修（面板寬度 clamp + arts-only tier 不歸零）"></span><span class="road-segment tone-success" style="width: 11%" title="第四輪 Codex deep sweep（working tree）"></span><span class="road-segment tone-success" style="width: 11%" title="第四輪 3 findings 全修（auto-discount standard-only / 客戶簽名空白 / 附件列印 @page）"></span><span class="road-segment tone-success" style="width: 11%" title="第五輪 Codex（重跑）"></span><span class="road-segment tone-success" style="width: 11%" title="第五輪 P2 修：編輯副品項清掉 stale service_description"></span><span class="road-segment tone-success" style="width: 11%" title="第六輪 Codex 確認（working tree）= CLEAN"></span></div>
+  <div class="feature-rationale">
+    <div>
+      <h4>為何必要</h4>
+      <p>這 7 項都是與 legacy 不一致的 parity 缺陷；修好才符合「Builder 1:1 復刻舊版 UX」與成功條件「列印 PDF 視覺與舊版 1:1 一致」</p>
+    </div>
+    <div>
+      <h4>完成後證明</h4>
+      <p>235 tests 綠 + runtime DOM 驗證：原始 unit /場 → 預覽顯示「1 場」，與 legacy stripUnitSlash 一致</p>
+    </div>
+  </div>
+  <div class="feature-work">
+    <h4>功能要做的事</h4>
+    <ul>
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>第一輪 Codex 6 findings 全修 + regression test（使用者核准「6 個全修」）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>第二輪 Codex P2：預覽 Qty 去掉 unit 前導斜線（stripUnitSlash）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>第三輪 Codex deep sweep（working tree）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>第三輪 2 個新 P2 全修（面板寬度 clamp + arts-only tier 不歸零）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>第四輪 Codex deep sweep（working tree）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>第四輪 3 findings 全修（auto-discount standard-only / 客戶簽名空白 / 附件列印 @page）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>第五輪 Codex（重跑）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>第五輪 P2 修：編輯副品項清掉 stale service_description</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>第六輪 Codex 確認（working tree）= CLEAN</strong>
+</li>
+</ul>
+  </div>
+</article>
+
   </div>
 </article>
 </div>
@@ -7190,7 +7728,7 @@
             <strong>展開任務明細</strong>
             <span>查看每個功能底下的任務、修改檔案與驗證證據。</span>
           </div>
-          <span>68 個任務</span>
+          <span>77 個任務</span>
         </summary>
         <div class="detail-body">
           
@@ -9097,6 +9635,249 @@
 </div>
 </details>
 
+<details class="feature-detail">
+  <summary>
+    <span>功能 F14</span>
+    <strong>Codex commit-gate review（Session 3/4 working tree）— 7 findings 全修</strong>
+    <em>100%</em>
+  </summary>
+  <p class="detail-summary">Commit 前 Codex gate（5 輪、共 13 findings 全修）。R1 6、R2 unit 斜線、R3 2、R4 3（含 auto-discount P1）、R5 1：編輯副品項只改 sub_group、留下舊 service_description → syncServices 印錯附件；改為編輯時清掉（= legacy 由 catalog 重推，:2354）。</p>
+  <div class="tasks">
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F14-T1</p>
+      <h4>第一輪 Codex 6 findings 全修 + regression test（使用者核准「6 個全修」）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li><li>frontend/src/lib/services.ts</li><li>frontend/src/state/quoteReducer.ts</li><li>frontend/src/pages/Builder/PreviewPlaceholder.tsx</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>測試</strong>: vitest --run <span>全綠（含 3 個新 regression test）</span></li><li><strong>legacy-diff</strong>: 對照 legacy.html 確認 6 項皆為真實 parity bug <span>6/6 確認為真、全修</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F14-T2</p>
+      <h4>第二輪 Codex P2：預覽 Qty 去掉 unit 前導斜線（stripUnitSlash）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/lib/quoteCalc.ts</li><li>frontend/src/pages/Builder/PreviewPlaceholder.tsx</li><li>frontend/src/lib/quoteCalc.test.ts</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>legacy-diff</strong>: legacy.html:2525-2527 stripUnitSlash + :2241 用於 qty 欄 <span>確認為真：我方原渲染原始 it.unit</span></li><li><strong>live-api</strong>: Google Apps Script catalog 176 筆 <span>174/176 筆 unit 帶前導斜線（/式×89 /場×30 /年×29 /次×13…）→ 屬主流路徑非邊角</span></li><li><strong>測試</strong>: quoteCalc.test.ts stripUnitSlash（4 例）+ 全套 235 tests <span>全綠</span></li><li><strong>playwright</strong>: localhost:5173 加入真品項 A-1，讀 DOM <span>原始 unit=/場 → 預覽 Qty 欄=「1 場」（斜線已去）</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F14-T3</p>
+      <h4>第三輪 Codex deep sweep（working tree）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <p class="muted">尚未連結檔案。</p>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>codex</strong>: review --scope working-tree (job bfwfhraci) <span>確認 R1/R2 已解決，另報 2 個新 P2</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F14-T4</p>
+      <h4>第三輪 2 個新 P2 全修（面板寬度 clamp + arts-only tier 不歸零）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/pages/Builder/Builder.tsx</li><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li><li>frontend/src/pages/Builder/sections/GroupsSection.test.tsx</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>legacy-diff</strong>: legacy.html:2838-2839（_priceStandard null 模型）+ :2963 guard <span>確認 #2 根因為資料模型偏離；改存 undefined 對齊 legacy</span></li><li><strong>測試</strong>: GroupsSection.test.tsx catalogItemFields（3 例）+ 全套 <span>238 tests 綠</span></li><li><strong>playwright</strong>: localhost:5173 加入 live arts-only 列 B-3 短期方案 → 切定價 <span>金額維持 12,500（未歸零），與 legacy 一致</span></li><li><strong>playwright</strong>: viewport 1200px 重載讀 --builder-panel-width <span>380px（已 clamp），非未夾的 520px</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F14-T5</p>
+      <h4>第四輪 Codex deep sweep（working tree）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <p class="muted">尚未連結檔案。</p>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>codex</strong>: review (job b6vgbhirx) <span>確認前 3 輪已解決，另報 3 findings（1 P1 + 2 P2）</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F14-T6</p>
+      <h4>第四輪 3 findings 全修（auto-discount standard-only / 客戶簽名空白 / 附件列印 @page）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li><li>frontend/src/pages/Builder/PreviewPlaceholder.tsx</li><li>frontend/src/styles/globals.scss</li><li>frontend/src/pages/Builder/PreviewPlaceholder.module.scss</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>legacy-diff</strong>: applyAutoDiscount:2562 / renderSig:2515 / @page appendix-page:1252 <span>3 項皆確認為真實 parity 偏離</span></li><li><strong>測試</strong>: GroupsSection.test.tsx auto-discount standard-only(+2) ; 全套 <span>240 tests 綠</span></li><li><strong>playwright</strong>: 填客戶聯絡人後讀簽名欄 <span>CLIENT 欄空白、表頭聯絡人顯示、ARTWAY 欄正確</span></li><li><strong>build-css</strong>: dist CSS @page appendix-page{margin:0 0 14mm} + page:appendix-page <span>已輸出，附件邊到邊</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F14-T7</p>
+      <h4>第五輪 Codex（重跑）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <p class="muted">尚未連結檔案。</p>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>codex</strong>: review (job bjsdqnqio) <span>確認前 4 輪已解決，另報 1 P2（副品項編輯留下舊附件）</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F14-T8</p>
+      <h4>第五輪 P2 修：編輯副品項清掉 stale service_description</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li><li>frontend/src/pages/Builder/sections/GroupsSection.test.tsx</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>legacy-diff</strong>: legacy.html:2354 syncServices 由 catalog 依 sub_group 重推 <span>確認我方 item-cached 模型在編輯後 stale；清除符合 legacy 效果</span></li><li><strong>測試</strong>: GroupsSection.test.tsx 副品項編輯清除（1）+ 全套 <span>241 tests 綠</span></li><li><strong>playwright</strong>: live A-1（desc 1393 字）→ 改副品項為 X-9 <span>舊『3D實境掃描』附件消失、新標籤顯示、無殘留</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F14-T9</p>
+      <h4>第六輪 Codex 確認（working tree）= CLEAN</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <p class="muted">尚未連結檔案。</p>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>codex</strong>: review (job bil7el1e3) <span>No discrete correctness issues；TS/ESLint pass。6 輪收斂</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+</div>
+</details>
+
         </div>
       </details>
 
@@ -9106,10 +9887,10 @@
             <strong>展開變更紀錄</strong>
             <span>查看對話中造成範圍、需求或驗證狀態改變的紀錄。</span>
           </div>
-          <span>14 筆</span>
+          <span>19 筆</span>
         </summary>
         <div class="detail-body">
-          <ul class="change-log"><li><strong>2026-05-21T11:50:00+08:00</strong> user: 授權『整份預覽全區塊 computed-style 全比對』（localhost-vs-prod-parity skill）<span>對整份預覽逐元素 live-vs-live computed-style 比對（我的 localhost vs legacy github.io）：header / parties(含分隔線) / 01 表格 / ◎交付物 / 02 服務摘要 / 03 備註 / 付款表 / 簽章 / 銀行帳戶 / 頁尾 / 附件頁，共 30+ 元素的 color/bg/border/padding/margin/font*/letterSpacing/textTransform。結果：除了本輪稍早已修的 01 表格(7處) + 字級(16處)，其餘全部本來就一致 → 整份預覽 0 剩餘差異。教訓：computed-style 逐欄量是抓 pixel parity 的正解，目視會漏。</span></li><li><strong>2026-05-21T11:30:00+08:00</strong> user: 回報 01 表格 + 03 備註 style 還沒完全對上（貼了 mine vs legacy 截圖）<span>逐元素量 computed style 兩邊對照。發現表格多處不符並修正：表頭文字色米白→金#D4B080 + 加 UPPERCASE + 2px 金底線；Category 欄加金色左邊框 + 灰字 500；總價文字米白→深#1A1510 + 700 + border；小計框寬 240→400px；小計列加分隔線 + 標籤灰色；組標題 bg #EDE6DA→#EFE9DF、padding/margin 對齊。Playwright 重量測全部 0 mismatch。03 備註經量測本來就一致（sectionNum/notesLi/noteNum 完全相同）。228 tests 綠。教訓：先前憑截圖目視會漏，改用 runtime computed-style 逐欄比對。</span></li><li><strong>2026-05-21T11:05:00+08:00</strong> user: 回報預覽文字比原本小，要確認字級<span>root cause：legacy.html 1169-1197 有一段『字級放大 +20%』top-level 覆寫區會蓋掉基礎字級，我當初只抄基礎值、漏抄覆寫。修 PreviewPlaceholder.module.scss 16 處 font-size 對到 legacy 覆寫值（sectionNum 25→31、sectionZh 12.5→15、sectionEn 8→11.5、groupTitle 11→12.5、qt 9.5→11.5、qt th +10、qt .no 8.5→10、deliverable/notes/payment td/sigLine 9.5→11.5、payment th/sigLabel/sigFieldLbl/sigStamp 8.5→10、pageFooter 8→9.5）。Playwright 量測 10+ 元素全部與 legacy 一致（0 mismatch）。Builder 面板 .bp-* 不在覆寫區、不受影響。228 tests 綠。</span></li><li><strong>2026-05-21T10:55:00+08:00</strong> user: 前 3 件確認可以了；授權『先接 API，接完測沒問題再 commit』<span>接真實 Google Apps Script catalog API：新增 api/items.ts（fetch + normalize + cache）+ lib/useItemsCatalog.ts（fixture fallback）；CatalogPicker 改用真實資料。Playwright live 驗證：載入 176 筆真品項、8 個真實大品項（A展間系統/B平台系統/C導覽內容製作/D數位出版/E行銷/F客製化工程/G其他項目/P專案管理），A-1~A-7 真實副品項 + 真實品項名稱/價格（NT$175,000）加入成功並帶入預覽。CORS 從瀏覽器可達（Apps Script 302→googleusercontent 200）。228 tests 綠。</span></li><li><strong>2026-05-21T10:40:00+08:00</strong> user: 回報 3 件：後端 502 連不到、中間『拖拉 bar』（=面板分隔線）拖不動、品項選擇介面跟舊版不同且只有 A-1/A-2（舊版 A展間系統有 A-1~A-7）<span>釐清『拖不動』一直指的是面板分隔線（不是品項排序，我先前誤解）。修：① docker compose up 起後端（502=沒起）② 實作分隔線拖曳 resize（mousedown→clamp→localStorage、dblclick reset）③ CatalogPicker 由搜尋框改成 legacy 三層下拉 + fixture 補齊 A展間系統 A-1~A-7、B/C/D 群組。真實上百筆品項仍需接 Google API（PR5）。</span></li><li><strong>2026-05-20T22:30:00+08:00</strong> user: 盤點後問「還有哪些沒做不能測、UI 是否都測好」，我誠實回報漏掉 3 個首頁品項級操作（重選/拖曳/定價優惠價切換），使用者回「要」補做<span>補做品項重新選擇 ⟲（重開 catalog replace）、拖曳排序（MOVE_ITEM reducer + drag handle）、定價/優惠價 tier switch（autoDiscount 時鎖定）。同時 docker compose up 起後端讓使用者能測新報價配號。214 tests 綠。</span></li><li><strong>2026-05-20T18:30:00+08:00</strong> user: 要求「這個階段把所有報價單首頁的功能都要完成」，我一起檢查、所有 field 填入、按鈕都點過、比對 legacy、全完成才回報<span>把 Session 4 範圍從原本只做 History+Radix 重新定義為『報價單首頁 100% legacy parity』：補 Session 2.5 折扣/議價、02 服務摘要、附件頁、編輯模式、標題修正。先用 AskUserQuestion 鎖定 2 個模糊邊界（編輯模式=做、存雲端/PDF=留後面；02+附件頁=一起做）。完成後用 Playwright 逐功能 + 截圖驗證。</span></li><li><strong>2026-05-20T12:00:00+08:00</strong> user: Session 3 visual QA 發現預設值/銀行框/頁尾/起始組等 7 個 legacy parity gap，使用者要求全修（含起始組）<span>createBlankQuote 補 3 條預設備註 + 付款預設值 + 1 個起始組；Preview 補 ARTOGO 指定帳戶 + 頁尾 + 付款表淡金底；標題修 01 專案報價內容。</span></li><li><strong>2026-05-18T15:00:00+08:00</strong> user: 看到 GitHub Pages 顯示空白：要求診斷與修復<span>插隊一個 hotfix PR #4，把 root index.html redirect 從 frontend/ 改成 frontend/legacy.html，並在 frontend/index.html 加 github.io hostname 偵測 + hash 保留 JS。已 merge 04452af，Pages re-build 完成。</span></li><li><strong>2026-05-18T17:30:00+08:00</strong> user: Session 1 完成後選 option C：分多 session 做完整 React 復刻<span>建立 Session 1-5 拆分計畫，本輪只做 Layout + Topbar + 3 個簡單 section + state foundation。</span></li><li><strong>2026-05-18T19:00:00+08:00</strong> user: 對 Codex F1-F4 第一輪 finding 回 &#x27;全休（全修）&#x27;<span>授權批次修 F1-F4 的 4 個 finding。</span></li><li><strong>2026-05-18T20:00:00+08:00</strong> user: 質疑：為啥你自己決定沒有等我選擇<span>承認 F5-F8 自作主張、違反 CLAUDE.md commit gate。改為每輪 Codex finding 都需使用者拍板才能修。</span></li><li><strong>2026-05-18T21:30:00+08:00</strong> user: 對 F9（撞號 P2）回 &#x27;該怎麼做怎麼做、錯的就要修&#x27;<span>把 F9 從 &#x27;defer to PR 5&#x27; 升級為立即修 — 本 session 提前實作 backend API client + Vite proxy + nextQuoteNumber wire。等於把 PR 5 的部分 scope 拉前。</span></li><li><strong>2026-05-19T00:00:00+08:00</strong> user: 提示重讀 CLAUDE.md 看是否該做進度說明頁面<span>發現 CLAUDE.md L240-284 進度儀表板 Gate 從一開始就漏做。補建 progress.json + progress.html。</span></li></ul>
+          <ul class="change-log"><li><strong>2026-05-21T11:50:00+08:00</strong> user: 授權『整份預覽全區塊 computed-style 全比對』（localhost-vs-prod-parity skill）<span>對整份預覽逐元素 live-vs-live computed-style 比對（我的 localhost vs legacy github.io）：header / parties(含分隔線) / 01 表格 / ◎交付物 / 02 服務摘要 / 03 備註 / 付款表 / 簽章 / 銀行帳戶 / 頁尾 / 附件頁，共 30+ 元素的 color/bg/border/padding/margin/font*/letterSpacing/textTransform。結果：除了本輪稍早已修的 01 表格(7處) + 字級(16處)，其餘全部本來就一致 → 整份預覽 0 剩餘差異。教訓：computed-style 逐欄量是抓 pixel parity 的正解，目視會漏。</span></li><li><strong>2026-05-21T11:30:00+08:00</strong> user: 回報 01 表格 + 03 備註 style 還沒完全對上（貼了 mine vs legacy 截圖）<span>逐元素量 computed style 兩邊對照。發現表格多處不符並修正：表頭文字色米白→金#D4B080 + 加 UPPERCASE + 2px 金底線；Category 欄加金色左邊框 + 灰字 500；總價文字米白→深#1A1510 + 700 + border；小計框寬 240→400px；小計列加分隔線 + 標籤灰色；組標題 bg #EDE6DA→#EFE9DF、padding/margin 對齊。Playwright 重量測全部 0 mismatch。03 備註經量測本來就一致（sectionNum/notesLi/noteNum 完全相同）。228 tests 綠。教訓：先前憑截圖目視會漏，改用 runtime computed-style 逐欄比對。</span></li><li><strong>2026-05-21T11:05:00+08:00</strong> user: 回報預覽文字比原本小，要確認字級<span>root cause：legacy.html 1169-1197 有一段『字級放大 +20%』top-level 覆寫區會蓋掉基礎字級，我當初只抄基礎值、漏抄覆寫。修 PreviewPlaceholder.module.scss 16 處 font-size 對到 legacy 覆寫值（sectionNum 25→31、sectionZh 12.5→15、sectionEn 8→11.5、groupTitle 11→12.5、qt 9.5→11.5、qt th +10、qt .no 8.5→10、deliverable/notes/payment td/sigLine 9.5→11.5、payment th/sigLabel/sigFieldLbl/sigStamp 8.5→10、pageFooter 8→9.5）。Playwright 量測 10+ 元素全部與 legacy 一致（0 mismatch）。Builder 面板 .bp-* 不在覆寫區、不受影響。228 tests 綠。</span></li><li><strong>2026-05-21T10:55:00+08:00</strong> user: 前 3 件確認可以了；授權『先接 API，接完測沒問題再 commit』<span>接真實 Google Apps Script catalog API：新增 api/items.ts（fetch + normalize + cache）+ lib/useItemsCatalog.ts（fixture fallback）；CatalogPicker 改用真實資料。Playwright live 驗證：載入 176 筆真品項、8 個真實大品項（A展間系統/B平台系統/C導覽內容製作/D數位出版/E行銷/F客製化工程/G其他項目/P專案管理），A-1~A-7 真實副品項 + 真實品項名稱/價格（NT$175,000）加入成功並帶入預覽。CORS 從瀏覽器可達（Apps Script 302→googleusercontent 200）。228 tests 綠。</span></li><li><strong>2026-05-21T10:40:00+08:00</strong> user: 回報 3 件：後端 502 連不到、中間『拖拉 bar』（=面板分隔線）拖不動、品項選擇介面跟舊版不同且只有 A-1/A-2（舊版 A展間系統有 A-1~A-7）<span>釐清『拖不動』一直指的是面板分隔線（不是品項排序，我先前誤解）。修：① docker compose up 起後端（502=沒起）② 實作分隔線拖曳 resize（mousedown→clamp→localStorage、dblclick reset）③ CatalogPicker 由搜尋框改成 legacy 三層下拉 + fixture 補齊 A展間系統 A-1~A-7、B/C/D 群組。真實上百筆品項仍需接 Google API（PR5）。</span></li><li><strong>2026-05-20T22:30:00+08:00</strong> user: 盤點後問「還有哪些沒做不能測、UI 是否都測好」，我誠實回報漏掉 3 個首頁品項級操作（重選/拖曳/定價優惠價切換），使用者回「要」補做<span>補做品項重新選擇 ⟲（重開 catalog replace）、拖曳排序（MOVE_ITEM reducer + drag handle）、定價/優惠價 tier switch（autoDiscount 時鎖定）。同時 docker compose up 起後端讓使用者能測新報價配號。214 tests 綠。</span></li><li><strong>2026-05-20T18:30:00+08:00</strong> user: 要求「這個階段把所有報價單首頁的功能都要完成」，我一起檢查、所有 field 填入、按鈕都點過、比對 legacy、全完成才回報<span>把 Session 4 範圍從原本只做 History+Radix 重新定義為『報價單首頁 100% legacy parity』：補 Session 2.5 折扣/議價、02 服務摘要、附件頁、編輯模式、標題修正。先用 AskUserQuestion 鎖定 2 個模糊邊界（編輯模式=做、存雲端/PDF=留後面；02+附件頁=一起做）。完成後用 Playwright 逐功能 + 截圖驗證。</span></li><li><strong>2026-05-20T12:00:00+08:00</strong> user: Session 3 visual QA 發現預設值/銀行框/頁尾/起始組等 7 個 legacy parity gap，使用者要求全修（含起始組）<span>createBlankQuote 補 3 條預設備註 + 付款預設值 + 1 個起始組；Preview 補 ARTOGO 指定帳戶 + 頁尾 + 付款表淡金底；標題修 01 專案報價內容。</span></li><li><strong>2026-05-18T15:00:00+08:00</strong> user: 看到 GitHub Pages 顯示空白：要求診斷與修復<span>插隊一個 hotfix PR #4，把 root index.html redirect 從 frontend/ 改成 frontend/legacy.html，並在 frontend/index.html 加 github.io hostname 偵測 + hash 保留 JS。已 merge 04452af，Pages re-build 完成。</span></li><li><strong>2026-05-18T17:30:00+08:00</strong> user: Session 1 完成後選 option C：分多 session 做完整 React 復刻<span>建立 Session 1-5 拆分計畫，本輪只做 Layout + Topbar + 3 個簡單 section + state foundation。</span></li><li><strong>2026-05-18T19:00:00+08:00</strong> user: 對 Codex F1-F4 第一輪 finding 回 &#x27;全休（全修）&#x27;<span>授權批次修 F1-F4 的 4 個 finding。</span></li><li><strong>2026-05-18T20:00:00+08:00</strong> user: 質疑：為啥你自己決定沒有等我選擇<span>承認 F5-F8 自作主張、違反 CLAUDE.md commit gate。改為每輪 Codex finding 都需使用者拍板才能修。</span></li><li><strong>2026-05-18T21:30:00+08:00</strong> user: 對 F9（撞號 P2）回 &#x27;該怎麼做怎麼做、錯的就要修&#x27;<span>把 F9 從 &#x27;defer to PR 5&#x27; 升級為立即修 — 本 session 提前實作 backend API client + Vite proxy + nextQuoteNumber wire。等於把 PR 5 的部分 scope 拉前。</span></li><li><strong>2026-05-19T00:00:00+08:00</strong> user: 提示重讀 CLAUDE.md 看是否該做進度說明頁面<span>發現 CLAUDE.md L240-284 進度儀表板 Gate 從一開始就漏做。補建 progress.json + progress.html。</span></li><li><strong>2026-05-21T15:50:00+08:00</strong> codex: 第二輪 Codex review 確認第一輪 6 findings 已解決，另冒出 1 P2：預覽 Qty 欄印出 unit 前導斜線（/式 → 應為 式）。<span>新增 quoteCalc.stripUnitSlash（mirror legacy.html:2525）+ 預覽套用 + 4 regression test。live catalog 174/176 筆帶斜線，屬主流路徑。runtime DOM 驗證原始 /場 → 預覽「1 場」。</span></li><li><strong>2026-05-21T16:15:00+08:00</strong> codex: 第三輪 Codex deep sweep 確認前兩輪已解決，另抓 2 個新 P2：①預設/重設面板寬度未 clamp ②arts-only 列切定價歸零 NT$0。<span>① Builder.tsx init+reset 都套 clampWidth ② catalogItemFields 缺價存 undefined（= legacy null，legacy.html:2838），既有 guard 即正確跳過。+3 regression test（238 綠）。runtime 雙證：arts-only 切定價維持 12,500；1200px 面板夾到 380px。</span></li><li><strong>2026-05-21T16:31:00+08:00</strong> codex: 第四輪 Codex deep sweep 抓 3 findings：①auto-discount 時 standard-only 列歸零[P1] ②客戶簽名欄被預填 ③附件列印頂部多 12mm。<span>①catalogItemFields discount 改 `hasArts?max(0,ps-pa):0`（= legacy:2562 + reducer）②客戶簽名欄渲染空白（= legacy renderSig:2515）③globals 加 @page appendix-page + .appendixPage page:appendix-page。+2 test（240 綠），runtime/CSS 三證。</span></li><li><strong>2026-05-21T17:09:00+08:00</strong> codex: 第五輪（重跑）Codex 抓 1 P2：編輯副品項只改 sub_group，留下舊 service_description → 印出錯誤附件。<span>副品項 onChange 同時清掉 service_description（= legacy 由 catalog 依 sub_group 重推:2354 的效果）。+1 regression test（241 綠）。runtime：live A-1 改副品項後舊『3D實境掃描』附件消失。</span></li><li><strong>2026-05-21T17:20:00+08:00</strong> codex: 第六輪 Codex review 乾淨（無 finding），commit gate 通過。<span>6 輪 Codex 收斂（6→1→2→3→1→0）。可進入 commit。輸出 PDF 按鈕 + 報價存取 API 仍為已知待補（PR4 收尾 / PR5）。</span></li></ul>
         </div>
       </details>
     </div>
