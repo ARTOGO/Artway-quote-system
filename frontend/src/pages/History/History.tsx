@@ -1,11 +1,18 @@
 // History page — list saved quotes with filters + pagination; reopen / delete.
 //
-// Mirrors legacy renderHistory (legacy.html:3459) over the real backend
-// (listQuotes / distinctSales / deleteQuote). Rows deep-link to
-// #/quote/{quote_no} so the Builder reopens that quote (preserving 業務
-// bookmarks); the QuoteLoader route resolves the number via getQuoteByNumber.
+// 1:1 dark port of the legacy History page (legacy.html renderHistory /
+// .hp-* markup): ARTWAY logo + 「所有業務共享的報價單列表」 subtitle, chip
+// date-range filter (過去 7 天 / 1 個月 / 1 季 / 1 年 / 全部), 業務 / 狀態
+// dropdowns, numbered pagination, gold-on-dark table with status pills, and a
+// styled delete-confirm modal + toast (legacy .hp-confirm / .hp-toast) instead
+// of the browser window.confirm/alert.
+//
+// Runs over the real backend (listQuotes / distinctSales / deleteQuote). Rows
+// deep-link to #/quote/{quote_no} so the Builder reopens that quote (preserving
+// 業務 bookmarks); the QuoteLoader route resolves the number via
+// getQuoteByNumber.
 
-import { useCallback, useEffect, useState, type JSX } from 'react';
+import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
 
 import {
   deleteQuote,
@@ -14,6 +21,7 @@ import {
   type QuoteListItem,
   type QuoteListResult,
 } from '../../api/quotes';
+import { addDaysISO } from '../../lib/dates';
 import { formatMoney } from '../../lib/quoteCalc';
 import { navigate } from '../../lib/useHashRoute';
 import { useQuoteState } from '../../state/QuoteContext';
@@ -21,6 +29,15 @@ import { STATUS_OPTIONS } from '../../state/quoteTypes';
 import styles from './History.module.scss';
 
 const PAGE_SIZE = 20;
+
+// Legacy date-range chips (data-range = days; '' = 全部). 全部 is the default.
+const RANGE_OPTIONS: ReadonlyArray<{ days: string; label: string }> = [
+  { days: '7', label: '過去 7 天' },
+  { days: '30', label: '過去 1 個月' },
+  { days: '90', label: '過去 1 季' },
+  { days: '365', label: '過去 1 年' },
+  { days: '', label: '全部' },
+];
 
 function statusLabel(v: string): string {
   return (STATUS_OPTIONS.find((o) => o.value === v) ?? STATUS_OPTIONS[0]).label;
@@ -47,14 +64,36 @@ function fmtUpdated(iso: string): string {
     .replace(/\//g, '-');
 }
 
+// Numbered-pagination model (legacy renderPagination): the current page ±2,
+// with leading/trailing 1 / N and ellipses. 'gapL' / 'gapR' render as「…」.
+function pageItems(cur: number, total: number): Array<number | 'gapL' | 'gapR'> {
+  const items: Array<number | 'gapL' | 'gapR'> = [];
+  const start = Math.max(1, cur - 2);
+  const end = Math.min(total, cur + 2);
+  if (start > 1) {
+    items.push(1);
+    if (start > 2) items.push('gapL');
+  }
+  for (let i = start; i <= end; i++) items.push(i);
+  if (end < total) {
+    if (end < total - 1) items.push('gapR');
+    items.push(total);
+  }
+  return items;
+}
+
 interface Filters {
   salesName: string;
   status: string;
-  dateFrom: string;
-  dateTo: string;
+  rangeDays: string; // '' = 全部
 }
 
-const EMPTY_FILTERS: Filters = { salesName: '', status: '', dateFrom: '', dateTo: '' };
+const EMPTY_FILTERS: Filters = { salesName: '', status: '', rangeDays: '' };
+
+interface Toast {
+  msg: string;
+  error: boolean;
+}
 
 export function History(): JSX.Element {
   const { state, newQuote } = useQuoteState();
@@ -65,13 +104,31 @@ export function History(): JSX.Element {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [salesOptions, setSalesOptions] = useState<string[]>([]);
+  const [pendingDelete, setPendingDelete] = useState<QuoteListItem | null>(null);
+  const [toast, setToast] = useState<Toast | null>(null);
+  const toastTimer = useRef<number | null>(null);
+
+  const showToast = useCallback((msg: string, isError = false): void => {
+    if (toastTimer.current !== null) window.clearTimeout(toastTimer.current);
+    setToast({ msg, error: isError });
+    toastTimer.current = window.setTimeout(() => {
+      setToast(null);
+      toastTimer.current = null;
+    }, 2400); // legacy hp-toast duration
+  }, []);
+
+  // Cancel the toast timer on unmount (no setState after unmount).
+  useEffect(
+    () => () => {
+      if (toastTimer.current !== null) window.clearTimeout(toastTimer.current);
+    },
+    [],
+  );
 
   // ＋ 新報價: clear the loaded quote BEFORE navigating, or (since QuoteProvider
   // sits above the router) the Builder would reopen the previously-loaded quote
-  // and the next save could overwrite that row (Codex P1). Confirm first — same
-  // as the Topbar 新報價 flow — so a preserved draft isn't silently discarded
-  // (Codex P2). newQuote() also bumps the fetch token so the Builder pulls a
-  // fresh quote number.
+  // and the next save could overwrite that row. Confirm first — same as the
+  // Topbar 新報價 flow — so a preserved draft isn't silently discarded.
   const startNewQuote = (): void => {
     if (!window.confirm('確定建立新報價？目前未儲存的資料會遺失。')) return;
     newQuote();
@@ -93,17 +150,18 @@ export function History(): JSX.Element {
     };
   }, []);
 
-  // Re-fetch the list whenever the filters or page change.
+  // Re-fetch the list whenever the filters or page change. A date-range chip
+  // maps to a dateFrom = today − N days (issue_date lower bound); 全部 clears it.
   useEffect(() => {
     const ctl = new AbortController();
     setLoading(true);
     setError(null);
+    const dateFrom = filters.rangeDays ? addDaysISO(-Number(filters.rangeDays)) : undefined;
     listQuotes(
       {
         salesName: filters.salesName || undefined,
         status: filters.status || undefined,
-        dateFrom: filters.dateFrom || undefined,
-        dateTo: filters.dateTo || undefined,
+        dateFrom,
         page,
         pageSize: PAGE_SIZE,
       },
@@ -126,16 +184,18 @@ export function History(): JSX.Element {
     setFilters((f) => ({ ...f, ...patch }));
   }, []);
 
-  const onDelete = async (item: QuoteListItem): Promise<void> => {
-    if (!window.confirm(`確定刪除報價單 ${item.quote_no}？此動作無法復原。`)) return;
+  const confirmDelete = async (): Promise<void> => {
+    const item = pendingDelete;
+    if (!item) return;
+    setPendingDelete(null);
     try {
       await deleteQuote(item.id);
       // If the deleted row is the quote currently held in the shared Builder
-      // state, clear it — otherwise ← 回報價單 would reopen a soft-deleted quote
-      // and the next save would PUT /quotes/{deletedId} → 404 (Codex P2).
+      // state, clear it — otherwise 回 Builder would reopen a soft-deleted quote
+      // and the next save would PUT /quotes/{deletedId} → 404.
       if (state.id === item.id) newQuote();
-      // Re-fetch from the server so pagination stays consistent (a local filter
-      // would leave a short page / a "第 2 / 1 頁" summary — Codex P2). If we just
+      showToast(`已刪除 ${item.quote_no}`);
+      // Re-fetch from the server so pagination stays consistent. If we just
       // removed the last row on a page past the first, step back a page (which
       // re-fetches via the effect); otherwise force a re-fetch of this page.
       if (data && data.items.length === 1 && page > 1) {
@@ -144,7 +204,7 @@ export function History(): JSX.Element {
         setReloadNonce((n) => n + 1);
       }
     } catch (e) {
-      window.alert('刪除失敗：' + (e instanceof Error ? e.message : '未知錯誤'));
+      showToast('刪除失敗：' + (e instanceof Error ? e.message : '未知錯誤'), true);
     }
   };
 
@@ -154,18 +214,40 @@ export function History(): JSX.Element {
     <div className={styles.screen}>
       <main className={styles.page}>
         <header className={styles.head}>
-          <h1>歷史紀錄</h1>
+          <img src="/logo/ARTWAY_logo_白_直.png" alt="ARTWAY" className={styles.logo} />
+          <div className={styles.titleBlock}>
+            <h1 className={styles.title}>歷史紀錄</h1>
+            <div className={styles.sub}>所有業務共享的報價單列表</div>
+          </div>
           <nav className={styles.nav}>
             {/* Non-destructive return: plain #/ keeps the preserved Builder draft
-                (QuoteProvider is above the router) — Codex P2. */}
-            <a href="#/">← 回報價單</a>
-            <button type="button" className={styles.newBtn} onClick={startNewQuote}>
+                (QuoteProvider is above the router). */}
+            <a href="#/" className={styles.btnGhost}>
+              回 Builder
+            </a>
+            <button type="button" className={styles.btnPrimary} onClick={startNewQuote}>
               ＋ 新報價
             </button>
           </nav>
         </header>
 
         <div className={styles.filters}>
+          <div className={`${styles.field} ${styles.dateField}`}>
+            <span>日期區間</span>
+            <div className={styles.rangeGroup} role="group" aria-label="日期區間">
+              {RANGE_OPTIONS.map((r) => (
+                <button
+                  key={r.days || 'all'}
+                  type="button"
+                  className={styles.rangeBtn}
+                  aria-pressed={filters.rangeDays === r.days}
+                  onClick={() => patchFilter({ rangeDays: r.days })}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <label className={styles.field}>
             <span>業務</span>
             <select
@@ -196,31 +278,15 @@ export function History(): JSX.Element {
               ))}
             </select>
           </label>
-          <label className={styles.field}>
-            <span>開立日（起）</span>
-            <input
-              type="date"
-              value={filters.dateFrom}
-              onChange={(e) => patchFilter({ dateFrom: e.target.value })}
-              aria-label="開立日起"
-            />
-          </label>
-          <label className={styles.field}>
-            <span>開立日（迄）</span>
-            <input
-              type="date"
-              value={filters.dateTo}
-              onChange={(e) => patchFilter({ dateTo: e.target.value })}
-              aria-label="開立日迄"
-            />
-          </label>
-          <button
-            type="button"
-            className={styles.clearBtn}
-            onClick={() => patchFilter(EMPTY_FILTERS)}
-          >
-            清除篩選
-          </button>
+          <div className={styles.filterActions}>
+            <button
+              type="button"
+              className={styles.resetBtn}
+              onClick={() => patchFilter(EMPTY_FILTERS)}
+            >
+              重設
+            </button>
+          </div>
         </div>
 
         <div className={styles.summary} data-testid="history-summary">
@@ -255,71 +321,130 @@ export function History(): JSX.Element {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.items.map((it) => {
-                    return (
-                      <tr key={it.id}>
-                        <td>
-                          <a
-                            className={styles.quoteNo}
-                            href={`#/quote/${encodeURIComponent(it.quote_no)}`}
-                          >
-                            {it.quote_no}
-                          </a>
-                        </td>
-                        <td>{it.issue_date || '—'}</td>
-                        <td>{it.sales_name || '—'}</td>
-                        <td>{it.client_company || '—'}</td>
-                        <td>{it.title || <span className={styles.untitled}>（未命名）</span>}</td>
-                        <td className={styles.right}>NT$ {formatMoney(it.total_amount)}</td>
-                        <td>
-                          <span className={styles.pill} data-status={it.status}>
-                            {statusLabel(it.status)}
-                          </span>
-                        </td>
-                        <td className={styles.updated}>{fmtUpdated(it.updated_at)}</td>
-                        <td className={styles.actions}>
-                          <a
-                            className={styles.iconBtn}
-                            href={`#/quote/${encodeURIComponent(it.quote_no)}`}
-                          >
-                            載入
-                          </a>
-                          <button
-                            type="button"
-                            className={`${styles.iconBtn} ${styles.danger}`}
-                            onClick={() => onDelete(it)}
-                          >
-                            刪除
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {data.items.map((it) => (
+                    <tr key={it.id}>
+                      <td>
+                        <a
+                          className={styles.quoteNo}
+                          href={`#/quote/${encodeURIComponent(it.quote_no)}`}
+                        >
+                          {it.quote_no}
+                        </a>
+                      </td>
+                      <td>{it.issue_date || '—'}</td>
+                      <td>{it.sales_name || '—'}</td>
+                      <td>{it.client_company || '—'}</td>
+                      <td>{it.title || <span className={styles.untitled}>（未命名）</span>}</td>
+                      <td className={styles.right}>NT$ {formatMoney(it.total_amount)}</td>
+                      <td>
+                        <span className={styles.pill} data-status={it.status}>
+                          {statusLabel(it.status)}
+                        </span>
+                      </td>
+                      <td className={styles.updated}>{fmtUpdated(it.updated_at)}</td>
+                      <td className={styles.actions}>
+                        <a
+                          className={styles.iconBtn}
+                          href={`#/quote/${encodeURIComponent(it.quote_no)}`}
+                        >
+                          載入
+                        </a>
+                        <button
+                          type="button"
+                          className={`${styles.iconBtn} ${styles.danger}`}
+                          onClick={() => setPendingDelete(it)}
+                        >
+                          刪除
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
-            <div className={styles.pagination}>
-              <button
-                type="button"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-              >
-                ← 上一頁
-              </button>
-              <span>
-                {page} / {totalPages}
-              </span>
-              <button
-                type="button"
-                disabled={page >= totalPages}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                下一頁 →
-              </button>
-            </div>
+            {totalPages > 1 && (
+              <div className={styles.pagination}>
+                <button
+                  type="button"
+                  className={styles.pageBtn}
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  ‹ 上頁
+                </button>
+                {pageItems(page, totalPages).map((it) =>
+                  it === 'gapL' || it === 'gapR' ? (
+                    <span key={it} className={styles.ellipsis}>
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={it}
+                      type="button"
+                      className={styles.pageBtn}
+                      aria-current={it === page ? 'page' : undefined}
+                      onClick={() => setPage(it)}
+                    >
+                      {it}
+                    </button>
+                  ),
+                )}
+                <button
+                  type="button"
+                  className={styles.pageBtn}
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  下頁 ›
+                </button>
+              </div>
+            )}
           </>
         )}
       </main>
+
+      {pendingDelete && (
+        <div
+          className={styles.confirmOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-label="確認刪除"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setPendingDelete(null);
+          }}
+        >
+          <div className={styles.confirmBox}>
+            <div className={styles.confirmTitle}>確認刪除</div>
+            <div className={styles.confirmMsg}>
+              確定要刪除報價單 <strong>{pendingDelete.quote_no}</strong> 嗎？
+              <br />
+              <span>（軟刪除：列表上看不到，但資料保留）</span>
+            </div>
+            <div className={styles.confirmActions}>
+              <button
+                type="button"
+                className={styles.btnGhost}
+                onClick={() => setPendingDelete(null)}
+              >
+                取消
+              </button>
+              <button type="button" className={styles.confirmOk} onClick={confirmDelete}>
+                確定刪除
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div
+          className={`${styles.toast} ${toast.error ? styles.toastError : ''}`}
+          role="status"
+          aria-live="polite"
+        >
+          {toast.msg}
+        </div>
+      )}
     </div>
   );
 }

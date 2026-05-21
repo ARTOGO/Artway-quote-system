@@ -1,2135 +1,2363 @@
 {
-  "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-21T22:00:00+08:00",
-  "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
-  "success_criteria": [
-    "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
-    "報價單號透過後端原子性配發，任何兩位業務同日開新報價都不會撞號",
-    "歷史報價對全公司業務團隊共享、可按業務 / 狀態 / 日期 / 客戶篩選",
-    "列印 PDF 視覺與舊版 GitHub Pages 1:1 一致（A4、金色頂條、版面、字級、表格皆對齊）",
-    "舊 GitHub Pages 在 React 版上線後可正常退場，業務舊書籤不會 404",
-    "CI/CD 雙環境（staging / prod）自動部署、main 受分支保護"
-  ],
-  "current_focus": {
-    "feature_id": "F17",
-    "task_id": "done",
-    "summary": "1+2+3 完成 + PR #7 開啟並處理完自動 review（3 P2 全修 + 回覆 + resolve thread）。剩餘：使用者 review/merge PR #7；之後 PR6–8 部署（GCP/IAP/CI-CD）+ PR9 cutover。"
+ "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
+ "updated_at": "2026-05-22T00:30:00+08:00",
+ "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
+ "success_criteria": [
+  "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
+  "報價單號透過後端原子性配發，任何兩位業務同日開新報價都不會撞號",
+  "歷史報價對全公司業務團隊共享、可按業務 / 狀態 / 日期 / 客戶篩選",
+  "列印 PDF 視覺與舊版 GitHub Pages 1:1 一致（A4、金色頂條、版面、字級、表格皆對齊）",
+  "舊 GitHub Pages 在 React 版上線後可正常退場，業務舊書籤不會 404",
+  "CI/CD 雙環境（staging / prod）自動部署、main 受分支保護"
+ ],
+ "current_focus": {
+  "feature_id": "F19",
+  "task_id": "verified",
+  "summary": "Option B（含 P2-1 instance-epoch、P2-B saved-status dirty 檢查）+ 歷史紀錄頁 1:1 深色復刻 皆完成、runtime 驗證、276 tests/typecheck/lint/build 全綠、Codex 最終 clean。Option B 已 commit（f31ffe7）；History 與 dashboard 一起 commit。下一步：push 前跑 /qa-only → 更新 PR #7。之後 PR6–8 部署 + PR9 cutover。"
+ },
+ "conversation_changes": [
+  {
+   "at": "2026-05-21T11:50:00+08:00",
+   "source": "user",
+   "change": "授權『整份預覽全區塊 computed-style 全比對』（localhost-vs-prod-parity skill）",
+   "impact": "對整份預覽逐元素 live-vs-live computed-style 比對（我的 localhost vs legacy github.io）：header / parties(含分隔線) / 01 表格 / ◎交付物 / 02 服務摘要 / 03 備註 / 付款表 / 簽章 / 銀行帳戶 / 頁尾 / 附件頁，共 30+ 元素的 color/bg/border/padding/margin/font*/letterSpacing/textTransform。結果：除了本輪稍早已修的 01 表格(7處) + 字級(16處)，其餘全部本來就一致 → 整份預覽 0 剩餘差異。教訓：computed-style 逐欄量是抓 pixel parity 的正解，目視會漏。"
   },
-  "conversation_changes": [
+  {
+   "at": "2026-05-21T11:30:00+08:00",
+   "source": "user",
+   "change": "回報 01 表格 + 03 備註 style 還沒完全對上（貼了 mine vs legacy 截圖）",
+   "impact": "逐元素量 computed style 兩邊對照。發現表格多處不符並修正：表頭文字色米白→金#D4B080 + 加 UPPERCASE + 2px 金底線；Category 欄加金色左邊框 + 灰字 500；總價文字米白→深#1A1510 + 700 + border；小計框寬 240→400px；小計列加分隔線 + 標籤灰色；組標題 bg #EDE6DA→#EFE9DF、padding/margin 對齊。Playwright 重量測全部 0 mismatch。03 備註經量測本來就一致（sectionNum/notesLi/noteNum 完全相同）。228 tests 綠。教訓：先前憑截圖目視會漏，改用 runtime computed-style 逐欄比對。"
+  },
+  {
+   "at": "2026-05-21T11:05:00+08:00",
+   "source": "user",
+   "change": "回報預覽文字比原本小，要確認字級",
+   "impact": "root cause：legacy.html 1169-1197 有一段『字級放大 +20%』top-level 覆寫區會蓋掉基礎字級，我當初只抄基礎值、漏抄覆寫。修 PreviewPlaceholder.module.scss 16 處 font-size 對到 legacy 覆寫值（sectionNum 25→31、sectionZh 12.5→15、sectionEn 8→11.5、groupTitle 11→12.5、qt 9.5→11.5、qt th +10、qt .no 8.5→10、deliverable/notes/payment td/sigLine 9.5→11.5、payment th/sigLabel/sigFieldLbl/sigStamp 8.5→10、pageFooter 8→9.5）。Playwright 量測 10+ 元素全部與 legacy 一致（0 mismatch）。Builder 面板 .bp-* 不在覆寫區、不受影響。228 tests 綠。"
+  },
+  {
+   "at": "2026-05-21T10:55:00+08:00",
+   "source": "user",
+   "change": "前 3 件確認可以了；授權『先接 API，接完測沒問題再 commit』",
+   "impact": "接真實 Google Apps Script catalog API：新增 api/items.ts（fetch + normalize + cache）+ lib/useItemsCatalog.ts（fixture fallback）；CatalogPicker 改用真實資料。Playwright live 驗證：載入 176 筆真品項、8 個真實大品項（A展間系統/B平台系統/C導覽內容製作/D數位出版/E行銷/F客製化工程/G其他項目/P專案管理），A-1~A-7 真實副品項 + 真實品項名稱/價格（NT$175,000）加入成功並帶入預覽。CORS 從瀏覽器可達（Apps Script 302→googleusercontent 200）。228 tests 綠。"
+  },
+  {
+   "at": "2026-05-21T10:40:00+08:00",
+   "source": "user",
+   "change": "回報 3 件：後端 502 連不到、中間『拖拉 bar』（=面板分隔線）拖不動、品項選擇介面跟舊版不同且只有 A-1/A-2（舊版 A展間系統有 A-1~A-7）",
+   "impact": "釐清『拖不動』一直指的是面板分隔線（不是品項排序，我先前誤解）。修：① docker compose up 起後端（502=沒起）② 實作分隔線拖曳 resize（mousedown→clamp→localStorage、dblclick reset）③ CatalogPicker 由搜尋框改成 legacy 三層下拉 + fixture 補齊 A展間系統 A-1~A-7、B/C/D 群組。真實上百筆品項仍需接 Google API（PR5）。"
+  },
+  {
+   "at": "2026-05-20T22:30:00+08:00",
+   "source": "user",
+   "change": "盤點後問「還有哪些沒做不能測、UI 是否都測好」，我誠實回報漏掉 3 個首頁品項級操作（重選/拖曳/定價優惠價切換），使用者回「要」補做",
+   "impact": "補做品項重新選擇 ⟲（重開 catalog replace）、拖曳排序（MOVE_ITEM reducer + drag handle）、定價/優惠價 tier switch（autoDiscount 時鎖定）。同時 docker compose up 起後端讓使用者能測新報價配號。214 tests 綠。"
+  },
+  {
+   "at": "2026-05-20T18:30:00+08:00",
+   "source": "user",
+   "change": "要求「這個階段把所有報價單首頁的功能都要完成」，我一起檢查、所有 field 填入、按鈕都點過、比對 legacy、全完成才回報",
+   "impact": "把 Session 4 範圍從原本只做 History+Radix 重新定義為『報價單首頁 100% legacy parity』：補 Session 2.5 折扣/議價、02 服務摘要、附件頁、編輯模式、標題修正。先用 AskUserQuestion 鎖定 2 個模糊邊界（編輯模式=做、存雲端/PDF=留後面；02+附件頁=一起做）。完成後用 Playwright 逐功能 + 截圖驗證。"
+  },
+  {
+   "at": "2026-05-20T12:00:00+08:00",
+   "source": "user",
+   "change": "Session 3 visual QA 發現預設值/銀行框/頁尾/起始組等 7 個 legacy parity gap，使用者要求全修（含起始組）",
+   "impact": "createBlankQuote 補 3 條預設備註 + 付款預設值 + 1 個起始組；Preview 補 ARTOGO 指定帳戶 + 頁尾 + 付款表淡金底；標題修 01 專案報價內容。"
+  },
+  {
+   "at": "2026-05-18T15:00:00+08:00",
+   "source": "user",
+   "change": "看到 GitHub Pages 顯示空白：要求診斷與修復",
+   "impact": "插隊一個 hotfix PR #4，把 root index.html redirect 從 frontend/ 改成 frontend/legacy.html，並在 frontend/index.html 加 github.io hostname 偵測 + hash 保留 JS。已 merge 04452af，Pages re-build 完成。"
+  },
+  {
+   "at": "2026-05-18T17:30:00+08:00",
+   "source": "user",
+   "change": "Session 1 完成後選 option C：分多 session 做完整 React 復刻",
+   "impact": "建立 Session 1-5 拆分計畫，本輪只做 Layout + Topbar + 3 個簡單 section + state foundation。"
+  },
+  {
+   "at": "2026-05-18T19:00:00+08:00",
+   "source": "user",
+   "change": "對 Codex F1-F4 第一輪 finding 回 '全休（全修）'",
+   "impact": "授權批次修 F1-F4 的 4 個 finding。"
+  },
+  {
+   "at": "2026-05-18T20:00:00+08:00",
+   "source": "user",
+   "change": "質疑：為啥你自己決定沒有等我選擇",
+   "impact": "承認 F5-F8 自作主張、違反 CLAUDE.md commit gate。改為每輪 Codex finding 都需使用者拍板才能修。"
+  },
+  {
+   "at": "2026-05-18T21:30:00+08:00",
+   "source": "user",
+   "change": "對 F9（撞號 P2）回 '該怎麼做怎麼做、錯的就要修'",
+   "impact": "把 F9 從 'defer to PR 5' 升級為立即修 — 本 session 提前實作 backend API client + Vite proxy + nextQuoteNumber wire。等於把 PR 5 的部分 scope 拉前。"
+  },
+  {
+   "at": "2026-05-19T00:00:00+08:00",
+   "source": "user",
+   "change": "提示重讀 CLAUDE.md 看是否該做進度說明頁面",
+   "impact": "發現 CLAUDE.md L240-284 進度儀表板 Gate 從一開始就漏做。補建 progress.json + progress.html。"
+  },
+  {
+   "at": "2026-05-21T15:50:00+08:00",
+   "source": "codex",
+   "change": "第二輪 Codex review 確認第一輪 6 findings 已解決，另冒出 1 P2：預覽 Qty 欄印出 unit 前導斜線（/式 → 應為 式）。",
+   "impact": "新增 quoteCalc.stripUnitSlash（mirror legacy.html:2525）+ 預覽套用 + 4 regression test。live catalog 174/176 筆帶斜線，屬主流路徑。runtime DOM 驗證原始 /場 → 預覽「1 場」。"
+  },
+  {
+   "at": "2026-05-21T16:15:00+08:00",
+   "source": "codex",
+   "change": "第三輪 Codex deep sweep 確認前兩輪已解決，另抓 2 個新 P2：①預設/重設面板寬度未 clamp ②arts-only 列切定價歸零 NT$0。",
+   "impact": "① Builder.tsx init+reset 都套 clampWidth ② catalogItemFields 缺價存 undefined（= legacy null，legacy.html:2838），既有 guard 即正確跳過。+3 regression test（238 綠）。runtime 雙證：arts-only 切定價維持 12,500；1200px 面板夾到 380px。"
+  },
+  {
+   "at": "2026-05-21T16:31:00+08:00",
+   "source": "codex",
+   "change": "第四輪 Codex deep sweep 抓 3 findings：①auto-discount 時 standard-only 列歸零[P1] ②客戶簽名欄被預填 ③附件列印頂部多 12mm。",
+   "impact": "①catalogItemFields discount 改 `hasArts?max(0,ps-pa):0`（= legacy:2562 + reducer）②客戶簽名欄渲染空白（= legacy renderSig:2515）③globals 加 @page appendix-page + .appendixPage page:appendix-page。+2 test（240 綠），runtime/CSS 三證。"
+  },
+  {
+   "at": "2026-05-21T17:09:00+08:00",
+   "source": "codex",
+   "change": "第五輪（重跑）Codex 抓 1 P2：編輯副品項只改 sub_group，留下舊 service_description → 印出錯誤附件。",
+   "impact": "副品項 onChange 同時清掉 service_description（= legacy 由 catalog 依 sub_group 重推:2354 的效果）。+1 regression test（241 綠）。runtime：live A-1 改副品項後舊『3D實境掃描』附件消失。"
+  },
+  {
+   "at": "2026-05-21T17:20:00+08:00",
+   "source": "codex",
+   "change": "第六輪 Codex review 乾淨（無 finding），commit gate 通過。",
+   "impact": "6 輪 Codex 收斂（6→1→2→3→1→0）。可進入 commit。輸出 PDF 按鈕 + 報價存取 API 仍為已知待補（PR4 收尾 / PR5）。"
+  },
+  {
+   "at": "2026-05-21T17:25:00+08:00",
+   "source": "user",
+   "change": "使用者選 1+2+3：輸出 PDF 按鈕 + History/報價存取 API(PR5) + push。",
+   "impact": "新增 F15(輸出PDF)/F16(報價API)/F17(History+載入)。依 build.md TDD，逐階段 Codex gate + commit，最後 /qa-only → push staging → PR。"
+  },
+  {
+   "at": "2026-05-21T17:58:00+08:00",
+   "source": "codex",
+   "change": "Phase-1 Codex 指出 legacy 列印前先存雲端（save-before-print）。",
+   "impact": "save 屬 Phase 2，故 print 併入 Phase 2 一起 commit；Phase 2 完成兩段式 存雲端→輸出 PDF。Phase 1 print 程式碼留在 working tree 不單獨 commit。"
+  },
+  {
+   "at": "2026-05-21T19:27:00+08:00",
+   "source": "codex",
+   "change": "Phase 1+2 Codex 第八輪乾淨，commit gate 通過。",
+   "impact": "save/print 流程經 8 輪 13 findings 硬化（dedup、型別、save-switch race、日期正規化、total 取整、canonical 合併、defer-stamp 保留編輯、Escape 守衛、flash timer race）。可 commit。"
+  },
+  {
+   "at": "2026-05-21T19:30:00+08:00",
+   "source": "user",
+   "change": "Phase 3 路由：選『加後端 by-quote_no 查詢』保書籤。",
+   "impact": "後端加 GET /quotes/by-number/{quote_no}（先文件後 code + Go test）；前端 getQuoteByNumber；History 頁列改連 #/quote/AW-...；載入用 by-quote_no。"
+  },
+  {
+   "at": "2026-05-21T21:05:00+08:00",
+   "source": "user",
+   "change": "使用者『繼續』→ 完成 push + 開 PR（3）。",
+   "impact": "feature/session-3-preview 推上 origin（7 commits），開 PR #7 → main。push 前 /qa-only smoke（乾淨重啟 dev server、0 console error、3 主線）通過；PR body 註明 15 輪 Codex review 全清 + e2e 閉環證據。"
+  },
+  {
+   "at": "2026-05-21T22:00:00+08:00",
+   "source": "reviewer",
+   "change": "PR #7 自動 review（Gemini + Codex）共 3 個 inline P2。",
+   "impact": "全修：①History 時間改 Asia/Taipei ②Builder latestWidth ref 改 render-body ③QuoteLoader 載入後正規化 #/quote→#/（replace 非 push、success 加 aborted 守衛）。275 tests 綠、Codex 最終乾淨、runtime 驗證（deep-link→#/、Back 回 History）。3 條 thread 已回覆並 resolve。commit 85fa25b。"
+  },
+  {
+   "at": "2026-05-21T23:10:00+08:00",
+   "source": "user",
+   "change": "使用者質疑：報價單號為何重新整理就 +1？應該先看目前號到哪、還沒用到就不加。選定 Option B『存檔後才配號（不顯示預覽）』。",
+   "impact": "修正流水號 burn-on-refresh bug。配號從 Builder mount 移到存檔（POST /quotes）：後端在 quote_no 缺省時於 save 原子配發；前端移除 mount 抓號 + error banner + retry + fetchToken/retry side-channel；SET_SAVED 帶回配發號並 stamp 進 state；EditModeBar 不再因無號 disable、兩段式存檔→列印；MetaSection placeholder 改『（儲存後配發）』。淨 −248 行。"
+  },
+  {
+   "at": "2026-05-21T23:35:00+08:00",
+   "source": "reviewer",
+   "change": "Option B 的 Codex pre-commit review 抓到 2 個 P2。",
+   "impact": "P2-1（in-flight 編輯導致重複建立 + 燒第二個序號）：真 bug，用 instance-epoch 修（QuoteContext 切換報價才 bump、欄位編輯不 bump；useSaveQuote 改用 epoch 而非物件 identity 判斷 stamp）+ 加 useSaveQuote.test.tsx 2 例回歸。P2-2（首次輸出 PDF 洗掉編輯預覽 DOM 修改）：用 Playwright 實測兩個節點（靜態 QUOTATION + 動態 sales phone）證明 React reconciliation 不會洗掉未變節點 → Codex 誤判（false positive），不修。"
+  },
+  {
+   "at": "2026-05-22T00:05:00+08:00",
+   "source": "user",
+   "change": "使用者指出歷史紀錄頁跟既有 legacy「長得完全不同」。",
+   "impact": "Root cause：Phase 3 有個 Codex P2 說 History 內容 dark-on-dark，我當時用『整頁改淺色』來解、而非把內容改深色 → 主題整個反了。改成 1:1 復刻 legacy .hp-* 深色頁：#0D0804 滿版 + ARTWAY logo + 副標 + chip 日期篩選（過去7天/1個月/1季/1年/全部）+ 數字分頁 + 站內刪除確認 modal + toast（取代 window.confirm/alert）+ 金色大寫表頭 + 狀態 pill 描邊色。"
+  }
+ ],
+ "goal_groups": [
+  {
+   "id": "g-product",
+   "title": "報價系統 React 重構 + Cloud Run + IAP 上線（核心目標）",
+   "summary": "把舊單檔 HTML 重構成可內網部署的 React + Go 應用，並完成業務 cutover。",
+   "kind": "primary",
+   "feature_ids": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F12",
+    "F6",
+    "F7",
+    "F8",
+    "F9",
+    "F10",
+    "F11"
+   ],
+   "outcomes": [
     {
-      "at": "2026-05-21T11:50:00+08:00",
-      "source": "user",
-      "change": "授權『整份預覽全區塊 computed-style 全比對』（localhost-vs-prod-parity skill）",
-      "impact": "對整份預覽逐元素 live-vs-live computed-style 比對（我的 localhost vs legacy github.io）：header / parties(含分隔線) / 01 表格 / ◎交付物 / 02 服務摘要 / 03 備註 / 付款表 / 簽章 / 銀行帳戶 / 頁尾 / 附件頁，共 30+ 元素的 color/bg/border/padding/margin/font*/letterSpacing/textTransform。結果：除了本輪稍早已修的 01 表格(7處) + 字級(16處)，其餘全部本來就一致 → 整份預覽 0 剩餘差異。教訓：computed-style 逐欄量是抓 pixel parity 的正解，目視會漏。"
+     "id": "O1",
+     "title": "Repo / 後端 / 前端骨架可獨立執行於本機",
+     "description": "三層基礎建設就緒：repo 拆分、Go backend MVP 通過測試、Vite + React + tokens 可跑 pnpm dev",
+     "feature_ids": [
+      "F1",
+      "F2",
+      "F3"
+     ]
     },
     {
-      "at": "2026-05-21T11:30:00+08:00",
-      "source": "user",
-      "change": "回報 01 表格 + 03 備註 style 還沒完全對上（貼了 mine vs legacy 截圖）",
-      "impact": "逐元素量 computed style 兩邊對照。發現表格多處不符並修正：表頭文字色米白→金#D4B080 + 加 UPPERCASE + 2px 金底線；Category 欄加金色左邊框 + 灰字 500；總價文字米白→深#1A1510 + 700 + border；小計框寬 240→400px；小計列加分隔線 + 標籤灰色；組標題 bg #EDE6DA→#EFE9DF、padding/margin 對齊。Playwright 重量測全部 0 mismatch。03 備註經量測本來就一致（sectionNum/notesLi/noteNum 完全相同）。228 tests 綠。教訓：先前憑截圖目視會漏，改用 runtime computed-style 逐欄比對。"
+     "id": "O2",
+     "title": "Builder 頁完整 1:1 復刻舊版 UX",
+     "description": "Topbar / 三個基本 section / Groups / 折扣議價 / 02 服務 / 附件頁 / 編輯模式 / 預覽 / History / Modals / Print 全部對齊舊版，業務能完成所有操作",
+     "feature_ids": [
+      "F4",
+      "F5",
+      "F12",
+      "F13",
+      "F6",
+      "F7",
+      "F8"
+     ]
     },
     {
-      "at": "2026-05-21T11:05:00+08:00",
-      "source": "user",
-      "change": "回報預覽文字比原本小，要確認字級",
-      "impact": "root cause：legacy.html 1169-1197 有一段『字級放大 +20%』top-level 覆寫區會蓋掉基礎字級，我當初只抄基礎值、漏抄覆寫。修 PreviewPlaceholder.module.scss 16 處 font-size 對到 legacy 覆寫值（sectionNum 25→31、sectionZh 12.5→15、sectionEn 8→11.5、groupTitle 11→12.5、qt 9.5→11.5、qt th +10、qt .no 8.5→10、deliverable/notes/payment td/sigLine 9.5→11.5、payment th/sigLabel/sigFieldLbl/sigStamp 8.5→10、pageFooter 8→9.5）。Playwright 量測 10+ 元素全部與 legacy 一致（0 mismatch）。Builder 面板 .bp-* 不在覆寫區、不受影響。228 tests 綠。"
+     "id": "O3",
+     "title": "前端 → 後端 API 全打通、流水號原子配發",
+     "description": "POST /api/quotes/next-number 由後端原子配發；create/update/list/get/delete 全部接通；報價單號不會撞號",
+     "feature_ids": [
+      "F9"
+     ]
     },
     {
-      "at": "2026-05-21T10:55:00+08:00",
-      "source": "user",
-      "change": "前 3 件確認可以了；授權『先接 API，接完測沒問題再 commit』",
-      "impact": "接真實 Google Apps Script catalog API：新增 api/items.ts（fetch + normalize + cache）+ lib/useItemsCatalog.ts（fixture fallback）；CatalogPicker 改用真實資料。Playwright live 驗證：載入 176 筆真品項、8 個真實大品項（A展間系統/B平台系統/C導覽內容製作/D數位出版/E行銷/F客製化工程/G其他項目/P專案管理），A-1~A-7 真實副品項 + 真實品項名稱/價格（NT$175,000）加入成功並帶入預覽。CORS 從瀏覽器可達（Apps Script 302→googleusercontent 200）。228 tests 綠。"
-    },
-    {
-      "at": "2026-05-21T10:40:00+08:00",
-      "source": "user",
-      "change": "回報 3 件：後端 502 連不到、中間『拖拉 bar』（=面板分隔線）拖不動、品項選擇介面跟舊版不同且只有 A-1/A-2（舊版 A展間系統有 A-1~A-7）",
-      "impact": "釐清『拖不動』一直指的是面板分隔線（不是品項排序，我先前誤解）。修：① docker compose up 起後端（502=沒起）② 實作分隔線拖曳 resize（mousedown→clamp→localStorage、dblclick reset）③ CatalogPicker 由搜尋框改成 legacy 三層下拉 + fixture 補齊 A展間系統 A-1~A-7、B/C/D 群組。真實上百筆品項仍需接 Google API（PR5）。"
-    },
-    {
-      "at": "2026-05-20T22:30:00+08:00",
-      "source": "user",
-      "change": "盤點後問「還有哪些沒做不能測、UI 是否都測好」，我誠實回報漏掉 3 個首頁品項級操作（重選/拖曳/定價優惠價切換），使用者回「要」補做",
-      "impact": "補做品項重新選擇 ⟲（重開 catalog replace）、拖曳排序（MOVE_ITEM reducer + drag handle）、定價/優惠價 tier switch（autoDiscount 時鎖定）。同時 docker compose up 起後端讓使用者能測新報價配號。214 tests 綠。"
-    },
-    {
-      "at": "2026-05-20T18:30:00+08:00",
-      "source": "user",
-      "change": "要求「這個階段把所有報價單首頁的功能都要完成」，我一起檢查、所有 field 填入、按鈕都點過、比對 legacy、全完成才回報",
-      "impact": "把 Session 4 範圍從原本只做 History+Radix 重新定義為『報價單首頁 100% legacy parity』：補 Session 2.5 折扣/議價、02 服務摘要、附件頁、編輯模式、標題修正。先用 AskUserQuestion 鎖定 2 個模糊邊界（編輯模式=做、存雲端/PDF=留後面；02+附件頁=一起做）。完成後用 Playwright 逐功能 + 截圖驗證。"
-    },
-    {
-      "at": "2026-05-20T12:00:00+08:00",
-      "source": "user",
-      "change": "Session 3 visual QA 發現預設值/銀行框/頁尾/起始組等 7 個 legacy parity gap，使用者要求全修（含起始組）",
-      "impact": "createBlankQuote 補 3 條預設備註 + 付款預設值 + 1 個起始組；Preview 補 ARTOGO 指定帳戶 + 頁尾 + 付款表淡金底；標題修 01 專案報價內容。"
-    },
-    {
-      "at": "2026-05-18T15:00:00+08:00",
-      "source": "user",
-      "change": "看到 GitHub Pages 顯示空白：要求診斷與修復",
-      "impact": "插隊一個 hotfix PR #4，把 root index.html redirect 從 frontend/ 改成 frontend/legacy.html，並在 frontend/index.html 加 github.io hostname 偵測 + hash 保留 JS。已 merge 04452af，Pages re-build 完成。"
-    },
-    {
-      "at": "2026-05-18T17:30:00+08:00",
-      "source": "user",
-      "change": "Session 1 完成後選 option C：分多 session 做完整 React 復刻",
-      "impact": "建立 Session 1-5 拆分計畫，本輪只做 Layout + Topbar + 3 個簡單 section + state foundation。"
-    },
-    {
-      "at": "2026-05-18T19:00:00+08:00",
-      "source": "user",
-      "change": "對 Codex F1-F4 第一輪 finding 回 '全休（全修）'",
-      "impact": "授權批次修 F1-F4 的 4 個 finding。"
-    },
-    {
-      "at": "2026-05-18T20:00:00+08:00",
-      "source": "user",
-      "change": "質疑：為啥你自己決定沒有等我選擇",
-      "impact": "承認 F5-F8 自作主張、違反 CLAUDE.md commit gate。改為每輪 Codex finding 都需使用者拍板才能修。"
-    },
-    {
-      "at": "2026-05-18T21:30:00+08:00",
-      "source": "user",
-      "change": "對 F9（撞號 P2）回 '該怎麼做怎麼做、錯的就要修'",
-      "impact": "把 F9 從 'defer to PR 5' 升級為立即修 — 本 session 提前實作 backend API client + Vite proxy + nextQuoteNumber wire。等於把 PR 5 的部分 scope 拉前。"
-    },
-    {
-      "at": "2026-05-19T00:00:00+08:00",
-      "source": "user",
-      "change": "提示重讀 CLAUDE.md 看是否該做進度說明頁面",
-      "impact": "發現 CLAUDE.md L240-284 進度儀表板 Gate 從一開始就漏做。補建 progress.json + progress.html。"
-    },
-    {
-      "at": "2026-05-21T15:50:00+08:00",
-      "source": "codex",
-      "change": "第二輪 Codex review 確認第一輪 6 findings 已解決，另冒出 1 P2：預覽 Qty 欄印出 unit 前導斜線（/式 → 應為 式）。",
-      "impact": "新增 quoteCalc.stripUnitSlash（mirror legacy.html:2525）+ 預覽套用 + 4 regression test。live catalog 174/176 筆帶斜線，屬主流路徑。runtime DOM 驗證原始 /場 → 預覽「1 場」。"
-    },
-    {
-      "at": "2026-05-21T16:15:00+08:00",
-      "source": "codex",
-      "change": "第三輪 Codex deep sweep 確認前兩輪已解決，另抓 2 個新 P2：①預設/重設面板寬度未 clamp ②arts-only 列切定價歸零 NT$0。",
-      "impact": "① Builder.tsx init+reset 都套 clampWidth ② catalogItemFields 缺價存 undefined（= legacy null，legacy.html:2838），既有 guard 即正確跳過。+3 regression test（238 綠）。runtime 雙證：arts-only 切定價維持 12,500；1200px 面板夾到 380px。"
-    },
-    {
-      "at": "2026-05-21T16:31:00+08:00",
-      "source": "codex",
-      "change": "第四輪 Codex deep sweep 抓 3 findings：①auto-discount 時 standard-only 列歸零[P1] ②客戶簽名欄被預填 ③附件列印頂部多 12mm。",
-      "impact": "①catalogItemFields discount 改 `hasArts?max(0,ps-pa):0`（= legacy:2562 + reducer）②客戶簽名欄渲染空白（= legacy renderSig:2515）③globals 加 @page appendix-page + .appendixPage page:appendix-page。+2 test（240 綠），runtime/CSS 三證。"
-    },
-    {
-      "at": "2026-05-21T17:09:00+08:00",
-      "source": "codex",
-      "change": "第五輪（重跑）Codex 抓 1 P2：編輯副品項只改 sub_group，留下舊 service_description → 印出錯誤附件。",
-      "impact": "副品項 onChange 同時清掉 service_description（= legacy 由 catalog 依 sub_group 重推:2354 的效果）。+1 regression test（241 綠）。runtime：live A-1 改副品項後舊『3D實境掃描』附件消失。"
-    },
-    {
-      "at": "2026-05-21T17:20:00+08:00",
-      "source": "codex",
-      "change": "第六輪 Codex review 乾淨（無 finding），commit gate 通過。",
-      "impact": "6 輪 Codex 收斂（6→1→2→3→1→0）。可進入 commit。輸出 PDF 按鈕 + 報價存取 API 仍為已知待補（PR4 收尾 / PR5）。"
-    },
-    {
-      "at": "2026-05-21T17:25:00+08:00",
-      "source": "user",
-      "change": "使用者選 1+2+3：輸出 PDF 按鈕 + History/報價存取 API(PR5) + push。",
-      "impact": "新增 F15(輸出PDF)/F16(報價API)/F17(History+載入)。依 build.md TDD，逐階段 Codex gate + commit，最後 /qa-only → push staging → PR。"
-    },
-    {
-      "at": "2026-05-21T17:58:00+08:00",
-      "source": "codex",
-      "change": "Phase-1 Codex 指出 legacy 列印前先存雲端（save-before-print）。",
-      "impact": "save 屬 Phase 2，故 print 併入 Phase 2 一起 commit；Phase 2 完成兩段式 存雲端→輸出 PDF。Phase 1 print 程式碼留在 working tree 不單獨 commit。"
-    },
-    {
-      "at": "2026-05-21T19:27:00+08:00",
-      "source": "codex",
-      "change": "Phase 1+2 Codex 第八輪乾淨，commit gate 通過。",
-      "impact": "save/print 流程經 8 輪 13 findings 硬化（dedup、型別、save-switch race、日期正規化、total 取整、canonical 合併、defer-stamp 保留編輯、Escape 守衛、flash timer race）。可 commit。"
-    },
-    {
-      "at": "2026-05-21T19:30:00+08:00",
-      "source": "user",
-      "change": "Phase 3 路由：選『加後端 by-quote_no 查詢』保書籤。",
-      "impact": "後端加 GET /quotes/by-number/{quote_no}（先文件後 code + Go test）；前端 getQuoteByNumber；History 頁列改連 #/quote/AW-...；載入用 by-quote_no。"
-    },
-    {
-      "at": "2026-05-21T21:05:00+08:00",
-      "source": "user",
-      "change": "使用者『繼續』→ 完成 push + 開 PR（3）。",
-      "impact": "feature/session-3-preview 推上 origin（7 commits），開 PR #7 → main。push 前 /qa-only smoke（乾淨重啟 dev server、0 console error、3 主線）通過；PR body 註明 15 輪 Codex review 全清 + e2e 閉環證據。"
-    },
-    {
-      "at": "2026-05-21T22:00:00+08:00",
-      "source": "reviewer",
-      "change": "PR #7 自動 review（Gemini + Codex）共 3 個 inline P2。",
-      "impact": "全修：①History 時間改 Asia/Taipei ②Builder latestWidth ref 改 render-body ③QuoteLoader 載入後正規化 #/quote→#/（replace 非 push、success 加 aborted 守衛）。275 tests 綠、Codex 最終乾淨、runtime 驗證（deep-link→#/、Back 回 History）。3 條 thread 已回覆並 resolve。commit 85fa25b。"
+     "id": "O4",
+     "title": "Cloud Run + IAP 部署可達、業務 SSO 登入可用",
+     "description": "Phase A 完成、quote.artogo.co 上線、@artogo.co 員工可登入；CI/CD 雙環境自動部署、main 受分支保護",
+     "feature_ids": [
+      "F10",
+      "F11"
+     ]
     }
-  ],
-  "goal_groups": [
+   ]
+  },
+  {
+   "id": "g-codex-polish",
+   "title": "Codex review iteration 修補（本輪附帶）",
+   "summary": "9 輪 Codex review 共 15 個 findings 的補丁工作。屬於本輪附帶品質提升，不灌入核心目標進度。",
+   "kind": "side",
+   "feature_ids": [
+    "F-side-codex"
+   ],
+   "outcomes": [
     {
-      "id": "g-product",
-      "title": "報價系統 React 重構 + Cloud Run + IAP 上線（核心目標）",
-      "summary": "把舊單檔 HTML 重構成可內網部署的 React + Go 應用，並完成業務 cutover。",
-      "kind": "primary",
-      "feature_ids": [
-        "F1",
-        "F2",
-        "F3",
-        "F4",
-        "F5",
-        "F12",
-        "F6",
-        "F7",
-        "F8",
-        "F9",
-        "F10",
-        "F11"
-      ],
-      "outcomes": [
-        {
-          "id": "O1",
-          "title": "Repo / 後端 / 前端骨架可獨立執行於本機",
-          "description": "三層基礎建設就緒：repo 拆分、Go backend MVP 通過測試、Vite + React + tokens 可跑 pnpm dev",
-          "feature_ids": [
-            "F1",
-            "F2",
-            "F3"
-          ]
-        },
-        {
-          "id": "O2",
-          "title": "Builder 頁完整 1:1 復刻舊版 UX",
-          "description": "Topbar / 三個基本 section / Groups / 折扣議價 / 02 服務 / 附件頁 / 編輯模式 / 預覽 / History / Modals / Print 全部對齊舊版，業務能完成所有操作",
-          "feature_ids": [
-            "F4",
-            "F5",
-            "F12",
-            "F13",
-            "F6",
-            "F7",
-            "F8"
-          ]
-        },
-        {
-          "id": "O3",
-          "title": "前端 → 後端 API 全打通、流水號原子配發",
-          "description": "POST /api/quotes/next-number 由後端原子配發；create/update/list/get/delete 全部接通；報價單號不會撞號",
-          "feature_ids": [
-            "F9"
-          ]
-        },
-        {
-          "id": "O4",
-          "title": "Cloud Run + IAP 部署可達、業務 SSO 登入可用",
-          "description": "Phase A 完成、quote.artogo.co 上線、@artogo.co 員工可登入；CI/CD 雙環境自動部署、main 受分支保護",
-          "feature_ids": [
-            "F10",
-            "F11"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "g-codex-polish",
-      "title": "Codex review iteration 修補（本輪附帶）",
-      "summary": "9 輪 Codex review 共 15 個 findings 的補丁工作。屬於本輪附帶品質提升，不灌入核心目標進度。",
-      "kind": "side",
-      "feature_ids": [
-        "F-side-codex"
-      ],
-      "outcomes": [
-        {
-          "id": "O-side-1",
-          "title": "Session 1 程式碼通過 Codex 結構審查",
-          "description": "F1-F15 涵蓋 legacy parity / StrictMode / 焦點 a11y / backend wire / retry / 日期保留等",
-          "feature_ids": [
-            "F-side-codex"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "g-hotfix",
-      "title": "GitHub Pages 過渡期止血（本輪附帶、已完成）",
-      "summary": "業務舊網址在 PR #3 後變空白；hotfix 已 merge 04452af、Pages re-build 200 OK。",
-      "kind": "side",
-      "feature_ids": [
-        "F-side-hotfix"
-      ],
-      "outcomes": [
-        {
-          "id": "O-side-2",
-          "title": "舊 GitHub Pages URL 在 Cloud Run 上線前持續可用",
-          "description": "root + frontend/index.html 同時偵測 github.io 並 redirect 到 frontend/legacy.html（保留 hash）",
-          "feature_ids": [
-            "F-side-hotfix"
-          ]
-        }
-      ]
+     "id": "O-side-1",
+     "title": "Session 1 程式碼通過 Codex 結構審查",
+     "description": "F1-F15 涵蓋 legacy parity / StrictMode / 焦點 a11y / backend wire / retry / 日期保留等",
+     "feature_ids": [
+      "F-side-codex"
+     ]
     }
-  ],
-  "features": [
+   ]
+  },
+  {
+   "id": "g-hotfix",
+   "title": "GitHub Pages 過渡期止血（本輪附帶、已完成）",
+   "summary": "業務舊網址在 PR #3 後變空白；hotfix 已 merge 04452af、Pages re-build 200 OK。",
+   "kind": "side",
+   "feature_ids": [
+    "F-side-hotfix"
+   ],
+   "outcomes": [
     {
-      "id": "F1",
-      "title": "Repo Foundation（PR #1）",
-      "summary": "repo 重組為 frontend/ + backend/ + docs/ + infra/，搬 index.html → legacy.html、加 CLAUDE.md / AGENTS.md / spec 等基礎文件。",
-      "weight": 1,
-      "goal_contributions": [
-        {
-          "outcome_id": "O1",
-          "why": "後續所有開發都依賴此目錄結構與規格文件",
-          "completion_signal": "main branch 有 docs/HISTORY_BACKEND_SPEC.md、CLAUDE.md、frontend/legacy.html 等檔，目錄拆分完成"
-        }
-      ],
-      "status": "verified",
-      "tasks": [
-        {
-          "id": "F1-T1",
-          "title": "Repo 目錄重組與 legacy 搬遷",
-          "status": "verified",
-          "workstream": "Infra",
-          "priority": "P1",
-          "progress_percent": 100,
-          "files": [
-            "frontend/legacy.html",
-            "docs/HISTORY_BACKEND_SPEC.md",
-            "CLAUDE.md",
-            "AGENTS.md"
-          ],
-          "evidence": [
-            {
-              "type": "git",
-              "ref": "c5bd96b Merge PR #1",
-              "result": "已 merge main"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "F2",
-      "title": "Backend MVP（PR #2）",
-      "summary": "Go 1.26 + chi + pgx + sqlc + goose；8 個 endpoints；IAP middleware；Docker multi-stage build。",
-      "weight": 2,
-      "goal_contributions": [
-        {
-          "outcome_id": "O1",
-          "why": "報價單儲存、流水號配發、歷史查詢需要 server-side atomic logic",
-          "completion_signal": "docker compose up 跑通，curl 可建立、查詢、更新、刪除報價"
-        }
-      ],
-      "status": "verified",
-      "tasks": [
-        {
-          "id": "F2-T1",
-          "title": "Backend 8 endpoints + 38 個測試 + Docker image",
-          "status": "verified",
-          "workstream": "Backend",
-          "priority": "P0",
-          "progress_percent": 100,
-          "files": [
-            "backend/cmd/server/main.go",
-            "backend/internal/quotes/handler.go",
-            "backend/internal/quotes/repo.go",
-            "backend/internal/auth/iap.go",
-            "backend/migrations/0001_init.sql",
-            "backend/Dockerfile",
-            "backend/docker-compose.yml"
-          ],
-          "evidence": [
-            {
-              "type": "git",
-              "ref": "57dd086 Merge PR #2",
-              "result": "已 merge main"
-            },
-            {
-              "type": "test",
-              "ref": "go test ./...",
-              "result": "38 個測試通過"
-            },
-            {
-              "type": "build",
-              "ref": "docker build",
-              "result": "distroless image ~20MB"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "F3",
-      "title": "Frontend Scaffold（PR #3）",
-      "summary": "pnpm + Vite 8 + React 19.2 + TS 6 + Sass 1.99；tokens.scss 286 行 / 160+ tokens；hash router；Button、Vitest 設定。",
-      "weight": 2,
-      "goal_contributions": [
-        {
-          "outcome_id": "O1",
-          "why": "Builder UI 復刻所需的工具鏈、design tokens、router、第一個元件範本",
-          "completion_signal": "pnpm dev 可啟動、pnpm test 通過、tokens.scss 完整、Button 元件範本到位"
-        }
-      ],
-      "status": "verified",
-      "tasks": [
-        {
-          "id": "F3-T1",
-          "title": "Frontend M1-M6 + reviewer feedback round 1",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "progress_percent": 100,
-          "files": [
-            "frontend/package.json",
-            "frontend/vite.config.ts",
-            "frontend/vitest.config.ts",
-            "frontend/src/styles/tokens.scss",
-            "frontend/src/lib/useHashRoute.ts",
-            "frontend/src/components/Button/Button.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "git",
-              "ref": "330b7d7 Merge PR #3",
-              "result": "已 merge main"
-            },
-            {
-              "type": "test",
-              "ref": "pnpm test",
-              "result": "14 tests pass"
-            },
-            {
-              "type": "review",
-              "ref": "PR #3 review",
-              "result": "5 findings 全部處理（4 fix + 1 駁回 false positive）"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "F4",
-      "title": "Builder UI Session 1（PR #5 已 merge）",
-      "summary": "Layout shell + Topbar + 三個基本 section（Meta / Client / Sales）+ state foundation（useReducer + Context）+ backend next-number API wire。",
-      "weight": 4,
-      "goal_contributions": [
-        {
-          "outcome_id": "O2",
-          "why": "Builder 頁的骨架與最簡單 3 個 section、state 模型決定後續 4 個 session 的可行性",
-          "completion_signal": "本機 pnpm dev 可看到 Builder layout、填表即時更新右側 preview placeholder、quoteNo 由後端配發"
-        },
-        {
-          "outcome_id": "O3",
-          "why": "提前實作 POST /api/quotes/next-number 客戶端（原本計畫在 PR 5），消除撞號風險",
-          "completion_signal": "BuilderPanel 進場時呼叫 backend、retry button 可重試、newQuote 動作可重新配發"
-        }
-      ],
-      "status": "verified",
-      "tasks": [
-        {
-          "id": "F4-T1",
-          "title": "State foundation（quoteTypes / quoteReducer / QuoteContext）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/state/quoteTypes.ts",
-            "frontend/src/state/quoteReducer.ts",
-            "frontend/src/state/quoteReducer.test.ts",
-            "frontend/src/state/QuoteContext.tsx",
-            "frontend/src/state/QuoteContext.test.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "pnpm test src/state",
-              "result": "22 tests pass"
-            }
-          ]
-        },
-        {
-          "id": "F4-T2",
-          "title": "lib helpers（dates、quoteNumber 已移除 / api client）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/lib/dates.ts",
-            "frontend/src/lib/dates.test.ts",
-            "frontend/src/api/client.ts",
-            "frontend/src/api/client.test.ts",
-            "frontend/src/api/quotes.ts",
-            "frontend/src/api/quotes.test.ts"
-          ],
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "pnpm test src/lib src/api",
-              "result": "9 + 7 + 3 tests pass"
-            }
-          ]
-        },
-        {
-          "id": "F4-T3",
-          "title": "UI primitives（BPField / BPSection）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/components/BPField/BPField.tsx",
-            "frontend/src/components/BPField/BPField.module.scss",
-            "frontend/src/components/BPField/BPField.test.tsx",
-            "frontend/src/components/BPSection/BPSection.tsx",
-            "frontend/src/components/BPSection/BPSection.module.scss",
-            "frontend/src/components/BPSection/BPSection.test.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "pnpm test",
-              "result": "7 + 5 tests pass"
-            }
-          ]
-        },
-        {
-          "id": "F4-T4",
-          "title": "Topbar（含狀態 dot data-attr / 新報價 button / focus a11y）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/pages/Builder/Topbar.tsx",
-            "frontend/src/pages/Builder/Topbar.module.scss",
-            "frontend/src/pages/Builder/Topbar.test.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "pnpm test src/pages/Builder/Topbar",
-              "result": "7 tests pass"
-            }
-          ]
-        },
-        {
-          "id": "F4-T5",
-          "title": "Meta / Client / Sales 三個 section",
-          "status": "done",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "progress_percent": 90,
-          "files": [
-            "frontend/src/pages/Builder/sections/MetaSection.tsx",
-            "frontend/src/pages/Builder/sections/ClientSection.tsx",
-            "frontend/src/pages/Builder/sections/SalesSection.tsx",
-            "frontend/src/pages/Builder/sections/sections.module.scss"
-          ],
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "pnpm test",
-              "result": "整合至 BuilderPanel 測試覆蓋"
-            }
-          ],
-          "notes": "尚未由使用者本機 dogfood 確認填表 UX、需配合 docker compose up 後端跑通 next-number"
-        },
-        {
-          "id": "F4-T6",
-          "title": "BuilderPanel + Preview placeholder + Builder layout",
-          "status": "done",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "progress_percent": 95,
-          "files": [
-            "frontend/src/pages/Builder/BuilderPanel.tsx",
-            "frontend/src/pages/Builder/BuilderPanel.module.scss",
-            "frontend/src/pages/Builder/BuilderPanel.test.tsx",
-            "frontend/src/pages/Builder/PreviewPlaceholder.tsx",
-            "frontend/src/pages/Builder/PreviewPlaceholder.module.scss",
-            "frontend/src/pages/Builder/Builder.tsx",
-            "frontend/src/pages/Builder/Builder.module.scss"
-          ],
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "pnpm test",
-              "result": "13 tests pass（含 F7 / F11 / F13 / F14 / F15 retry/date scenarios）"
-            }
-          ]
-        },
-        {
-          "id": "F4-T7",
-          "title": "App.tsx wire（QuoteProvider 升 App-level）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/App.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "pnpm test",
-              "result": "88 tests pass"
-            }
-          ],
-          "notes": "Codex F6 finding：QuoteProvider 升到 App.tsx，Builder ⇄ History 切換不再 unmount state。"
-        },
-        {
-          "id": "F4-T8",
-          "title": "API client / Vite proxy / nextQuoteNumber wire（提前 PR 5）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/api/client.ts",
-            "frontend/src/api/quotes.ts",
-            "frontend/vite.config.ts"
-          ],
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "pnpm test src/api",
-              "result": "10 tests pass"
-            },
-            {
-              "type": "review",
-              "ref": "Codex round 5 F9",
-              "result": "改用後端原子配發，撞號風險消除"
-            }
-          ]
-        },
-        {
-          "id": "F4-T9",
-          "title": "ESLint .vite ignore / .prettierignore 維護",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P2",
-          "progress_percent": 100,
-          "files": [
-            "frontend/eslint.config.js",
-            "frontend/.prettierignore"
-          ],
-          "evidence": [
-            {
-              "type": "lint",
-              "ref": "pnpm lint",
-              "result": "0 error / 0 warning"
-            }
-          ]
-        },
-        {
-          "id": "F4-T10",
-          "title": "Quality gates 全綠",
-          "status": "verified",
-          "workstream": "QA / Release",
-          "priority": "P0",
-          "progress_percent": 100,
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "pnpm test --run",
-              "result": "88 / 88 tests pass"
-            },
-            {
-              "type": "build",
-              "ref": "pnpm build",
-              "result": "204 KB JS / 64 KB gzip"
-            },
-            {
-              "type": "lint",
-              "ref": "pnpm lint + pnpm format:check",
-              "result": "全綠"
-            }
-          ]
-        },
-        {
-          "id": "F4-T11",
-          "title": "Codex review iteration round 1-9（15 findings 全部修）",
-          "status": "done",
-          "workstream": "QA / Release",
-          "priority": "P1",
-          "progress_percent": 95,
-          "evidence": [
-            {
-              "type": "review",
-              "ref": "Codex round 1-9",
-              "result": "F1-F15 全部解決、各輪附驗證 trail"
-            }
-          ],
-          "notes": "Round 10 尚未跑於 F15 修補後（split-effect refactor），嚴格說沒有最終 clean 簽核。"
-        },
-        {
-          "id": "F4-T12",
-          "title": "本機 dogfood（使用者人工驗證 Builder）",
-          "status": "blocked",
-          "workstream": "QA / Release",
-          "priority": "P0",
-          "blocker": "尚未由使用者實際打開瀏覽器測試填表流程",
-          "blocked_by": "等使用者授權 + 啟動 docker compose backend",
-          "owner": "user",
-          "needed_by": "commit Session 1 前",
-          "progress_percent": 0
-        },
-        {
-          "id": "F4-T13",
-          "title": "Commit Session 1 + 開 PR",
-          "status": "blocked",
-          "workstream": "QA / Release",
-          "priority": "P0",
-          "blocker": "等使用者授權（之前 F5-F8 自作主張被質疑後改為每輪都等）",
-          "blocked_by": "等使用者選 A / B / C 之一",
-          "owner": "user",
-          "needed_by": "Session 2 開工前",
-          "progress_percent": 0
-        }
-      ]
-    },
-    {
-      "id": "F5",
-      "title": "Builder Groups Session 2（PR #6 已 merge）",
-      "summary": "報價內容 Groups + 品項 Item picker（inline，非 Radix）+ 金額計算 + 群組 add/remove/rename。NumberInput commit-on-blur、seq-based 編號。",
-      "weight": 4,
-      "goal_contributions": [
-        {
-          "outcome_id": "O2",
-          "why": "Groups 是 Builder 最複雜的區塊；金額計算是業務核心",
-          "completion_signal": "業務可加群組、加品項、自動帶單價、自動計算總額"
-        }
-      ],
-      "status": "verified",
-      "tasks": [
-        {
-          "id": "F5-T1",
-          "title": "Groups reducer + Group/Item types",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "evidence": [
-            {
-              "type": "git",
-              "ref": "e5fd3e0 Merge PR #6",
-              "result": "已 merge main"
-            }
-          ]
-        },
-        {
-          "id": "F5-T2",
-          "title": "Item picker（inline CatalogPicker + ManualPicker）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "GroupsSection.test 17 tests",
-              "result": "pass"
-            }
-          ]
-        },
-        {
-          "id": "F5-T3",
-          "title": "金額計算 lib + 測試",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "quoteCalc.test 22 tests",
-              "result": "pass"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "F12",
-      "title": "Session 4 — 報價單首頁完整功能（本機完成、待檢查）",
-      "summary": "把報價單首頁做到 legacy 1:1：標題修正、Session 2.5 折扣欄+自動價差+議價/手續費、02 服務說明摘要、附件頁（第2頁起）、編輯模式 contenteditable。存雲端/PDF/真實 catalog/History 留後面。",
-      "weight": 4,
-      "goal_contributions": [
-        {
-          "outcome_id": "O2",
-          "why": "使用者要求本階段把報價單首頁所有功能補齊到與舊版一致，否則無法整體驗收",
-          "completion_signal": "每個 field 填入、每個按鈕點過，新版首頁與 legacy 結構/視覺/計算一致；Playwright 逐功能驗證通過"
-        }
-      ],
-      "status": "done",
-      "tasks": [
-        {
-          "id": "F12-T1",
-          "title": "標題修正 報價內容 → 01 專案報價內容",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "files": [
-            "frontend/src/pages/Builder/sections/GroupsSection.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "browser",
-              "ref": "Playwright 左面板標題",
-              "result": "顯示 01 專案報價內容（對齊 legacy line 1841）"
-            }
-          ]
-        },
-        {
-          "id": "F12-T2",
-          "title": "catalog 加 service_description + price_arts 已存在",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "files": [
-            "frontend/src/lib/itemsCatalog.ts"
-          ],
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "itemsCatalog.test 11 tests",
-              "result": "pass"
-            }
-          ]
-        },
-        {
-          "id": "F12-T3",
-          "title": "Discount 折扣欄 + 自動價差（builder + preview + calc）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "files": [
-            "frontend/src/lib/quoteCalc.ts",
-            "frontend/src/state/quoteReducer.ts",
-            "frontend/src/pages/Builder/sections/GroupsSection.tsx",
-            "frontend/src/pages/Builder/PreviewPlaceholder.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "browser",
-              "ref": "Playwright 自動價差",
-              "result": "12000→9600（折扣 2400），預覽 Discount 欄顯示 −2,400"
-            },
-            {
-              "type": "test",
-              "ref": "quoteCalc + quoteReducer tests",
-              "result": "pass"
-            }
-          ]
-        },
-        {
-          "id": "F12-T4",
-          "title": "議價/手續費 adjustment 列（builder + preview + total）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "files": [
-            "frontend/src/lib/quoteCalc.ts",
-            "frontend/src/state/quoteReducer.ts",
-            "frontend/src/pages/Builder/sections/GroupsSection.tsx",
-            "frontend/src/pages/Builder/PreviewPlaceholder.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "browser",
-              "ref": "Playwright 議價折讓 -1080",
-              "result": "總價 9600+480−1080=9000，預覽顯示 議價折讓 −NT$ 1,080"
-            }
-          ]
-        },
-        {
-          "id": "F12-T5",
-          "title": "02 服務說明摘要（panel + preview，從品項衍生）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "files": [
-            "frontend/src/lib/services.ts",
-            "frontend/src/pages/Builder/sections/ServicesSection.tsx",
-            "frontend/src/pages/Builder/PreviewPlaceholder.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "browser",
-              "ref": "Playwright 加 A-1 品項",
-              "result": "02 出現 A-1 + 完整服務說明請見附件 A-1；含附件 toggle 可開關"
-            },
-            {
-              "type": "test",
-              "ref": "services.test 9 tests + ServicesSection.test 5 tests",
-              "result": "pass"
-            }
-          ]
-        },
-        {
-          "id": "F12-T6",
-          "title": "附件頁 Appendix（第2頁起、每個 sub_group 一頁）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "files": [
-            "frontend/src/lib/services.ts",
-            "frontend/src/pages/Builder/PreviewPlaceholder.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "browser",
-              "ref": "Playwright 附件頁截圖 qa-s4-04-appendix.png",
-              "result": "附件 APPENDIX + A-1 + 拍攝規格/交付物/作業時程 三 section 條列、金色帶邊到邊"
-            }
-          ]
-        },
-        {
-          "id": "F12-T7",
-          "title": "編輯模式 contenteditable（toggle + 確認 modal + 葉節點可編輯）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "files": [
-            "frontend/src/pages/Builder/EditModeBar.tsx",
-            "frontend/src/pages/Builder/Builder.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "browser",
-              "ref": "Playwright 編輯預覽",
-              "result": "點按→確認 modal→81 個葉節點變 contenteditable、footer(data-no-edit)略過、結束編輯→歸零"
-            }
-          ]
-        },
-        {
-          "id": "F12-T8",
-          "title": "Exhaustive Playwright QA + 全 quality gate",
-          "status": "verified",
-          "workstream": "QA / Release",
-          "priority": "P0",
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "vitest --run",
-              "result": "214 / 214 tests pass（含 services / discount / adjustment / ServicesSection / GroupsSection / MOVE_ITEM / repick / tier 新測試）"
-            },
-            {
-              "type": "build",
-              "ref": "tsc -b + vite build",
-              "result": "57 modules、245 KB JS、30 KB CSS、綠"
-            },
-            {
-              "type": "lint",
-              "ref": "eslint + prettier --check",
-              "result": "0 error / 0 warning、格式全綠"
-            },
-            {
-              "type": "browser",
-              "ref": "qa-s4-01~04 + qa-s4b-01 截圖",
-              "result": "01/02/附件/折扣/議價/編輯模式/品項控制 逐功能 Playwright 驗證"
-            }
-          ],
-          "notes": "Session 4 新功能對照 legacy 原始碼 + CSS 1:1 復刻並驗證渲染；與線上 legacy 即時 side-by-side 受真實 catalog API 限制未做，但 cover-page 已在 Session 3 做過 pixel 對比。"
-        },
-        {
-          "id": "F12-T9",
-          "title": "品項重新選擇 repick ⟲（非手動品項）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "files": [
-            "frontend/src/pages/Builder/sections/GroupsSection.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "browser",
-              "ref": "Playwright 點 ⟲",
-              "result": "catalog 重開為「重新選擇品項（10）」模式、選新品項就地替換、保留 qty"
-            },
-            {
-              "type": "test",
-              "ref": "GroupsSection.test repick",
-              "result": "pass"
-            }
-          ]
-        },
-        {
-          "id": "F12-T10",
-          "title": "品項拖曳排序 reorder（MOVE_ITEM + drag handle）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "files": [
-            "frontend/src/state/quoteReducer.ts",
-            "frontend/src/pages/Builder/sections/GroupsSection.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "quoteReducer MOVE_ITEM 2 tests + GroupsSection drag regression test",
-              "result": "重排 + 邊界 no-op + 拖放重排 + dataTransfer.setData 被呼叫 全通過"
-            },
-            {
-              "type": "browser",
-              "ref": "Playwright 合成 HTML5 drag",
-              "result": "[立體,網站] 拖放後變 [網站,立體]"
-            }
-          ],
-          "notes": "使用者回報「無法拖拉」→ root cause：onDragStart 沒呼叫 e.dataTransfer.setData，原生 HTML5 DnD 不成立、drop 不觸發。修法：dragstart 設 effectAllowed+setData、dragover 設 dropEffect。已加 regression test（fireEvent dragStart/drop + 斷言 setData 被呼叫）。"
-        },
-        {
-          "id": "F12-T11",
-          "title": "定價/優惠價 tier switch（autoDiscount 鎖定）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "files": [
-            "frontend/src/pages/Builder/sections/GroupsSection.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "browser",
-              "ref": "Playwright 點 tier switch",
-              "result": "定價→優惠價、單價 12000→9600；autoDiscount 開啟時 disabled"
-            },
-            {
-              "type": "test",
-              "ref": "GroupsSection.test tier 3 tests",
-              "result": "pass"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "F13",
-      "title": "Session 4c — 使用者回報修正（分隔線拖曳 / 階層 picker / 後端 502 / 品項可編輯）",
-      "summary": "修使用者實測回報：後端沒起導致 502、面板分隔線拖不動、品項選擇器跟舊版不同（搜尋框 vs 三層下拉）且目錄太少（只 A-1/A-2）。",
-      "weight": 3,
-      "goal_contributions": [
-        {
-          "outcome_id": "O2",
-          "why": "這些是使用者實際操作時撞到的 legacy parity 落差；不修報價單首頁就不算跟舊版一致",
-          "completion_signal": "後端可達、分隔線可拖曳 resize、品項選擇器三層下拉且含 A-1~A-7、品項列副品項/名稱可編輯"
-        }
-      ],
-      "status": "done",
-      "tasks": [
-        {
-          "id": "F13-T1",
-          "title": "後端 502 修復（docker compose up）",
-          "status": "verified",
-          "workstream": "Infra",
-          "priority": "P0",
-          "evidence": [
-            {
-              "type": "curl",
-              "ref": "GET :8080/healthz",
-              "result": "200；migrations 完成；前端配號 AW-260521-xxx 無錯誤橫幅"
-            }
-          ],
-          "notes": "502 Bad Gateway = 後端容器沒起（Vite proxy 連不到）。docker compose up 後恢復。"
-        },
-        {
-          "id": "F13-T2",
-          "title": "面板分隔線可拖曳 resize",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "files": [
-            "frontend/src/pages/Builder/Builder.tsx",
-            "frontend/src/pages/Builder/Builder.module.scss",
-            "frontend/src/pages/Builder/BuilderPanel.module.scss",
-            "frontend/src/styles/globals.scss"
-          ],
-          "evidence": [
-            {
-              "type": "browser",
-              "ref": "Playwright 真實 mouse drag",
-              "result": "拖右→530(寬)、拖左→330(窄)、clamp 於 MIN_W；dblclick 重設；localStorage 記憶"
-            }
-          ],
-          "notes": "使用者說的『中間拖拉 bar』= 面板分隔線（我先前誤以為是品項排序）。對齊 legacy 3955-4003。"
-        },
-        {
-          "id": "F13-T3",
-          "title": "品項選擇器改三層下拉 + 補齊 A-1~A-7 目錄 + 副品項/名稱可編輯",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "files": [
-            "frontend/src/lib/itemsCatalog.ts",
-            "frontend/src/pages/Builder/sections/GroupsSection.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "browser",
-              "ref": "Playwright picker",
-              "result": "大品項(A展間系統/B/C/D)→副品項(A-1_實境展間2.0~A-7_展間其他製作)→品項名稱 三層下拉"
-            },
-            {
-              "type": "test",
-              "ref": "itemsCatalog.test 15 + GroupsSection.test 24",
-              "result": "pass（含 listSubGroups/itemsInSubGroup + 階層 picker 流程）"
-            }
-          ],
-          "notes": "對齊 legacy buildPicker 2763-2830。fixture 補齊真實結構（A展間系統 A-1~A-7）作為離線 fallback。"
-        },
-        {
-          "id": "F13-T4",
-          "title": "接真實 Google catalog API（取代假資料）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "files": [
-            "frontend/src/api/items.ts",
-            "frontend/src/api/items.test.ts",
-            "frontend/src/lib/useItemsCatalog.ts",
-            "frontend/src/pages/Builder/sections/GroupsSection.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "browser",
-              "ref": "Playwright live fetch",
-              "result": "載入 176 筆真品項 / 8 大品項；A-1~A-7 真實副品項；加入 NT$175,000 真品項並帶入預覽"
-            },
-            {
-              "type": "test",
-              "ref": "items.test 7（normalizeCatalog + fetch cache/error）",
-              "result": "pass"
-            },
-            {
-              "type": "network",
-              "ref": "GET Apps Script exec",
-              "result": "302→googleusercontent 200；CORS 從瀏覽器可達"
-            }
-          ],
-          "notes": "使用者授權後接。fetch 約 10s（Apps Script redirect），載入中顯示『正在載入品項資料…』，完成顯示『已載入 N 筆線上品項』；失敗自動 fallback 內建 fixture。模組級快取一頁只抓一次。"
-        }
-      ]
-    },
-    {
-      "id": "F6",
-      "title": "Builder Preview Session 3",
-      "summary": "右側 A4 預覽全部 binding（從 placeholder 升級為真實 1:1 復刻）+ Print CSS + 交付項目 / 服務內容 / 備註 / 付款條件 4 個 section。",
-      "weight": 3,
-      "goal_contributions": [
-        {
-          "outcome_id": "O2",
-          "why": "預覽 PDF 視覺與舊版 1:1 一致是業務 cutover 的硬條件",
-          "completion_signal": "Cmd+P 列印與舊 GitHub Pages 1:1、邊到邊金色帶、A4 尺寸、頁碼分頁正確"
-        }
-      ],
-      "status": "todo",
-      "tasks": [
-        {
-          "id": "F6-T1",
-          "title": "A4 Preview 真實 binding（取代 placeholder）",
-          "status": "todo",
-          "workstream": "Frontend",
-          "priority": "P0"
-        },
-        {
-          "id": "F6-T2",
-          "title": "4 個剩餘 section",
-          "status": "todo",
-          "workstream": "Frontend",
-          "priority": "P0"
-        },
-        {
-          "id": "F6-T3",
-          "title": "@media print stylesheet",
-          "status": "todo",
-          "workstream": "Frontend",
-          "priority": "P0"
-        }
-      ]
-    },
-    {
-      "id": "F7",
-      "title": "Builder Session 4 — History + Radix Modals",
-      "summary": "History page（filter / list / load / delete）+ Radix DropdownMenu / AlertDialog / Toast 改造。",
-      "weight": 3,
-      "goal_contributions": [
-        {
-          "outcome_id": "O2",
-          "why": "歷史頁是業務日常查詢入口；Modals 把 window.confirm 替換為符合品牌的對話框",
-          "completion_signal": "業務可載入過去報價、刪除、切狀態；Toast 顯示成功 / 失敗訊息"
-        }
-      ],
-      "status": "todo",
-      "tasks": [
-        {
-          "id": "F7-T1",
-          "title": "History 頁面（filter + list）",
-          "status": "todo",
-          "workstream": "Frontend",
-          "priority": "P0"
-        },
-        {
-          "id": "F7-T2",
-          "title": "Radix DropdownMenu 改造 Status select",
-          "status": "todo",
-          "workstream": "Frontend",
-          "priority": "P1"
-        },
-        {
-          "id": "F7-T3",
-          "title": "Radix AlertDialog 替換 window.confirm",
-          "status": "todo",
-          "workstream": "Frontend",
-          "priority": "P1"
-        },
-        {
-          "id": "F7-T4",
-          "title": "Toast 通知",
-          "status": "todo",
-          "workstream": "Frontend",
-          "priority": "P1"
-        }
-      ]
-    },
-    {
-      "id": "F8",
-      "title": "Builder Session 5 — Hash router 完整接 + 列印驗證 + polish",
-      "summary": "deep-link 載入歷史報價進 Builder、列印 PDF 對比驗證、可拖拉 divider、final visual polish。",
-      "weight": 2,
-      "goal_contributions": [
-        {
-          "outcome_id": "O2",
-          "why": "Session 1-4 的整合驗證 + 業務舊書籤 deep-link 不可破",
-          "completion_signal": "業務從 history 點報價單號 → Builder 載入該筆 → Cmd+P 印出與舊版視覺一致"
-        }
-      ],
-      "status": "todo",
-      "tasks": [
-        {
-          "id": "F8-T1",
-          "title": "Hash router 完整接 load 動作",
-          "status": "todo",
-          "workstream": "Frontend",
-          "priority": "P0"
-        },
-        {
-          "id": "F8-T2",
-          "title": "列印 PDF 對比驗證（與舊版 1:1）",
-          "status": "todo",
-          "workstream": "QA / Release",
-          "priority": "P0"
-        },
-        {
-          "id": "F8-T3",
-          "title": "可拖拉 divider",
-          "status": "todo",
-          "workstream": "Frontend",
-          "priority": "P2"
-        }
-      ]
-    },
-    {
-      "id": "F9",
-      "title": "Frontend MOCK → fetch backend（PR 5 剩餘部分）",
-      "summary": "Session 1 已先做 next-number；剩餘 create / update / list / get / delete / distinct-sales 6 個 endpoints 接通。",
-      "weight": 2,
-      "goal_contributions": [
-        {
-          "outcome_id": "O3",
-          "why": "完整 CRUD 才能讓業務真的儲存報價",
-          "completion_signal": "業務在 Builder 按儲存 → list 上看得到、可載回編輯、可刪除"
-        }
-      ],
-      "status": "doing",
-      "tasks": [
-        {
-          "id": "F9-T1",
-          "title": "nextQuoteNumber（Session 1 提前完成）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "pnpm test src/api",
-              "result": "10 tests pass"
-            }
-          ]
-        },
-        {
-          "id": "F9-T2",
-          "title": "createQuote + updateQuote",
-          "status": "todo",
-          "workstream": "Frontend",
-          "priority": "P0"
-        },
-        {
-          "id": "F9-T3",
-          "title": "listQuotes（含 filter / pagination）",
-          "status": "todo",
-          "workstream": "Frontend",
-          "priority": "P0"
-        },
-        {
-          "id": "F9-T4",
-          "title": "getQuote + deleteQuote",
-          "status": "todo",
-          "workstream": "Frontend",
-          "priority": "P0"
-        },
-        {
-          "id": "F9-T5",
-          "title": "distinctSales（filter 下拉用）",
-          "status": "todo",
-          "workstream": "Frontend",
-          "priority": "P1"
-        }
-      ]
-    },
-    {
-      "id": "F10",
-      "title": "Phase A 基礎建設部署",
-      "summary": "Cloud Run + Cloud SQL + LB host rule + IAP + DNS。第一個可由業務瀏覽的 staging URL。",
-      "weight": 3,
-      "goal_contributions": [
-        {
-          "outcome_id": "O4",
-          "why": "上線必經，沒有 Cloud Run 就無法 cutover",
-          "completion_signal": "quote-staging.artogo.co 可從瀏覽器開、IAP 跳 Google 登入、登入後看到 Builder"
-        }
-      ],
-      "status": "todo",
-      "tasks": [
-        {
-          "id": "F10-T1",
-          "title": "Cloud Run service + Artifact Registry",
-          "status": "todo",
-          "workstream": "Infra",
-          "priority": "P0"
-        },
-        {
-          "id": "F10-T2",
-          "title": "Cloud SQL database quotes_staging + quotes_prod",
-          "status": "todo",
-          "workstream": "Infra",
-          "priority": "P0"
-        },
-        {
-          "id": "F10-T3",
-          "title": "LB host rule（quote.artogo.co → Cloud Run）",
-          "status": "todo",
-          "workstream": "Infra",
-          "priority": "P0"
-        },
-        {
-          "id": "F10-T4",
-          "title": "IAP enable + Workspace domain policy",
-          "status": "todo",
-          "workstream": "Infra",
-          "priority": "P0"
-        },
-        {
-          "id": "F10-T5",
-          "title": "DNS A 紀錄 + TLS cert",
-          "status": "todo",
-          "workstream": "Infra",
-          "priority": "P0"
-        }
-      ]
-    },
-    {
-      "id": "F11",
-      "title": "CI/CD prod + 業務 cutover",
-      "summary": "GitHub Actions deploy-staging + deploy-prod workflow；main 分支保護；舊 GitHub Pages 退場。",
-      "weight": 2,
-      "goal_contributions": [
-        {
-          "outcome_id": "O4",
-          "why": "讓未來的 PR 自動部署、避免手動操作風險",
-          "completion_signal": "push staging branch → 自動上 staging；merge main → 自動上 prod；舊 URL 顯示退場公告"
-        }
-      ],
-      "status": "todo",
-      "tasks": [
-        {
-          "id": "F11-T1",
-          "title": "WIF + GitHub Actions deploy-staging.yml",
-          "status": "todo",
-          "workstream": "Infra",
-          "priority": "P1"
-        },
-        {
-          "id": "F11-T2",
-          "title": "deploy-prod.yml + 分支保護",
-          "status": "todo",
-          "workstream": "Infra",
-          "priority": "P1"
-        },
-        {
-          "id": "F11-T3",
-          "title": "業務 cutover + 舊 URL 退場公告",
-          "status": "todo",
-          "workstream": "Ops",
-          "priority": "P1"
-        }
-      ]
-    },
-    {
-      "id": "F-side-codex",
-      "title": "Codex iteration（本輪附帶）",
-      "summary": "9 輪 Codex review、F1-F15 共 15 個 finding 的修補追蹤。",
-      "weight": 1,
-      "goal_contributions": [
-        {
-          "outcome_id": "O-side-1",
-          "why": "提升 Session 1 程式碼品質與符合 CLAUDE.md commit gate",
-          "completion_signal": "所有 finding 已 fix 並透過後續輪次 Codex 確認"
-        }
-      ],
-      "status": "doing",
-      "tasks": [
-        {
-          "id": "F-side-codex-T1",
-          "title": "F1-F4 修補（15-day default / StrictMode / 新報價 button / data-status）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P2",
-          "evidence": [
-            {
-              "type": "review",
-              "ref": "Codex round 2",
-              "result": "clean"
-            }
-          ]
-        },
-        {
-          "id": "F-side-codex-T2",
-          "title": "F5-F6 修補（sessionStorage 太黏 / provider unmount 丟 state）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P2",
-          "evidence": [
-            {
-              "type": "review",
-              "ref": "Codex round 3",
-              "result": "clean"
-            }
-          ]
-        },
-        {
-          "id": "F-side-codex-T3",
-          "title": "F7 修補（midnight stale dates）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P2",
-          "evidence": [
-            {
-              "type": "review",
-              "ref": "Codex round 4",
-              "result": "clean except F8 housekeeping"
-            }
-          ]
-        },
-        {
-          "id": "F-side-codex-T4",
-          "title": "F8 修補（.claude/ gitignore）",
-          "status": "verified",
-          "workstream": "Infra",
-          "priority": "P3",
-          "evidence": [
-            {
-              "type": "git",
-              "ref": ".gitignore + .claude/",
-              "result": "no longer untracked"
-            }
-          ]
-        },
-        {
-          "id": "F-side-codex-T5",
-          "title": "F9 修補（撞號 → backend API）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P0",
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "src/api 10 tests",
-              "result": "atomic backend allocation"
-            }
-          ]
-        },
-        {
-          "id": "F-side-codex-T6",
-          "title": "F10 修補（retry path broken）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P2",
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "BuilderPanel.test retry-button",
-              "result": "retry invokes fetch"
-            }
-          ]
-        },
-        {
-          "id": "F-side-codex-T7",
-          "title": "F11 + F12 修補（retry 蓋未來日期 / focus a11y）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P2",
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "BuilderPanel 12 tests",
-              "result": "preserves future dates"
-            }
-          ]
-        },
-        {
-          "id": "F-side-codex-T8",
-          "title": "F13 + F14 修補（remount 蓋日期 / newQuote 空 state 不重 fetch）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P2",
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "fetchToken context-lifted",
-              "result": "BuilderPanel 12 tests pass"
-            }
-          ]
-        },
-        {
-          "id": "F-side-codex-T9",
-          "title": "F15 修補（back-dated edit 被蓋）",
-          "status": "done",
-          "workstream": "Frontend",
-          "priority": "P2",
-          "notes": "已實作 datesInitialised flag + 拆兩個 useEffect；Codex round 10 尚未跑驗證",
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "BuilderPanel.test 13 tests",
-              "result": "preserves past dates"
-            }
-          ]
-        },
-        {
-          "id": "F-side-codex-T10",
-          "title": "Codex round 10 確認 F15 修補 clean",
-          "status": "blocked",
-          "workstream": "QA / Release",
-          "priority": "P2",
-          "blocker": "尚未跑 round 10",
-          "blocked_by": "等使用者選 A（直接 commit）或 B（再跑 round 10）",
-          "owner": "user"
-        }
-      ]
-    },
-    {
-      "id": "F-side-hotfix",
-      "title": "GitHub Pages 過渡期 hotfix（PR #4 已 merge）",
-      "summary": "root index.html 跳轉 + frontend/index.html github.io guard，保留 hash 給 deep link 書籤。",
-      "weight": 1,
-      "goal_contributions": [
-        {
-          "outcome_id": "O-side-2",
-          "why": "業務舊網址在 Cloud Run 上線前不能空白",
-          "completion_signal": "curl https://artogo.github.io/Artway-quote-system/ 顯示 4228 行 legacy.html"
-        }
-      ],
-      "status": "verified",
-      "tasks": [
-        {
-          "id": "F-side-hotfix-T1",
-          "title": "PR #4 hotfix merge + Pages re-build + 線上驗證",
-          "status": "verified",
-          "workstream": "Infra",
-          "priority": "P0",
-          "progress_percent": 100,
-          "files": [
-            "index.html",
-            "frontend/index.html"
-          ],
-          "evidence": [
-            {
-              "type": "git",
-              "ref": "04452af merge commit",
-              "result": "已 merge main"
-            },
-            {
-              "type": "curl",
-              "ref": "https://artogo.github.io/Artway-quote-system/frontend/legacy.html",
-              "result": "200 / text/html / 4228 lines"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "F14",
-      "title": "Codex commit-gate review（Session 3/4 working tree）— 7 findings 全修",
-      "summary": "Commit 前 Codex gate（5 輪、共 13 findings 全修）。R1 6、R2 unit 斜線、R3 2、R4 3（含 auto-discount P1）、R5 1：編輯副品項只改 sub_group、留下舊 service_description → syncServices 印錯附件；改為編輯時清掉（= legacy 由 catalog 重推，:2354）。",
-      "weight": 2,
-      "goal_contributions": [
-        {
-          "outcome_id": "O2",
-          "why": "這 7 項都是與 legacy 不一致的 parity 缺陷；修好才符合「Builder 1:1 復刻舊版 UX」與成功條件「列印 PDF 視覺與舊版 1:1 一致」",
-          "completion_signal": "235 tests 綠 + runtime DOM 驗證：原始 unit /場 → 預覽顯示「1 場」，與 legacy stripUnitSlash 一致"
-        }
-      ],
-      "status": "verified",
-      "tasks": [
-        {
-          "id": "F14-T1",
-          "title": "第一輪 Codex 6 findings 全修 + regression test（使用者核准「6 個全修」）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/pages/Builder/sections/GroupsSection.tsx",
-            "frontend/src/lib/services.ts",
-            "frontend/src/state/quoteReducer.ts",
-            "frontend/src/pages/Builder/PreviewPlaceholder.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "vitest --run",
-              "result": "全綠（含 3 個新 regression test）"
-            },
-            {
-              "type": "legacy-diff",
-              "ref": "對照 legacy.html 確認 6 項皆為真實 parity bug",
-              "result": "6/6 確認為真、全修"
-            }
-          ]
-        },
-        {
-          "id": "F14-T2",
-          "title": "第二輪 Codex P2：預覽 Qty 去掉 unit 前導斜線（stripUnitSlash）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P2",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/lib/quoteCalc.ts",
-            "frontend/src/pages/Builder/PreviewPlaceholder.tsx",
-            "frontend/src/lib/quoteCalc.test.ts"
-          ],
-          "evidence": [
-            {
-              "type": "legacy-diff",
-              "ref": "legacy.html:2525-2527 stripUnitSlash + :2241 用於 qty 欄",
-              "result": "確認為真：我方原渲染原始 it.unit"
-            },
-            {
-              "type": "live-api",
-              "ref": "Google Apps Script catalog 176 筆",
-              "result": "174/176 筆 unit 帶前導斜線（/式×89 /場×30 /年×29 /次×13…）→ 屬主流路徑非邊角"
-            },
-            {
-              "type": "test",
-              "ref": "quoteCalc.test.ts stripUnitSlash（4 例）+ 全套 235 tests",
-              "result": "全綠"
-            },
-            {
-              "type": "playwright",
-              "ref": "localhost:5173 加入真品項 A-1，讀 DOM",
-              "result": "原始 unit=/場 → 預覽 Qty 欄=「1 場」（斜線已去）"
-            }
-          ]
-        },
-        {
-          "id": "F14-T3",
-          "title": "第三輪 Codex deep sweep（working tree）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "progress_percent": 100,
-          "files": [],
-          "evidence": [
-            {
-              "type": "codex",
-              "ref": "review --scope working-tree (job bfwfhraci)",
-              "result": "確認 R1/R2 已解決，另報 2 個新 P2"
-            }
-          ]
-        },
-        {
-          "id": "F14-T4",
-          "title": "第三輪 2 個新 P2 全修（面板寬度 clamp + arts-only tier 不歸零）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P2",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/pages/Builder/Builder.tsx",
-            "frontend/src/pages/Builder/sections/GroupsSection.tsx",
-            "frontend/src/pages/Builder/sections/GroupsSection.test.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "legacy-diff",
-              "ref": "legacy.html:2838-2839（_priceStandard null 模型）+ :2963 guard",
-              "result": "確認 #2 根因為資料模型偏離；改存 undefined 對齊 legacy"
-            },
-            {
-              "type": "test",
-              "ref": "GroupsSection.test.tsx catalogItemFields（3 例）+ 全套",
-              "result": "238 tests 綠"
-            },
-            {
-              "type": "playwright",
-              "ref": "localhost:5173 加入 live arts-only 列 B-3 短期方案 → 切定價",
-              "result": "金額維持 12,500（未歸零），與 legacy 一致"
-            },
-            {
-              "type": "playwright",
-              "ref": "viewport 1200px 重載讀 --builder-panel-width",
-              "result": "380px（已 clamp），非未夾的 520px"
-            }
-          ]
-        },
-        {
-          "id": "F14-T5",
-          "title": "第四輪 Codex deep sweep（working tree）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "progress_percent": 100,
-          "files": [],
-          "evidence": [
-            {
-              "type": "codex",
-              "ref": "review (job b6vgbhirx)",
-              "result": "確認前 3 輪已解決，另報 3 findings（1 P1 + 2 P2）"
-            }
-          ]
-        },
-        {
-          "id": "F14-T6",
-          "title": "第四輪 3 findings 全修（auto-discount standard-only / 客戶簽名空白 / 附件列印 @page）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/pages/Builder/sections/GroupsSection.tsx",
-            "frontend/src/pages/Builder/PreviewPlaceholder.tsx",
-            "frontend/src/styles/globals.scss",
-            "frontend/src/pages/Builder/PreviewPlaceholder.module.scss"
-          ],
-          "evidence": [
-            {
-              "type": "legacy-diff",
-              "ref": "applyAutoDiscount:2562 / renderSig:2515 / @page appendix-page:1252",
-              "result": "3 項皆確認為真實 parity 偏離"
-            },
-            {
-              "type": "test",
-              "ref": "GroupsSection.test.tsx auto-discount standard-only(+2) ; 全套",
-              "result": "240 tests 綠"
-            },
-            {
-              "type": "playwright",
-              "ref": "填客戶聯絡人後讀簽名欄",
-              "result": "CLIENT 欄空白、表頭聯絡人顯示、ARTWAY 欄正確"
-            },
-            {
-              "type": "build-css",
-              "ref": "dist CSS @page appendix-page{margin:0 0 14mm} + page:appendix-page",
-              "result": "已輸出，附件邊到邊"
-            }
-          ]
-        },
-        {
-          "id": "F14-T7",
-          "title": "第五輪 Codex（重跑）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "progress_percent": 100,
-          "files": [],
-          "evidence": [
-            {
-              "type": "codex",
-              "ref": "review (job bjsdqnqio)",
-              "result": "確認前 4 輪已解決，另報 1 P2（副品項編輯留下舊附件）"
-            }
-          ]
-        },
-        {
-          "id": "F14-T8",
-          "title": "第五輪 P2 修：編輯副品項清掉 stale service_description",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P2",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/pages/Builder/sections/GroupsSection.tsx",
-            "frontend/src/pages/Builder/sections/GroupsSection.test.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "legacy-diff",
-              "ref": "legacy.html:2354 syncServices 由 catalog 依 sub_group 重推",
-              "result": "確認我方 item-cached 模型在編輯後 stale；清除符合 legacy 效果"
-            },
-            {
-              "type": "test",
-              "ref": "GroupsSection.test.tsx 副品項編輯清除（1）+ 全套",
-              "result": "241 tests 綠"
-            },
-            {
-              "type": "playwright",
-              "ref": "live A-1（desc 1393 字）→ 改副品項為 X-9",
-              "result": "舊『3D實境掃描』附件消失、新標籤顯示、無殘留"
-            }
-          ]
-        },
-        {
-          "id": "F14-T9",
-          "title": "第六輪 Codex 確認（working tree）= CLEAN",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "progress_percent": 100,
-          "files": [],
-          "evidence": [
-            {
-              "type": "codex",
-              "ref": "review (job bil7el1e3)",
-              "result": "No discrete correctness issues；TS/ESLint pass。6 輪收斂"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "F15",
-      "title": "輸出 PDF 按鈕（PR4 收尾）",
-      "summary": "復刻 legacy 列印流程（3047-3138）：action bar「輸出 PDF」→ 確認 → 暫改 document.title → window.print()。 註：Codex 指出 legacy 列印前先存雲端；save 屬 F16，故 print 併入 F16 的兩段式 存雲端→輸出 PDF 流程一起 commit。",
-      "weight": 1,
-      "goal_contributions": [
-        {
-          "outcome_id": "O2",
-          "why": "legacy 工具列有輸出 PDF，缺它就不算 1:1 復刻",
-          "completion_signal": "點按鈕觸發 window.print()，列印版面 = legacy"
-        }
-      ],
-      "status": "verified",
-      "tasks": [
-        {
-          "id": "F15-T1",
-          "title": "輸出 PDF 按鈕 + window.print（TDD）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/lib/print.ts",
-            "frontend/src/lib/print.test.ts",
-            "frontend/src/pages/Builder/EditModeBar.tsx",
-            "frontend/src/pages/Builder/EditModeBar.module.scss"
-          ],
-          "evidence": [
-            {
-              "type": "legacy-diff",
-              "ref": "legacy.html:3138-3159 printWithCustomFilename",
-              "result": "檔名格式/safe()/afterprint 還原 1:1"
-            },
-            {
-              "type": "test",
-              "ref": "print.test.ts buildPdfFilename(4)+printWithCustomFilename(1)",
-              "result": "246 tests 綠"
-            },
-            {
-              "type": "playwright",
-              "ref": "localhost:5173 點輸出 PDF",
-              "result": "window.print 呼叫1次；title=藝途科技報價單AW-260521-036_2026-05-21；afterprint 後還原"
-            },
-            {
-              "type": "codex",
-              "ref": "Phase-1 review P2: 無號不可輸出",
-              "result": "修：quoteNo 未配發前 disable 輸出 PDF（= legacy 列印前先存雲端配號）+2 test（248 綠）"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "F16",
-      "title": "報價存取 API 接線（PR5）",
-      "summary": "api/quotes.ts 補 create/update/list/get/delete/distinct-sales（後端 PR2 已有）。Builder 加儲存按鈕 → create/update，取代 legacy MOCK。",
-      "weight": 3,
-      "goal_contributions": [
-        {
-          "outcome_id": "O3",
-          "why": "成功條件：報價存雲端 + 歷史共享，需前端接後端 API",
-          "completion_signal": "儲存→Postgres→list/get 取回，docker compose 實測通"
-        }
-      ],
-      "status": "verified",
-      "tasks": [
-        {
-          "id": "F16-T1",
-          "title": "api/quotes CRUD + 儲存按鈕（TDD + 後端實測）",
-          "status": "verified",
-          "workstream": "Frontend/Backend",
-          "priority": "P1",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/api/quotes.ts",
-            "frontend/src/api/quotes.test.ts",
-            "frontend/src/lib/useSaveQuote.ts",
-            "frontend/src/state/quoteReducer.ts",
-            "frontend/src/pages/Builder/EditModeBar.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "quotes.test.ts(13)+reducer SET_SAVED(2)+EditModeBar(3)",
-              "result": "261 tests 綠"
-            },
-            {
-              "type": "backend-curl",
-              "ref": "create→get→list→distinct→delete→404",
-              "result": "全通"
-            },
-            {
-              "type": "playwright",
-              "ref": "UI 儲存 → POST /api/quotes（proxy→:8080→Postgres）",
-              "result": "AW-260521-044 已落庫（title/client 正確）"
-            },
-            {
-              "type": "component",
-              "ref": "兩段式 存到雲端→輸出 PDF",
-              "result": "先 POST 後 window.print，save-before-print 驗證"
-            },
-            {
-              "type": "legacy-diff+codex",
-              "ref": "使用者截圖：按鈕應為 存到雲端 非 儲存",
-              "result": "標籤 1:1 對齊（存到雲端/已存到雲端/儲存失敗，1.8s）；另修 Codex P2 重複建立 race（鎖按鈕+hook 去重）+ P3 PUT 回傳型別收斂。使用者確認下載HTML不適用 React、不加提示行。"
-            },
-            {
-              "type": "codex",
-              "ref": "Phase1+2 review R2",
-              "result": "P1 存檔 race（新報價中途完成蓋錯 id）→ SET_SAVED 帶 forQuoteNo reducer 守衛；P2 載入日期未正規化 → fromQuoteResponse 補 canonical issue_date + legacy snake_case。263 tests 綠"
-            },
-            {
-              "type": "codex",
-              "ref": "Phase1+2 commit gate：8 輪 Codex、13 findings 全修，R8 CLEAN",
-              "result": "無 correctness/data-loss/regression。266 tests、typecheck/lint/build 全綠"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "F17",
-      "title": "History 頁 + load-into-Builder",
-      "summary": "取代 placeholder。listQuotes + 篩選 + 分頁 + 點列開啟；#/quote/AW-xxx → getQuote → LOAD 進 Builder。",
-      "weight": 3,
-      "goal_contributions": [
-        {
-          "outcome_id": "O2",
-          "why": "成功條件：歷史對全業務共享、可篩選；建立→儲存→歷史→載入閉環",
-          "completion_signal": "建立報價→儲存→History 看到→點進載回 Builder，runtime 驗證"
-        }
-      ],
-      "status": "verified",
-      "tasks": [
-        {
-          "id": "F17-T0",
-          "title": "後端 GET /quotes/by-number/{quote_no}（保 AW-... 書籤）",
-          "status": "verified",
-          "workstream": "Backend",
-          "priority": "P1",
-          "progress_percent": 100,
-          "files": [
-            "backend/internal/quotes/queries.sql",
-            "backend/internal/quotes/repo.go",
-            "backend/internal/quotes/handler.go",
-            "backend/internal/quotes/routes.go",
-            "backend/internal/quotes/handler_test.go",
-            "docs/HISTORY_BACKEND_SPEC.md",
-            "frontend/src/api/quotes.ts"
-          ],
-          "evidence": [
-            {
-              "type": "go-test",
-              "ref": "handler_test GetByNumber happy/404 + go vet/build",
-              "result": "全綠"
-            },
-            {
-              "type": "backend-curl",
-              "ref": "本機 8099 server：by-number/AW-260521-044",
-              "result": "200 + merged body；404 not-found；與 by-id 一致"
-            },
-            {
-              "type": "spec",
-              "ref": "HISTORY_BACKEND_SPEC §3.5a",
-              "result": "已補規格"
-            }
-          ]
-        },
-        {
-          "id": "F17-T1",
-          "title": "前端 getQuoteByNumber + History 頁（list/filter/page）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/api/quotes.ts",
-            "frontend/src/pages/History/History.tsx",
-            "frontend/src/pages/History/History.module.scss",
-            "frontend/src/pages/History/History.test.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "test",
-              "ref": "getQuoteByNumber(2)+History(4)",
-              "result": "272 tests 綠"
-            },
-            {
-              "type": "gate",
-              "ref": "typecheck/lint/build",
-              "result": "全綠"
-            },
-            {
-              "type": "playwright",
-              "ref": "dev app #/history",
-              "result": "列表共 2 筆（AW-260521-044/041，live）；篩選/分頁/刪除可用；0 console error（fresh load）"
-            }
-          ]
-        },
-        {
-          "id": "F17-T2",
-          "title": "#/quote/AW-xxx → getQuoteByNumber → LOAD 回 Builder",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "progress_percent": 100,
-          "files": [
-            "frontend/src/App.tsx"
-          ],
-          "evidence": [
-            {
-              "type": "gate",
-              "ref": "typecheck/lint/build 全綠",
-              "result": "QuoteLoader：getQuoteByNumber→LOAD→Builder，loading/404 狀態"
-            },
-            {
-              "type": "playwright",
-              "ref": "#/quote/AW-260521-044 → Builder",
-              "result": "載入 quoteNo/title/client 正確；建立→儲存→歷史→載入 閉環完成"
-            }
-          ]
-        },
-        {
-          "id": "F17-T3",
-          "title": "Phase 3 Codex gate（7 輪，6 findings 全修）",
-          "status": "verified",
-          "workstream": "Frontend",
-          "priority": "P1",
-          "progress_percent": 100,
-          "files": [],
-          "evidence": [
-            {
-              "type": "codex",
-              "ref": "R7 CLEAN",
-              "result": "deep sweep + 新報價 reset[P1]、刪除 refetch、pill data-status、可讀淺色面板×2、新報價確認、filter 對比、回報價單 link、刪除清空已載入報價 — 全修。273 tests 綠"
-            }
-          ]
-        }
-      ]
+     "id": "O-side-2",
+     "title": "舊 GitHub Pages URL 在 Cloud Run 上線前持續可用",
+     "description": "root + frontend/index.html 同時偵測 github.io 並 redirect 到 frontend/legacy.html（保留 hash）",
+     "feature_ids": [
+      "F-side-hotfix"
+     ]
     }
-  ],
-  "blockers": [
+   ]
+  }
+ ],
+ "features": [
+  {
+   "id": "F1",
+   "title": "Repo Foundation（PR #1）",
+   "summary": "repo 重組為 frontend/ + backend/ + docs/ + infra/，搬 index.html → legacy.html、加 CLAUDE.md / AGENTS.md / spec 等基礎文件。",
+   "weight": 1,
+   "goal_contributions": [
     {
-      "title": "等使用者授權 commit Session 1 PR",
-      "reason": "Codex round 1 後我曾自作主張批次修 F5-F8，使用者明確要求之後每輪都拍板。Session 1 完成但需明確授權才能 commit。",
-      "blocked_by": "使用者選 A（直接 commit）/ B（再跑 round 10）/ C（先 dogfood）",
-      "owner": "user",
-      "needed_by": "Session 2 開工前",
-      "impact": "F4 無法標 verified、Session 2-5 無法開工、F9 / F10 / F11 連動延後",
-      "impact_chain": [
-        "F4-T13 → F5 開工 → F6 → F7 → F8 → F9 → F10 → F11"
-      ],
-      "unblock_checklist": [
-        "使用者選 A/B/C 之一",
-        "若選 A：跑 git commit + gh pr create",
-        "若選 B：跑 codex review --uncommitted round 10",
-        "若選 C：等使用者完成 dogfood 回報"
-      ],
-      "status": "open"
-    },
-    {
-      "title": "本機 dogfood 需先啟動後端",
-      "reason": "F9 已改為 backend API、F4 完整體驗依賴 docker compose up；目前後端 Cloud Run 尚未部署",
-      "blocked_by": "使用者啟動 backend/docker-compose.yml 或 Phase A 完成",
-      "owner": "user",
-      "needed_by": "F4-T12 dogfood",
-      "impact": "F4-T12 無法執行、看不到完整 Builder 流程（會看到 api-error 重試 banner）",
-      "impact_chain": [
-        "F4-T12 → F4-T13 commit 風險增加（少了 e2e 驗證）"
-      ],
-      "unblock_checklist": [
-        "cd backend && docker compose up",
-        "確認 :8080 監聽中",
-        "pnpm dev 看到 quoteNo 自動帶入"
-      ],
-      "status": "open"
-    },
-    {
-      "title": "Codex round 10 尚未跑於 F15 修補後",
-      "reason": "我為了結束 iteration loop 自決定停在 round 9 後，但 round 10 應該確認 F15（split-effect + datesInitialised flag）是 clean",
-      "blocked_by": "等使用者選 A（接受跳過 round 10）或 B（跑）",
-      "owner": "user",
-      "needed_by": "commit 前",
-      "impact": "嚴格而言 Session 1 程式碼沒有 'Codex 全 clean' 終結簽核",
-      "impact_chain": [
-        "F-side-codex-T10 → F4-T11 完整 verified → F4-T13 commit"
-      ],
-      "unblock_checklist": [
-        "使用者選 A → 跳過 round 10、進 commit",
-        "使用者選 B → 跑 codex review --uncommitted、若 clean 才 commit"
-      ],
-      "status": "open"
+     "outcome_id": "O1",
+     "why": "後續所有開發都依賴此目錄結構與規格文件",
+     "completion_signal": "main branch 有 docs/HISTORY_BACKEND_SPEC.md、CLAUDE.md、frontend/legacy.html 等檔，目錄拆分完成"
     }
-  ],
-  "decisions": [
+   ],
+   "status": "verified",
+   "tasks": [
     {
-      "title": "Session 1 PR 是否要等 round 10 clean 才能 commit",
-      "context": "9 輪每輪都找新 edge case，停 iteration 是務實但違反「事後跑 Codex review」精神",
-      "owner": "user",
-      "needed_by": "commit 前",
-      "impact": "決定 ship 速度 vs 形式嚴謹度",
-      "status": "open"
+     "id": "F1-T1",
+     "title": "Repo 目錄重組與 legacy 搬遷",
+     "status": "verified",
+     "workstream": "Infra",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [
+      "frontend/legacy.html",
+      "docs/HISTORY_BACKEND_SPEC.md",
+      "CLAUDE.md",
+      "AGENTS.md"
+     ],
+     "evidence": [
+      {
+       "type": "git",
+       "ref": "c5bd96b Merge PR #1",
+       "result": "已 merge main"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F2",
+   "title": "Backend MVP（PR #2）",
+   "summary": "Go 1.26 + chi + pgx + sqlc + goose；8 個 endpoints；IAP middleware；Docker multi-stage build。",
+   "weight": 2,
+   "goal_contributions": [
+    {
+     "outcome_id": "O1",
+     "why": "報價單儲存、流水號配發、歷史查詢需要 server-side atomic logic",
+     "completion_signal": "docker compose up 跑通，curl 可建立、查詢、更新、刪除報價"
+    }
+   ],
+   "status": "verified",
+   "tasks": [
+    {
+     "id": "F2-T1",
+     "title": "Backend 8 endpoints + 38 個測試 + Docker image",
+     "status": "verified",
+     "workstream": "Backend",
+     "priority": "P0",
+     "progress_percent": 100,
+     "files": [
+      "backend/cmd/server/main.go",
+      "backend/internal/quotes/handler.go",
+      "backend/internal/quotes/repo.go",
+      "backend/internal/auth/iap.go",
+      "backend/migrations/0001_init.sql",
+      "backend/Dockerfile",
+      "backend/docker-compose.yml"
+     ],
+     "evidence": [
+      {
+       "type": "git",
+       "ref": "57dd086 Merge PR #2",
+       "result": "已 merge main"
+      },
+      {
+       "type": "test",
+       "ref": "go test ./...",
+       "result": "38 個測試通過"
+      },
+      {
+       "type": "build",
+       "ref": "docker build",
+       "result": "distroless image ~20MB"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F3",
+   "title": "Frontend Scaffold（PR #3）",
+   "summary": "pnpm + Vite 8 + React 19.2 + TS 6 + Sass 1.99；tokens.scss 286 行 / 160+ tokens；hash router；Button、Vitest 設定。",
+   "weight": 2,
+   "goal_contributions": [
+    {
+     "outcome_id": "O1",
+     "why": "Builder UI 復刻所需的工具鏈、design tokens、router、第一個元件範本",
+     "completion_signal": "pnpm dev 可啟動、pnpm test 通過、tokens.scss 完整、Button 元件範本到位"
+    }
+   ],
+   "status": "verified",
+   "tasks": [
+    {
+     "id": "F3-T1",
+     "title": "Frontend M1-M6 + reviewer feedback round 1",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "progress_percent": 100,
+     "files": [
+      "frontend/package.json",
+      "frontend/vite.config.ts",
+      "frontend/vitest.config.ts",
+      "frontend/src/styles/tokens.scss",
+      "frontend/src/lib/useHashRoute.ts",
+      "frontend/src/components/Button/Button.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "git",
+       "ref": "330b7d7 Merge PR #3",
+       "result": "已 merge main"
+      },
+      {
+       "type": "test",
+       "ref": "pnpm test",
+       "result": "14 tests pass"
+      },
+      {
+       "type": "review",
+       "ref": "PR #3 review",
+       "result": "5 findings 全部處理（4 fix + 1 駁回 false positive）"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F4",
+   "title": "Builder UI Session 1（PR #5 已 merge）",
+   "summary": "Layout shell + Topbar + 三個基本 section（Meta / Client / Sales）+ state foundation（useReducer + Context）+ backend next-number API wire。",
+   "weight": 4,
+   "goal_contributions": [
+    {
+     "outcome_id": "O2",
+     "why": "Builder 頁的骨架與最簡單 3 個 section、state 模型決定後續 4 個 session 的可行性",
+     "completion_signal": "本機 pnpm dev 可看到 Builder layout、填表即時更新右側 preview placeholder、quoteNo 由後端配發"
     },
     {
-      "title": "Session 1 是否要在 PR description 加 follow-up TODO list",
-      "context": "若 round 10 找到新 finding 又不修，需明文列為 follow-up PR scope",
-      "owner": "user",
-      "needed_by": "PR description 起草前",
-      "impact": "未來 sessions 是否會延續處理這些 finding",
-      "status": "open"
+     "outcome_id": "O3",
+     "why": "提前實作 POST /api/quotes/next-number 客戶端（原本計畫在 PR 5），消除撞號風險",
+     "completion_signal": "BuilderPanel 進場時呼叫 backend、retry button 可重試、newQuote 動作可重新配發"
     }
-  ],
-  "next_actions": [
-    "使用者一起檢查 Session 4 首頁完整功能（localhost:5173 開瀏覽器：折扣/議價/02/附件/編輯模式 + Cmd+P 列印）",
-    "使用者確認 OK → 跑 /codex:review → findings 整理成表 → 拍板 → commit",
-    "commit 後依工作流程：/qa-only → push；/review + /qa-only → 開 PR",
-    "Session 4 剩餘（History 頁 + Radix Modals）與存雲端/PDF/真實 catalog 另開 session"
-  ],
-  "not_covered": [
-    "Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動",
-    "列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）",
-    "Cross-browser 測試（Safari / Firefox / Edge）",
-    "IAP 登入流程（Phase A 部署後才有 staging URL 可測）",
-    "Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）",
-    "Codex round 10 對 F15 拆 useEffect refactor 的清白簽核"
-  ]
+   ],
+   "status": "verified",
+   "tasks": [
+    {
+     "id": "F4-T1",
+     "title": "State foundation（quoteTypes / quoteReducer / QuoteContext）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/state/quoteTypes.ts",
+      "frontend/src/state/quoteReducer.ts",
+      "frontend/src/state/quoteReducer.test.ts",
+      "frontend/src/state/QuoteContext.tsx",
+      "frontend/src/state/QuoteContext.test.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "pnpm test src/state",
+       "result": "22 tests pass"
+      }
+     ]
+    },
+    {
+     "id": "F4-T2",
+     "title": "lib helpers（dates、quoteNumber 已移除 / api client）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/lib/dates.ts",
+      "frontend/src/lib/dates.test.ts",
+      "frontend/src/api/client.ts",
+      "frontend/src/api/client.test.ts",
+      "frontend/src/api/quotes.ts",
+      "frontend/src/api/quotes.test.ts"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "pnpm test src/lib src/api",
+       "result": "9 + 7 + 3 tests pass"
+      }
+     ]
+    },
+    {
+     "id": "F4-T3",
+     "title": "UI primitives（BPField / BPSection）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/components/BPField/BPField.tsx",
+      "frontend/src/components/BPField/BPField.module.scss",
+      "frontend/src/components/BPField/BPField.test.tsx",
+      "frontend/src/components/BPSection/BPSection.tsx",
+      "frontend/src/components/BPSection/BPSection.module.scss",
+      "frontend/src/components/BPSection/BPSection.test.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "pnpm test",
+       "result": "7 + 5 tests pass"
+      }
+     ]
+    },
+    {
+     "id": "F4-T4",
+     "title": "Topbar（含狀態 dot data-attr / 新報價 button / focus a11y）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/pages/Builder/Topbar.tsx",
+      "frontend/src/pages/Builder/Topbar.module.scss",
+      "frontend/src/pages/Builder/Topbar.test.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "pnpm test src/pages/Builder/Topbar",
+       "result": "7 tests pass"
+      }
+     ]
+    },
+    {
+     "id": "F4-T5",
+     "title": "Meta / Client / Sales 三個 section",
+     "status": "done",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "progress_percent": 90,
+     "files": [
+      "frontend/src/pages/Builder/sections/MetaSection.tsx",
+      "frontend/src/pages/Builder/sections/ClientSection.tsx",
+      "frontend/src/pages/Builder/sections/SalesSection.tsx",
+      "frontend/src/pages/Builder/sections/sections.module.scss"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "pnpm test",
+       "result": "整合至 BuilderPanel 測試覆蓋"
+      }
+     ],
+     "notes": "尚未由使用者本機 dogfood 確認填表 UX、需配合 docker compose up 後端跑通 next-number"
+    },
+    {
+     "id": "F4-T6",
+     "title": "BuilderPanel + Preview placeholder + Builder layout",
+     "status": "done",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "progress_percent": 95,
+     "files": [
+      "frontend/src/pages/Builder/BuilderPanel.tsx",
+      "frontend/src/pages/Builder/BuilderPanel.module.scss",
+      "frontend/src/pages/Builder/BuilderPanel.test.tsx",
+      "frontend/src/pages/Builder/PreviewPlaceholder.tsx",
+      "frontend/src/pages/Builder/PreviewPlaceholder.module.scss",
+      "frontend/src/pages/Builder/Builder.tsx",
+      "frontend/src/pages/Builder/Builder.module.scss"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "pnpm test",
+       "result": "13 tests pass（含 F7 / F11 / F13 / F14 / F15 retry/date scenarios）"
+      }
+     ]
+    },
+    {
+     "id": "F4-T7",
+     "title": "App.tsx wire（QuoteProvider 升 App-level）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/App.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "pnpm test",
+       "result": "88 tests pass"
+      }
+     ],
+     "notes": "Codex F6 finding：QuoteProvider 升到 App.tsx，Builder ⇄ History 切換不再 unmount state。"
+    },
+    {
+     "id": "F4-T8",
+     "title": "API client / Vite proxy / nextQuoteNumber wire（提前 PR 5）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/api/client.ts",
+      "frontend/src/api/quotes.ts",
+      "frontend/vite.config.ts"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "pnpm test src/api",
+       "result": "10 tests pass"
+      },
+      {
+       "type": "review",
+       "ref": "Codex round 5 F9",
+       "result": "改用後端原子配發，撞號風險消除"
+      }
+     ]
+    },
+    {
+     "id": "F4-T9",
+     "title": "ESLint .vite ignore / .prettierignore 維護",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P2",
+     "progress_percent": 100,
+     "files": [
+      "frontend/eslint.config.js",
+      "frontend/.prettierignore"
+     ],
+     "evidence": [
+      {
+       "type": "lint",
+       "ref": "pnpm lint",
+       "result": "0 error / 0 warning"
+      }
+     ]
+    },
+    {
+     "id": "F4-T10",
+     "title": "Quality gates 全綠",
+     "status": "verified",
+     "workstream": "QA / Release",
+     "priority": "P0",
+     "progress_percent": 100,
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "pnpm test --run",
+       "result": "88 / 88 tests pass"
+      },
+      {
+       "type": "build",
+       "ref": "pnpm build",
+       "result": "204 KB JS / 64 KB gzip"
+      },
+      {
+       "type": "lint",
+       "ref": "pnpm lint + pnpm format:check",
+       "result": "全綠"
+      }
+     ]
+    },
+    {
+     "id": "F4-T11",
+     "title": "Codex review iteration round 1-9（15 findings 全部修）",
+     "status": "done",
+     "workstream": "QA / Release",
+     "priority": "P1",
+     "progress_percent": 95,
+     "evidence": [
+      {
+       "type": "review",
+       "ref": "Codex round 1-9",
+       "result": "F1-F15 全部解決、各輪附驗證 trail"
+      }
+     ],
+     "notes": "Round 10 尚未跑於 F15 修補後（split-effect refactor），嚴格說沒有最終 clean 簽核。"
+    },
+    {
+     "id": "F4-T12",
+     "title": "本機 dogfood（使用者人工驗證 Builder）",
+     "status": "blocked",
+     "workstream": "QA / Release",
+     "priority": "P0",
+     "blocker": "尚未由使用者實際打開瀏覽器測試填表流程",
+     "blocked_by": "等使用者授權 + 啟動 docker compose backend",
+     "owner": "user",
+     "needed_by": "commit Session 1 前",
+     "progress_percent": 0
+    },
+    {
+     "id": "F4-T13",
+     "title": "Commit Session 1 + 開 PR",
+     "status": "blocked",
+     "workstream": "QA / Release",
+     "priority": "P0",
+     "blocker": "等使用者授權（之前 F5-F8 自作主張被質疑後改為每輪都等）",
+     "blocked_by": "等使用者選 A / B / C 之一",
+     "owner": "user",
+     "needed_by": "Session 2 開工前",
+     "progress_percent": 0
+    }
+   ]
+  },
+  {
+   "id": "F5",
+   "title": "Builder Groups Session 2（PR #6 已 merge）",
+   "summary": "報價內容 Groups + 品項 Item picker（inline，非 Radix）+ 金額計算 + 群組 add/remove/rename。NumberInput commit-on-blur、seq-based 編號。",
+   "weight": 4,
+   "goal_contributions": [
+    {
+     "outcome_id": "O2",
+     "why": "Groups 是 Builder 最複雜的區塊；金額計算是業務核心",
+     "completion_signal": "業務可加群組、加品項、自動帶單價、自動計算總額"
+    }
+   ],
+   "status": "verified",
+   "tasks": [
+    {
+     "id": "F5-T1",
+     "title": "Groups reducer + Group/Item types",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "evidence": [
+      {
+       "type": "git",
+       "ref": "e5fd3e0 Merge PR #6",
+       "result": "已 merge main"
+      }
+     ]
+    },
+    {
+     "id": "F5-T2",
+     "title": "Item picker（inline CatalogPicker + ManualPicker）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "GroupsSection.test 17 tests",
+       "result": "pass"
+      }
+     ]
+    },
+    {
+     "id": "F5-T3",
+     "title": "金額計算 lib + 測試",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "quoteCalc.test 22 tests",
+       "result": "pass"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F12",
+   "title": "Session 4 — 報價單首頁完整功能（本機完成、待檢查）",
+   "summary": "把報價單首頁做到 legacy 1:1：標題修正、Session 2.5 折扣欄+自動價差+議價/手續費、02 服務說明摘要、附件頁（第2頁起）、編輯模式 contenteditable。存雲端/PDF/真實 catalog/History 留後面。",
+   "weight": 4,
+   "goal_contributions": [
+    {
+     "outcome_id": "O2",
+     "why": "使用者要求本階段把報價單首頁所有功能補齊到與舊版一致，否則無法整體驗收",
+     "completion_signal": "每個 field 填入、每個按鈕點過，新版首頁與 legacy 結構/視覺/計算一致；Playwright 逐功能驗證通過"
+    }
+   ],
+   "status": "done",
+   "tasks": [
+    {
+     "id": "F12-T1",
+     "title": "標題修正 報價內容 → 01 專案報價內容",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "files": [
+      "frontend/src/pages/Builder/sections/GroupsSection.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "browser",
+       "ref": "Playwright 左面板標題",
+       "result": "顯示 01 專案報價內容（對齊 legacy line 1841）"
+      }
+     ]
+    },
+    {
+     "id": "F12-T2",
+     "title": "catalog 加 service_description + price_arts 已存在",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "files": [
+      "frontend/src/lib/itemsCatalog.ts"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "itemsCatalog.test 11 tests",
+       "result": "pass"
+      }
+     ]
+    },
+    {
+     "id": "F12-T3",
+     "title": "Discount 折扣欄 + 自動價差（builder + preview + calc）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "files": [
+      "frontend/src/lib/quoteCalc.ts",
+      "frontend/src/state/quoteReducer.ts",
+      "frontend/src/pages/Builder/sections/GroupsSection.tsx",
+      "frontend/src/pages/Builder/PreviewPlaceholder.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "browser",
+       "ref": "Playwright 自動價差",
+       "result": "12000→9600（折扣 2400），預覽 Discount 欄顯示 −2,400"
+      },
+      {
+       "type": "test",
+       "ref": "quoteCalc + quoteReducer tests",
+       "result": "pass"
+      }
+     ]
+    },
+    {
+     "id": "F12-T4",
+     "title": "議價/手續費 adjustment 列（builder + preview + total）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "files": [
+      "frontend/src/lib/quoteCalc.ts",
+      "frontend/src/state/quoteReducer.ts",
+      "frontend/src/pages/Builder/sections/GroupsSection.tsx",
+      "frontend/src/pages/Builder/PreviewPlaceholder.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "browser",
+       "ref": "Playwright 議價折讓 -1080",
+       "result": "總價 9600+480−1080=9000，預覽顯示 議價折讓 −NT$ 1,080"
+      }
+     ]
+    },
+    {
+     "id": "F12-T5",
+     "title": "02 服務說明摘要（panel + preview，從品項衍生）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "files": [
+      "frontend/src/lib/services.ts",
+      "frontend/src/pages/Builder/sections/ServicesSection.tsx",
+      "frontend/src/pages/Builder/PreviewPlaceholder.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "browser",
+       "ref": "Playwright 加 A-1 品項",
+       "result": "02 出現 A-1 + 完整服務說明請見附件 A-1；含附件 toggle 可開關"
+      },
+      {
+       "type": "test",
+       "ref": "services.test 9 tests + ServicesSection.test 5 tests",
+       "result": "pass"
+      }
+     ]
+    },
+    {
+     "id": "F12-T6",
+     "title": "附件頁 Appendix（第2頁起、每個 sub_group 一頁）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "files": [
+      "frontend/src/lib/services.ts",
+      "frontend/src/pages/Builder/PreviewPlaceholder.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "browser",
+       "ref": "Playwright 附件頁截圖 qa-s4-04-appendix.png",
+       "result": "附件 APPENDIX + A-1 + 拍攝規格/交付物/作業時程 三 section 條列、金色帶邊到邊"
+      }
+     ]
+    },
+    {
+     "id": "F12-T7",
+     "title": "編輯模式 contenteditable（toggle + 確認 modal + 葉節點可編輯）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "files": [
+      "frontend/src/pages/Builder/EditModeBar.tsx",
+      "frontend/src/pages/Builder/Builder.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "browser",
+       "ref": "Playwright 編輯預覽",
+       "result": "點按→確認 modal→81 個葉節點變 contenteditable、footer(data-no-edit)略過、結束編輯→歸零"
+      }
+     ]
+    },
+    {
+     "id": "F12-T8",
+     "title": "Exhaustive Playwright QA + 全 quality gate",
+     "status": "verified",
+     "workstream": "QA / Release",
+     "priority": "P0",
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "vitest --run",
+       "result": "214 / 214 tests pass（含 services / discount / adjustment / ServicesSection / GroupsSection / MOVE_ITEM / repick / tier 新測試）"
+      },
+      {
+       "type": "build",
+       "ref": "tsc -b + vite build",
+       "result": "57 modules、245 KB JS、30 KB CSS、綠"
+      },
+      {
+       "type": "lint",
+       "ref": "eslint + prettier --check",
+       "result": "0 error / 0 warning、格式全綠"
+      },
+      {
+       "type": "browser",
+       "ref": "qa-s4-01~04 + qa-s4b-01 截圖",
+       "result": "01/02/附件/折扣/議價/編輯模式/品項控制 逐功能 Playwright 驗證"
+      }
+     ],
+     "notes": "Session 4 新功能對照 legacy 原始碼 + CSS 1:1 復刻並驗證渲染；與線上 legacy 即時 side-by-side 受真實 catalog API 限制未做，但 cover-page 已在 Session 3 做過 pixel 對比。"
+    },
+    {
+     "id": "F12-T9",
+     "title": "品項重新選擇 repick ⟲（非手動品項）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "files": [
+      "frontend/src/pages/Builder/sections/GroupsSection.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "browser",
+       "ref": "Playwright 點 ⟲",
+       "result": "catalog 重開為「重新選擇品項（10）」模式、選新品項就地替換、保留 qty"
+      },
+      {
+       "type": "test",
+       "ref": "GroupsSection.test repick",
+       "result": "pass"
+      }
+     ]
+    },
+    {
+     "id": "F12-T10",
+     "title": "品項拖曳排序 reorder（MOVE_ITEM + drag handle）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "files": [
+      "frontend/src/state/quoteReducer.ts",
+      "frontend/src/pages/Builder/sections/GroupsSection.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "quoteReducer MOVE_ITEM 2 tests + GroupsSection drag regression test",
+       "result": "重排 + 邊界 no-op + 拖放重排 + dataTransfer.setData 被呼叫 全通過"
+      },
+      {
+       "type": "browser",
+       "ref": "Playwright 合成 HTML5 drag",
+       "result": "[立體,網站] 拖放後變 [網站,立體]"
+      }
+     ],
+     "notes": "使用者回報「無法拖拉」→ root cause：onDragStart 沒呼叫 e.dataTransfer.setData，原生 HTML5 DnD 不成立、drop 不觸發。修法：dragstart 設 effectAllowed+setData、dragover 設 dropEffect。已加 regression test（fireEvent dragStart/drop + 斷言 setData 被呼叫）。"
+    },
+    {
+     "id": "F12-T11",
+     "title": "定價/優惠價 tier switch（autoDiscount 鎖定）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "files": [
+      "frontend/src/pages/Builder/sections/GroupsSection.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "browser",
+       "ref": "Playwright 點 tier switch",
+       "result": "定價→優惠價、單價 12000→9600；autoDiscount 開啟時 disabled"
+      },
+      {
+       "type": "test",
+       "ref": "GroupsSection.test tier 3 tests",
+       "result": "pass"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F13",
+   "title": "Session 4c — 使用者回報修正（分隔線拖曳 / 階層 picker / 後端 502 / 品項可編輯）",
+   "summary": "修使用者實測回報：後端沒起導致 502、面板分隔線拖不動、品項選擇器跟舊版不同（搜尋框 vs 三層下拉）且目錄太少（只 A-1/A-2）。",
+   "weight": 3,
+   "goal_contributions": [
+    {
+     "outcome_id": "O2",
+     "why": "這些是使用者實際操作時撞到的 legacy parity 落差；不修報價單首頁就不算跟舊版一致",
+     "completion_signal": "後端可達、分隔線可拖曳 resize、品項選擇器三層下拉且含 A-1~A-7、品項列副品項/名稱可編輯"
+    }
+   ],
+   "status": "done",
+   "tasks": [
+    {
+     "id": "F13-T1",
+     "title": "後端 502 修復（docker compose up）",
+     "status": "verified",
+     "workstream": "Infra",
+     "priority": "P0",
+     "evidence": [
+      {
+       "type": "curl",
+       "ref": "GET :8080/healthz",
+       "result": "200；migrations 完成；前端配號 AW-260521-xxx 無錯誤橫幅"
+      }
+     ],
+     "notes": "502 Bad Gateway = 後端容器沒起（Vite proxy 連不到）。docker compose up 後恢復。"
+    },
+    {
+     "id": "F13-T2",
+     "title": "面板分隔線可拖曳 resize",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "files": [
+      "frontend/src/pages/Builder/Builder.tsx",
+      "frontend/src/pages/Builder/Builder.module.scss",
+      "frontend/src/pages/Builder/BuilderPanel.module.scss",
+      "frontend/src/styles/globals.scss"
+     ],
+     "evidence": [
+      {
+       "type": "browser",
+       "ref": "Playwright 真實 mouse drag",
+       "result": "拖右→530(寬)、拖左→330(窄)、clamp 於 MIN_W；dblclick 重設；localStorage 記憶"
+      }
+     ],
+     "notes": "使用者說的『中間拖拉 bar』= 面板分隔線（我先前誤以為是品項排序）。對齊 legacy 3955-4003。"
+    },
+    {
+     "id": "F13-T3",
+     "title": "品項選擇器改三層下拉 + 補齊 A-1~A-7 目錄 + 副品項/名稱可編輯",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "files": [
+      "frontend/src/lib/itemsCatalog.ts",
+      "frontend/src/pages/Builder/sections/GroupsSection.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "browser",
+       "ref": "Playwright picker",
+       "result": "大品項(A展間系統/B/C/D)→副品項(A-1_實境展間2.0~A-7_展間其他製作)→品項名稱 三層下拉"
+      },
+      {
+       "type": "test",
+       "ref": "itemsCatalog.test 15 + GroupsSection.test 24",
+       "result": "pass（含 listSubGroups/itemsInSubGroup + 階層 picker 流程）"
+      }
+     ],
+     "notes": "對齊 legacy buildPicker 2763-2830。fixture 補齊真實結構（A展間系統 A-1~A-7）作為離線 fallback。"
+    },
+    {
+     "id": "F13-T4",
+     "title": "接真實 Google catalog API（取代假資料）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "files": [
+      "frontend/src/api/items.ts",
+      "frontend/src/api/items.test.ts",
+      "frontend/src/lib/useItemsCatalog.ts",
+      "frontend/src/pages/Builder/sections/GroupsSection.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "browser",
+       "ref": "Playwright live fetch",
+       "result": "載入 176 筆真品項 / 8 大品項；A-1~A-7 真實副品項；加入 NT$175,000 真品項並帶入預覽"
+      },
+      {
+       "type": "test",
+       "ref": "items.test 7（normalizeCatalog + fetch cache/error）",
+       "result": "pass"
+      },
+      {
+       "type": "network",
+       "ref": "GET Apps Script exec",
+       "result": "302→googleusercontent 200；CORS 從瀏覽器可達"
+      }
+     ],
+     "notes": "使用者授權後接。fetch 約 10s（Apps Script redirect），載入中顯示『正在載入品項資料…』，完成顯示『已載入 N 筆線上品項』；失敗自動 fallback 內建 fixture。模組級快取一頁只抓一次。"
+    }
+   ]
+  },
+  {
+   "id": "F6",
+   "title": "Builder Preview Session 3",
+   "summary": "右側 A4 預覽全部 binding（從 placeholder 升級為真實 1:1 復刻）+ Print CSS + 交付項目 / 服務內容 / 備註 / 付款條件 4 個 section。",
+   "weight": 3,
+   "goal_contributions": [
+    {
+     "outcome_id": "O2",
+     "why": "預覽 PDF 視覺與舊版 1:1 一致是業務 cutover 的硬條件",
+     "completion_signal": "Cmd+P 列印與舊 GitHub Pages 1:1、邊到邊金色帶、A4 尺寸、頁碼分頁正確"
+    }
+   ],
+   "status": "todo",
+   "tasks": [
+    {
+     "id": "F6-T1",
+     "title": "A4 Preview 真實 binding（取代 placeholder）",
+     "status": "todo",
+     "workstream": "Frontend",
+     "priority": "P0"
+    },
+    {
+     "id": "F6-T2",
+     "title": "4 個剩餘 section",
+     "status": "todo",
+     "workstream": "Frontend",
+     "priority": "P0"
+    },
+    {
+     "id": "F6-T3",
+     "title": "@media print stylesheet",
+     "status": "todo",
+     "workstream": "Frontend",
+     "priority": "P0"
+    }
+   ]
+  },
+  {
+   "id": "F7",
+   "title": "Builder Session 4 — History + Radix Modals",
+   "summary": "History page（filter / list / load / delete）+ Radix DropdownMenu / AlertDialog / Toast 改造。",
+   "weight": 3,
+   "goal_contributions": [
+    {
+     "outcome_id": "O2",
+     "why": "歷史頁是業務日常查詢入口；Modals 把 window.confirm 替換為符合品牌的對話框",
+     "completion_signal": "業務可載入過去報價、刪除、切狀態；Toast 顯示成功 / 失敗訊息"
+    }
+   ],
+   "status": "todo",
+   "tasks": [
+    {
+     "id": "F7-T1",
+     "title": "History 頁面（filter + list）",
+     "status": "todo",
+     "workstream": "Frontend",
+     "priority": "P0"
+    },
+    {
+     "id": "F7-T2",
+     "title": "Radix DropdownMenu 改造 Status select",
+     "status": "todo",
+     "workstream": "Frontend",
+     "priority": "P1"
+    },
+    {
+     "id": "F7-T3",
+     "title": "Radix AlertDialog 替換 window.confirm",
+     "status": "todo",
+     "workstream": "Frontend",
+     "priority": "P1"
+    },
+    {
+     "id": "F7-T4",
+     "title": "Toast 通知",
+     "status": "todo",
+     "workstream": "Frontend",
+     "priority": "P1"
+    }
+   ]
+  },
+  {
+   "id": "F8",
+   "title": "Builder Session 5 — Hash router 完整接 + 列印驗證 + polish",
+   "summary": "deep-link 載入歷史報價進 Builder、列印 PDF 對比驗證、可拖拉 divider、final visual polish。",
+   "weight": 2,
+   "goal_contributions": [
+    {
+     "outcome_id": "O2",
+     "why": "Session 1-4 的整合驗證 + 業務舊書籤 deep-link 不可破",
+     "completion_signal": "業務從 history 點報價單號 → Builder 載入該筆 → Cmd+P 印出與舊版視覺一致"
+    }
+   ],
+   "status": "todo",
+   "tasks": [
+    {
+     "id": "F8-T1",
+     "title": "Hash router 完整接 load 動作",
+     "status": "todo",
+     "workstream": "Frontend",
+     "priority": "P0"
+    },
+    {
+     "id": "F8-T2",
+     "title": "列印 PDF 對比驗證（與舊版 1:1）",
+     "status": "todo",
+     "workstream": "QA / Release",
+     "priority": "P0"
+    },
+    {
+     "id": "F8-T3",
+     "title": "可拖拉 divider",
+     "status": "todo",
+     "workstream": "Frontend",
+     "priority": "P2"
+    }
+   ]
+  },
+  {
+   "id": "F9",
+   "title": "Frontend MOCK → fetch backend（PR 5 剩餘部分）",
+   "summary": "Session 1 已先做 next-number；剩餘 create / update / list / get / delete / distinct-sales 6 個 endpoints 接通。",
+   "weight": 2,
+   "goal_contributions": [
+    {
+     "outcome_id": "O3",
+     "why": "完整 CRUD 才能讓業務真的儲存報價",
+     "completion_signal": "業務在 Builder 按儲存 → list 上看得到、可載回編輯、可刪除"
+    }
+   ],
+   "status": "doing",
+   "tasks": [
+    {
+     "id": "F9-T1",
+     "title": "nextQuoteNumber（Session 1 提前完成）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "pnpm test src/api",
+       "result": "10 tests pass"
+      }
+     ]
+    },
+    {
+     "id": "F9-T2",
+     "title": "createQuote + updateQuote",
+     "status": "todo",
+     "workstream": "Frontend",
+     "priority": "P0"
+    },
+    {
+     "id": "F9-T3",
+     "title": "listQuotes（含 filter / pagination）",
+     "status": "todo",
+     "workstream": "Frontend",
+     "priority": "P0"
+    },
+    {
+     "id": "F9-T4",
+     "title": "getQuote + deleteQuote",
+     "status": "todo",
+     "workstream": "Frontend",
+     "priority": "P0"
+    },
+    {
+     "id": "F9-T5",
+     "title": "distinctSales（filter 下拉用）",
+     "status": "todo",
+     "workstream": "Frontend",
+     "priority": "P1"
+    }
+   ]
+  },
+  {
+   "id": "F10",
+   "title": "Phase A 基礎建設部署",
+   "summary": "Cloud Run + Cloud SQL + LB host rule + IAP + DNS。第一個可由業務瀏覽的 staging URL。",
+   "weight": 3,
+   "goal_contributions": [
+    {
+     "outcome_id": "O4",
+     "why": "上線必經，沒有 Cloud Run 就無法 cutover",
+     "completion_signal": "quote-staging.artogo.co 可從瀏覽器開、IAP 跳 Google 登入、登入後看到 Builder"
+    }
+   ],
+   "status": "todo",
+   "tasks": [
+    {
+     "id": "F10-T1",
+     "title": "Cloud Run service + Artifact Registry",
+     "status": "todo",
+     "workstream": "Infra",
+     "priority": "P0"
+    },
+    {
+     "id": "F10-T2",
+     "title": "Cloud SQL database quotes_staging + quotes_prod",
+     "status": "todo",
+     "workstream": "Infra",
+     "priority": "P0"
+    },
+    {
+     "id": "F10-T3",
+     "title": "LB host rule（quote.artogo.co → Cloud Run）",
+     "status": "todo",
+     "workstream": "Infra",
+     "priority": "P0"
+    },
+    {
+     "id": "F10-T4",
+     "title": "IAP enable + Workspace domain policy",
+     "status": "todo",
+     "workstream": "Infra",
+     "priority": "P0"
+    },
+    {
+     "id": "F10-T5",
+     "title": "DNS A 紀錄 + TLS cert",
+     "status": "todo",
+     "workstream": "Infra",
+     "priority": "P0"
+    }
+   ]
+  },
+  {
+   "id": "F11",
+   "title": "CI/CD prod + 業務 cutover",
+   "summary": "GitHub Actions deploy-staging + deploy-prod workflow；main 分支保護；舊 GitHub Pages 退場。",
+   "weight": 2,
+   "goal_contributions": [
+    {
+     "outcome_id": "O4",
+     "why": "讓未來的 PR 自動部署、避免手動操作風險",
+     "completion_signal": "push staging branch → 自動上 staging；merge main → 自動上 prod；舊 URL 顯示退場公告"
+    }
+   ],
+   "status": "todo",
+   "tasks": [
+    {
+     "id": "F11-T1",
+     "title": "WIF + GitHub Actions deploy-staging.yml",
+     "status": "todo",
+     "workstream": "Infra",
+     "priority": "P1"
+    },
+    {
+     "id": "F11-T2",
+     "title": "deploy-prod.yml + 分支保護",
+     "status": "todo",
+     "workstream": "Infra",
+     "priority": "P1"
+    },
+    {
+     "id": "F11-T3",
+     "title": "業務 cutover + 舊 URL 退場公告",
+     "status": "todo",
+     "workstream": "Ops",
+     "priority": "P1"
+    }
+   ]
+  },
+  {
+   "id": "F-side-codex",
+   "title": "Codex iteration（本輪附帶）",
+   "summary": "9 輪 Codex review、F1-F15 共 15 個 finding 的修補追蹤。",
+   "weight": 1,
+   "goal_contributions": [
+    {
+     "outcome_id": "O-side-1",
+     "why": "提升 Session 1 程式碼品質與符合 CLAUDE.md commit gate",
+     "completion_signal": "所有 finding 已 fix 並透過後續輪次 Codex 確認"
+    }
+   ],
+   "status": "doing",
+   "tasks": [
+    {
+     "id": "F-side-codex-T1",
+     "title": "F1-F4 修補（15-day default / StrictMode / 新報價 button / data-status）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P2",
+     "evidence": [
+      {
+       "type": "review",
+       "ref": "Codex round 2",
+       "result": "clean"
+      }
+     ]
+    },
+    {
+     "id": "F-side-codex-T2",
+     "title": "F5-F6 修補（sessionStorage 太黏 / provider unmount 丟 state）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P2",
+     "evidence": [
+      {
+       "type": "review",
+       "ref": "Codex round 3",
+       "result": "clean"
+      }
+     ]
+    },
+    {
+     "id": "F-side-codex-T3",
+     "title": "F7 修補（midnight stale dates）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P2",
+     "evidence": [
+      {
+       "type": "review",
+       "ref": "Codex round 4",
+       "result": "clean except F8 housekeeping"
+      }
+     ]
+    },
+    {
+     "id": "F-side-codex-T4",
+     "title": "F8 修補（.claude/ gitignore）",
+     "status": "verified",
+     "workstream": "Infra",
+     "priority": "P3",
+     "evidence": [
+      {
+       "type": "git",
+       "ref": ".gitignore + .claude/",
+       "result": "no longer untracked"
+      }
+     ]
+    },
+    {
+     "id": "F-side-codex-T5",
+     "title": "F9 修補（撞號 → backend API）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P0",
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "src/api 10 tests",
+       "result": "atomic backend allocation"
+      }
+     ]
+    },
+    {
+     "id": "F-side-codex-T6",
+     "title": "F10 修補（retry path broken）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P2",
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "BuilderPanel.test retry-button",
+       "result": "retry invokes fetch"
+      }
+     ]
+    },
+    {
+     "id": "F-side-codex-T7",
+     "title": "F11 + F12 修補（retry 蓋未來日期 / focus a11y）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P2",
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "BuilderPanel 12 tests",
+       "result": "preserves future dates"
+      }
+     ]
+    },
+    {
+     "id": "F-side-codex-T8",
+     "title": "F13 + F14 修補（remount 蓋日期 / newQuote 空 state 不重 fetch）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P2",
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "fetchToken context-lifted",
+       "result": "BuilderPanel 12 tests pass"
+      }
+     ]
+    },
+    {
+     "id": "F-side-codex-T9",
+     "title": "F15 修補（back-dated edit 被蓋）",
+     "status": "done",
+     "workstream": "Frontend",
+     "priority": "P2",
+     "notes": "已實作 datesInitialised flag + 拆兩個 useEffect；Codex round 10 尚未跑驗證",
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "BuilderPanel.test 13 tests",
+       "result": "preserves past dates"
+      }
+     ]
+    },
+    {
+     "id": "F-side-codex-T10",
+     "title": "Codex round 10 確認 F15 修補 clean",
+     "status": "blocked",
+     "workstream": "QA / Release",
+     "priority": "P2",
+     "blocker": "尚未跑 round 10",
+     "blocked_by": "等使用者選 A（直接 commit）或 B（再跑 round 10）",
+     "owner": "user"
+    }
+   ]
+  },
+  {
+   "id": "F-side-hotfix",
+   "title": "GitHub Pages 過渡期 hotfix（PR #4 已 merge）",
+   "summary": "root index.html 跳轉 + frontend/index.html github.io guard，保留 hash 給 deep link 書籤。",
+   "weight": 1,
+   "goal_contributions": [
+    {
+     "outcome_id": "O-side-2",
+     "why": "業務舊網址在 Cloud Run 上線前不能空白",
+     "completion_signal": "curl https://artogo.github.io/Artway-quote-system/ 顯示 4228 行 legacy.html"
+    }
+   ],
+   "status": "verified",
+   "tasks": [
+    {
+     "id": "F-side-hotfix-T1",
+     "title": "PR #4 hotfix merge + Pages re-build + 線上驗證",
+     "status": "verified",
+     "workstream": "Infra",
+     "priority": "P0",
+     "progress_percent": 100,
+     "files": [
+      "index.html",
+      "frontend/index.html"
+     ],
+     "evidence": [
+      {
+       "type": "git",
+       "ref": "04452af merge commit",
+       "result": "已 merge main"
+      },
+      {
+       "type": "curl",
+       "ref": "https://artogo.github.io/Artway-quote-system/frontend/legacy.html",
+       "result": "200 / text/html / 4228 lines"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F14",
+   "title": "Codex commit-gate review（Session 3/4 working tree）— 7 findings 全修",
+   "summary": "Commit 前 Codex gate（5 輪、共 13 findings 全修）。R1 6、R2 unit 斜線、R3 2、R4 3（含 auto-discount P1）、R5 1：編輯副品項只改 sub_group、留下舊 service_description → syncServices 印錯附件；改為編輯時清掉（= legacy 由 catalog 重推，:2354）。",
+   "weight": 2,
+   "goal_contributions": [
+    {
+     "outcome_id": "O2",
+     "why": "這 7 項都是與 legacy 不一致的 parity 缺陷；修好才符合「Builder 1:1 復刻舊版 UX」與成功條件「列印 PDF 視覺與舊版 1:1 一致」",
+     "completion_signal": "235 tests 綠 + runtime DOM 驗證：原始 unit /場 → 預覽顯示「1 場」，與 legacy stripUnitSlash 一致"
+    }
+   ],
+   "status": "verified",
+   "tasks": [
+    {
+     "id": "F14-T1",
+     "title": "第一輪 Codex 6 findings 全修 + regression test（使用者核准「6 個全修」）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/pages/Builder/sections/GroupsSection.tsx",
+      "frontend/src/lib/services.ts",
+      "frontend/src/state/quoteReducer.ts",
+      "frontend/src/pages/Builder/PreviewPlaceholder.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "vitest --run",
+       "result": "全綠（含 3 個新 regression test）"
+      },
+      {
+       "type": "legacy-diff",
+       "ref": "對照 legacy.html 確認 6 項皆為真實 parity bug",
+       "result": "6/6 確認為真、全修"
+      }
+     ]
+    },
+    {
+     "id": "F14-T2",
+     "title": "第二輪 Codex P2：預覽 Qty 去掉 unit 前導斜線（stripUnitSlash）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P2",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/lib/quoteCalc.ts",
+      "frontend/src/pages/Builder/PreviewPlaceholder.tsx",
+      "frontend/src/lib/quoteCalc.test.ts"
+     ],
+     "evidence": [
+      {
+       "type": "legacy-diff",
+       "ref": "legacy.html:2525-2527 stripUnitSlash + :2241 用於 qty 欄",
+       "result": "確認為真：我方原渲染原始 it.unit"
+      },
+      {
+       "type": "live-api",
+       "ref": "Google Apps Script catalog 176 筆",
+       "result": "174/176 筆 unit 帶前導斜線（/式×89 /場×30 /年×29 /次×13…）→ 屬主流路徑非邊角"
+      },
+      {
+       "type": "test",
+       "ref": "quoteCalc.test.ts stripUnitSlash（4 例）+ 全套 235 tests",
+       "result": "全綠"
+      },
+      {
+       "type": "playwright",
+       "ref": "localhost:5173 加入真品項 A-1，讀 DOM",
+       "result": "原始 unit=/場 → 預覽 Qty 欄=「1 場」（斜線已去）"
+      }
+     ]
+    },
+    {
+     "id": "F14-T3",
+     "title": "第三輪 Codex deep sweep（working tree）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [],
+     "evidence": [
+      {
+       "type": "codex",
+       "ref": "review --scope working-tree (job bfwfhraci)",
+       "result": "確認 R1/R2 已解決，另報 2 個新 P2"
+      }
+     ]
+    },
+    {
+     "id": "F14-T4",
+     "title": "第三輪 2 個新 P2 全修（面板寬度 clamp + arts-only tier 不歸零）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P2",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/pages/Builder/Builder.tsx",
+      "frontend/src/pages/Builder/sections/GroupsSection.tsx",
+      "frontend/src/pages/Builder/sections/GroupsSection.test.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "legacy-diff",
+       "ref": "legacy.html:2838-2839（_priceStandard null 模型）+ :2963 guard",
+       "result": "確認 #2 根因為資料模型偏離；改存 undefined 對齊 legacy"
+      },
+      {
+       "type": "test",
+       "ref": "GroupsSection.test.tsx catalogItemFields（3 例）+ 全套",
+       "result": "238 tests 綠"
+      },
+      {
+       "type": "playwright",
+       "ref": "localhost:5173 加入 live arts-only 列 B-3 短期方案 → 切定價",
+       "result": "金額維持 12,500（未歸零），與 legacy 一致"
+      },
+      {
+       "type": "playwright",
+       "ref": "viewport 1200px 重載讀 --builder-panel-width",
+       "result": "380px（已 clamp），非未夾的 520px"
+      }
+     ]
+    },
+    {
+     "id": "F14-T5",
+     "title": "第四輪 Codex deep sweep（working tree）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [],
+     "evidence": [
+      {
+       "type": "codex",
+       "ref": "review (job b6vgbhirx)",
+       "result": "確認前 3 輪已解決，另報 3 findings（1 P1 + 2 P2）"
+      }
+     ]
+    },
+    {
+     "id": "F14-T6",
+     "title": "第四輪 3 findings 全修（auto-discount standard-only / 客戶簽名空白 / 附件列印 @page）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/pages/Builder/sections/GroupsSection.tsx",
+      "frontend/src/pages/Builder/PreviewPlaceholder.tsx",
+      "frontend/src/styles/globals.scss",
+      "frontend/src/pages/Builder/PreviewPlaceholder.module.scss"
+     ],
+     "evidence": [
+      {
+       "type": "legacy-diff",
+       "ref": "applyAutoDiscount:2562 / renderSig:2515 / @page appendix-page:1252",
+       "result": "3 項皆確認為真實 parity 偏離"
+      },
+      {
+       "type": "test",
+       "ref": "GroupsSection.test.tsx auto-discount standard-only(+2) ; 全套",
+       "result": "240 tests 綠"
+      },
+      {
+       "type": "playwright",
+       "ref": "填客戶聯絡人後讀簽名欄",
+       "result": "CLIENT 欄空白、表頭聯絡人顯示、ARTWAY 欄正確"
+      },
+      {
+       "type": "build-css",
+       "ref": "dist CSS @page appendix-page{margin:0 0 14mm} + page:appendix-page",
+       "result": "已輸出，附件邊到邊"
+      }
+     ]
+    },
+    {
+     "id": "F14-T7",
+     "title": "第五輪 Codex（重跑）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [],
+     "evidence": [
+      {
+       "type": "codex",
+       "ref": "review (job bjsdqnqio)",
+       "result": "確認前 4 輪已解決，另報 1 P2（副品項編輯留下舊附件）"
+      }
+     ]
+    },
+    {
+     "id": "F14-T8",
+     "title": "第五輪 P2 修：編輯副品項清掉 stale service_description",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P2",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/pages/Builder/sections/GroupsSection.tsx",
+      "frontend/src/pages/Builder/sections/GroupsSection.test.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "legacy-diff",
+       "ref": "legacy.html:2354 syncServices 由 catalog 依 sub_group 重推",
+       "result": "確認我方 item-cached 模型在編輯後 stale；清除符合 legacy 效果"
+      },
+      {
+       "type": "test",
+       "ref": "GroupsSection.test.tsx 副品項編輯清除（1）+ 全套",
+       "result": "241 tests 綠"
+      },
+      {
+       "type": "playwright",
+       "ref": "live A-1（desc 1393 字）→ 改副品項為 X-9",
+       "result": "舊『3D實境掃描』附件消失、新標籤顯示、無殘留"
+      }
+     ]
+    },
+    {
+     "id": "F14-T9",
+     "title": "第六輪 Codex 確認（working tree）= CLEAN",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [],
+     "evidence": [
+      {
+       "type": "codex",
+       "ref": "review (job bil7el1e3)",
+       "result": "No discrete correctness issues；TS/ESLint pass。6 輪收斂"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F15",
+   "title": "輸出 PDF 按鈕（PR4 收尾）",
+   "summary": "復刻 legacy 列印流程（3047-3138）：action bar「輸出 PDF」→ 確認 → 暫改 document.title → window.print()。 註：Codex 指出 legacy 列印前先存雲端；save 屬 F16，故 print 併入 F16 的兩段式 存雲端→輸出 PDF 流程一起 commit。",
+   "weight": 1,
+   "goal_contributions": [
+    {
+     "outcome_id": "O2",
+     "why": "legacy 工具列有輸出 PDF，缺它就不算 1:1 復刻",
+     "completion_signal": "點按鈕觸發 window.print()，列印版面 = legacy"
+    }
+   ],
+   "status": "verified",
+   "tasks": [
+    {
+     "id": "F15-T1",
+     "title": "輸出 PDF 按鈕 + window.print（TDD）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/lib/print.ts",
+      "frontend/src/lib/print.test.ts",
+      "frontend/src/pages/Builder/EditModeBar.tsx",
+      "frontend/src/pages/Builder/EditModeBar.module.scss"
+     ],
+     "evidence": [
+      {
+       "type": "legacy-diff",
+       "ref": "legacy.html:3138-3159 printWithCustomFilename",
+       "result": "檔名格式/safe()/afterprint 還原 1:1"
+      },
+      {
+       "type": "test",
+       "ref": "print.test.ts buildPdfFilename(4)+printWithCustomFilename(1)",
+       "result": "246 tests 綠"
+      },
+      {
+       "type": "playwright",
+       "ref": "localhost:5173 點輸出 PDF",
+       "result": "window.print 呼叫1次；title=藝途科技報價單AW-260521-036_2026-05-21；afterprint 後還原"
+      },
+      {
+       "type": "codex",
+       "ref": "Phase-1 review P2: 無號不可輸出",
+       "result": "修：quoteNo 未配發前 disable 輸出 PDF（= legacy 列印前先存雲端配號）+2 test（248 綠）"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F16",
+   "title": "報價存取 API 接線（PR5）",
+   "summary": "api/quotes.ts 補 create/update/list/get/delete/distinct-sales（後端 PR2 已有）。Builder 加儲存按鈕 → create/update，取代 legacy MOCK。",
+   "weight": 3,
+   "goal_contributions": [
+    {
+     "outcome_id": "O3",
+     "why": "成功條件：報價存雲端 + 歷史共享，需前端接後端 API",
+     "completion_signal": "儲存→Postgres→list/get 取回，docker compose 實測通"
+    }
+   ],
+   "status": "verified",
+   "tasks": [
+    {
+     "id": "F16-T1",
+     "title": "api/quotes CRUD + 儲存按鈕（TDD + 後端實測）",
+     "status": "verified",
+     "workstream": "Frontend/Backend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/api/quotes.ts",
+      "frontend/src/api/quotes.test.ts",
+      "frontend/src/lib/useSaveQuote.ts",
+      "frontend/src/state/quoteReducer.ts",
+      "frontend/src/pages/Builder/EditModeBar.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "quotes.test.ts(13)+reducer SET_SAVED(2)+EditModeBar(3)",
+       "result": "261 tests 綠"
+      },
+      {
+       "type": "backend-curl",
+       "ref": "create→get→list→distinct→delete→404",
+       "result": "全通"
+      },
+      {
+       "type": "playwright",
+       "ref": "UI 儲存 → POST /api/quotes（proxy→:8080→Postgres）",
+       "result": "AW-260521-044 已落庫（title/client 正確）"
+      },
+      {
+       "type": "component",
+       "ref": "兩段式 存到雲端→輸出 PDF",
+       "result": "先 POST 後 window.print，save-before-print 驗證"
+      },
+      {
+       "type": "legacy-diff+codex",
+       "ref": "使用者截圖：按鈕應為 存到雲端 非 儲存",
+       "result": "標籤 1:1 對齊（存到雲端/已存到雲端/儲存失敗，1.8s）；另修 Codex P2 重複建立 race（鎖按鈕+hook 去重）+ P3 PUT 回傳型別收斂。使用者確認下載HTML不適用 React、不加提示行。"
+      },
+      {
+       "type": "codex",
+       "ref": "Phase1+2 review R2",
+       "result": "P1 存檔 race（新報價中途完成蓋錯 id）→ SET_SAVED 帶 forQuoteNo reducer 守衛；P2 載入日期未正規化 → fromQuoteResponse 補 canonical issue_date + legacy snake_case。263 tests 綠"
+      },
+      {
+       "type": "codex",
+       "ref": "Phase1+2 commit gate：8 輪 Codex、13 findings 全修，R8 CLEAN",
+       "result": "無 correctness/data-loss/regression。266 tests、typecheck/lint/build 全綠"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F17",
+   "title": "History 頁 + load-into-Builder",
+   "summary": "取代 placeholder。listQuotes + 篩選 + 分頁 + 點列開啟；#/quote/AW-xxx → getQuote → LOAD 進 Builder。",
+   "weight": 3,
+   "goal_contributions": [
+    {
+     "outcome_id": "O2",
+     "why": "成功條件：歷史對全業務共享、可篩選；建立→儲存→歷史→載入閉環",
+     "completion_signal": "建立報價→儲存→History 看到→點進載回 Builder，runtime 驗證"
+    }
+   ],
+   "status": "verified",
+   "tasks": [
+    {
+     "id": "F17-T0",
+     "title": "後端 GET /quotes/by-number/{quote_no}（保 AW-... 書籤）",
+     "status": "verified",
+     "workstream": "Backend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [
+      "backend/internal/quotes/queries.sql",
+      "backend/internal/quotes/repo.go",
+      "backend/internal/quotes/handler.go",
+      "backend/internal/quotes/routes.go",
+      "backend/internal/quotes/handler_test.go",
+      "docs/HISTORY_BACKEND_SPEC.md",
+      "frontend/src/api/quotes.ts"
+     ],
+     "evidence": [
+      {
+       "type": "go-test",
+       "ref": "handler_test GetByNumber happy/404 + go vet/build",
+       "result": "全綠"
+      },
+      {
+       "type": "backend-curl",
+       "ref": "本機 8099 server：by-number/AW-260521-044",
+       "result": "200 + merged body；404 not-found；與 by-id 一致"
+      },
+      {
+       "type": "spec",
+       "ref": "HISTORY_BACKEND_SPEC §3.5a",
+       "result": "已補規格"
+      }
+     ]
+    },
+    {
+     "id": "F17-T1",
+     "title": "前端 getQuoteByNumber + History 頁（list/filter/page）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/api/quotes.ts",
+      "frontend/src/pages/History/History.tsx",
+      "frontend/src/pages/History/History.module.scss",
+      "frontend/src/pages/History/History.test.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "getQuoteByNumber(2)+History(4)",
+       "result": "272 tests 綠"
+      },
+      {
+       "type": "gate",
+       "ref": "typecheck/lint/build",
+       "result": "全綠"
+      },
+      {
+       "type": "playwright",
+       "ref": "dev app #/history",
+       "result": "列表共 2 筆（AW-260521-044/041，live）；篩選/分頁/刪除可用；0 console error（fresh load）"
+      }
+     ]
+    },
+    {
+     "id": "F17-T2",
+     "title": "#/quote/AW-xxx → getQuoteByNumber → LOAD 回 Builder",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/App.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "gate",
+       "ref": "typecheck/lint/build 全綠",
+       "result": "QuoteLoader：getQuoteByNumber→LOAD→Builder，loading/404 狀態"
+      },
+      {
+       "type": "playwright",
+       "ref": "#/quote/AW-260521-044 → Builder",
+       "result": "載入 quoteNo/title/client 正確；建立→儲存→歷史→載入 閉環完成"
+      }
+     ]
+    },
+    {
+     "id": "F17-T3",
+     "title": "Phase 3 Codex gate（7 輪，6 findings 全修）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [],
+     "evidence": [
+      {
+       "type": "codex",
+       "ref": "R7 CLEAN",
+       "result": "deep sweep + 新報價 reset[P1]、刪除 refetch、pill data-status、可讀淺色面板×2、新報價確認、filter 對比、回報價單 link、刪除清空已載入報價 — 全修。273 tests 綠"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F18",
+   "title": "報價單編號改存檔後配號（Option B：修 burn-on-refresh）",
+   "summary": "流水號不再於 Builder mount 配發（重整不再 +1）；改由後端在存檔時原子配發、回傳號碼 stamp 進預覽 / PDF。淨移除 fetch-on-mount + error banner + retry 機制（−248 行）。",
+   "weight": 3,
+   "goal_contributions": [
+    {
+     "outcome_id": "O3",
+     "why": "成功條件『流水號原子配發、同日開新報價不撞號』：原本每次進 Builder / 重整都消耗一個序號，會虛耗號段且製造混淆；改成存檔時才配號，序號只在真正建立報價時前進。",
+     "completion_signal": "重整頁面 N 次 quote_serials.next_seq 不變；存檔一次才 +1，且配發號出現在欄位 + 預覽 + PDF。"
+    }
+   ],
+   "status": "verified",
+   "tasks": [
+    {
+     "id": "F18-T0",
+     "title": "後端：quote_no 缺省時於存檔（POST /quotes）原子配發",
+     "status": "verified",
+     "workstream": "Backend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [
+      "backend/internal/quotes/handler.go",
+      "backend/internal/quotes/handler_test.go"
+     ],
+     "evidence": [
+      {
+       "type": "go-test",
+       "ref": "TestCreate_AllocatesQuoteNoWhenAbsent + go vet ./...",
+       "result": "全綠（取代舊 TestCreate_MissingQuoteNo_400）"
+      },
+      {
+       "type": "backend-curl",
+       "ref": "POST /api/quotes 無 quote_no（rebuild 後容器 8080）",
+       "result": "201 + quote_no=AW-260521-084（存檔時配發）"
+      }
+     ]
+    },
+    {
+     "id": "F18-T1",
+     "title": "前端：移除 mount 配號機制、SET_SAVED 帶號 stamp、EditModeBar/MetaSection 調整",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/state/quoteTypes.ts",
+      "frontend/src/state/quoteReducer.ts",
+      "frontend/src/state/QuoteContext.tsx",
+      "frontend/src/lib/useSaveQuote.ts",
+      "frontend/src/pages/Builder/BuilderPanel.tsx",
+      "frontend/src/pages/Builder/EditModeBar.tsx",
+      "frontend/src/pages/Builder/Topbar.tsx",
+      "frontend/src/pages/Builder/sections/MetaSection.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "vitest 全量",
+       "result": "271 tests 綠（含新增 SET_SAVED 帶 quoteNo×2、BuilderPanel 重寫日期測試、EditModeBar enabled+stamp）"
+      },
+      {
+       "type": "gate",
+       "ref": "typecheck / lint / build",
+       "result": "全綠；prod build 260.91 kB"
+      }
+     ]
+    },
+    {
+     "id": "F18-T2",
+     "title": "Runtime QA：重整不 burn、存檔才配號、號碼進預覽",
+     "status": "verified",
+     "workstream": "QA",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [],
+     "evidence": [
+      {
+       "type": "db-query",
+       "ref": "quote_serials 260521：4 次 page load 前後",
+       "result": "next_seq 維持 85（重整 0 消耗）— 核心 bug 已修"
+      },
+      {
+       "type": "playwright",
+       "ref": "5173 fresh dev server：mount→reload×4→存到雲端",
+       "result": "mount/重整 quoteNo 皆空白、無 AW- 序號；存檔後配發 AW-260521-085、欄位+預覽兩處顯示"
+      },
+      {
+       "type": "db-query",
+       "ref": "存檔一次後 quote_serials 260521",
+       "result": "next_seq 85→86（僅存檔消耗一個）；quotes 出現 AW-260521-085 draft"
+      },
+      {
+       "type": "console",
+       "ref": "5173 當前頁",
+       "result": "0 error / 0 warning（localhost:3000 的 webpack-hmr 噪音屬另一專案）"
+      }
+     ]
+    },
+    {
+     "id": "F18-T3",
+     "title": "Codex pre-commit 2 P2：P2-1 修（instance-epoch）、P2-2 實測為誤判",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/state/QuoteContext.tsx",
+      "frontend/src/lib/useSaveQuote.ts",
+      "frontend/src/lib/useSaveQuote.test.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "codex",
+       "ref": "working-tree review",
+       "result": "P2-1 重複建立+燒序號（真 bug）；P2-2 首次列印洗掉預覽編輯（誤判）"
+      },
+      {
+       "type": "fix",
+       "ref": "instance-epoch",
+       "result": "切換報價（new/load/reset）才 bump epoch；欄位編輯保留 → in-flight 編輯仍正確 stamp，不再重複建立"
+      },
+      {
+       "type": "test",
+       "ref": "useSaveQuote.test.tsx ×2",
+       "result": "in-place 編輯後 create resolve 仍 stamp 且下次 save 走 PUT（僅一次 POST）；新報價 mid-create 不 stamp 新空白單。275 tests 綠"
+      },
+      {
+       "type": "playwright",
+       "ref": "P2-2 repro：靜態 QUOTATION + 動態 sales-phone 節點",
+       "result": "首次存檔同時改 id(null→uuid)+quoteNo(''→AW-)、預覽 re-render，兩節點 contenteditable 編輯皆存活 → Codex 誤判，不修"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F19",
+   "title": "歷史紀錄頁 1:1 深色復刻（修 parity）",
+   "summary": "Phase 3 誤把 History 做成淺色；改成 legacy .hp-* 深色頁：#0D0804 + logo + 副標 + chip 日期篩選 + 數字分頁 + 站內刪除 modal+toast + 金色表頭 + 狀態 pill 描邊色。保留真實後端、Asia/Taipei 時間、Abort、刪除後 refetch。",
+   "weight": 3,
+   "goal_contributions": [
+    {
+     "outcome_id": "O2",
+     "why": "成功條件『1:1 復刻 legacy UX』：History 是 done 功能，必須與 legacy 視覺一致；原本主題整個反了",
+     "completion_signal": "runtime computed-style 與截圖比對：bg #0D0804、title 金色、5 chip、深色表格金表頭、pill 描邊色皆對齊 legacy"
+    }
+   ],
+   "status": "verified",
+   "tasks": [
+    {
+     "id": "F19-T0",
+     "title": "History.module.scss 深色重寫（tokens-only 對齊 legacy hp-*）",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/pages/History/History.module.scss"
+     ],
+     "evidence": [
+      {
+       "type": "gate",
+       "ref": "typecheck/lint/build 全綠",
+       "result": "CSS 37.55→40.23kB（深色樣式）"
+      }
+     ]
+    },
+    {
+     "id": "F19-T1",
+     "title": "History.tsx 重構：logo+副標、chip 篩選、數字分頁、刪除 modal+toast",
+     "status": "verified",
+     "workstream": "Frontend",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [
+      "frontend/src/pages/History/History.tsx",
+      "frontend/src/pages/History/History.test.tsx"
+     ],
+     "evidence": [
+      {
+       "type": "test",
+       "ref": "History.test.tsx（含新增 取消/chip 2 例）",
+       "result": "275 tests 綠"
+      }
+     ]
+    },
+    {
+     "id": "F19-T2",
+     "title": "Runtime parity 驗證（computed style + 截圖）",
+     "status": "verified",
+     "workstream": "QA",
+     "priority": "P1",
+     "progress_percent": 100,
+     "files": [],
+     "evidence": [
+      {
+       "type": "playwright",
+       "ref": "#/history computed styles",
+       "result": "screenBg rgb(13,8,4)=#0D0804、title rgb(186,153,114)=金、tableWrap rgb(26,21,16)=#1A1510、th 金色、draft pill rgb(154,139,122)=#9A8B7A、5 chip 全部 pressed、logo/副標/重設/回 Builder 皆在"
+      },
+      {
+       "type": "screenshot",
+       "ref": "qa-history-dark 截圖",
+       "result": "與 legacy 深色頁一致（差異僅資料：真實後端 vs mock）"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "blockers": [
+  {
+   "title": "等使用者授權 commit Session 1 PR",
+   "reason": "Codex round 1 後我曾自作主張批次修 F5-F8，使用者明確要求之後每輪都拍板。Session 1 完成但需明確授權才能 commit。",
+   "blocked_by": "使用者選 A（直接 commit）/ B（再跑 round 10）/ C（先 dogfood）",
+   "owner": "user",
+   "needed_by": "Session 2 開工前",
+   "impact": "F4 無法標 verified、Session 2-5 無法開工、F9 / F10 / F11 連動延後",
+   "impact_chain": [
+    "F4-T13 → F5 開工 → F6 → F7 → F8 → F9 → F10 → F11"
+   ],
+   "unblock_checklist": [
+    "使用者選 A/B/C 之一",
+    "若選 A：跑 git commit + gh pr create",
+    "若選 B：跑 codex review --uncommitted round 10",
+    "若選 C：等使用者完成 dogfood 回報"
+   ],
+   "status": "open"
+  },
+  {
+   "title": "本機 dogfood 需先啟動後端",
+   "reason": "F9 已改為 backend API、F4 完整體驗依賴 docker compose up；目前後端 Cloud Run 尚未部署",
+   "blocked_by": "使用者啟動 backend/docker-compose.yml 或 Phase A 完成",
+   "owner": "user",
+   "needed_by": "F4-T12 dogfood",
+   "impact": "F4-T12 無法執行、看不到完整 Builder 流程（會看到 api-error 重試 banner）",
+   "impact_chain": [
+    "F4-T12 → F4-T13 commit 風險增加（少了 e2e 驗證）"
+   ],
+   "unblock_checklist": [
+    "cd backend && docker compose up",
+    "確認 :8080 監聽中",
+    "pnpm dev 看到 quoteNo 自動帶入"
+   ],
+   "status": "open"
+  },
+  {
+   "title": "Codex round 10 尚未跑於 F15 修補後",
+   "reason": "我為了結束 iteration loop 自決定停在 round 9 後，但 round 10 應該確認 F15（split-effect + datesInitialised flag）是 clean",
+   "blocked_by": "等使用者選 A（接受跳過 round 10）或 B（跑）",
+   "owner": "user",
+   "needed_by": "commit 前",
+   "impact": "嚴格而言 Session 1 程式碼沒有 'Codex 全 clean' 終結簽核",
+   "impact_chain": [
+    "F-side-codex-T10 → F4-T11 完整 verified → F4-T13 commit"
+   ],
+   "unblock_checklist": [
+    "使用者選 A → 跳過 round 10、進 commit",
+    "使用者選 B → 跑 codex review --uncommitted、若 clean 才 commit"
+   ],
+   "status": "open"
+  }
+ ],
+ "decisions": [
+  {
+   "title": "Session 1 PR 是否要等 round 10 clean 才能 commit",
+   "context": "9 輪每輪都找新 edge case，停 iteration 是務實但違反「事後跑 Codex review」精神",
+   "owner": "user",
+   "needed_by": "commit 前",
+   "impact": "決定 ship 速度 vs 形式嚴謹度",
+   "status": "open"
+  },
+  {
+   "title": "Session 1 是否要在 PR description 加 follow-up TODO list",
+   "context": "若 round 10 找到新 finding 又不修，需明文列為 follow-up PR scope",
+   "owner": "user",
+   "needed_by": "PR description 起草前",
+   "impact": "未來 sessions 是否會延續處理這些 finding",
+   "status": "open"
+  }
+ ],
+ "next_actions": [
+  "使用者一起檢查 Session 4 首頁完整功能（localhost:5173 開瀏覽器：折扣/議價/02/附件/編輯模式 + Cmd+P 列印）",
+  "使用者確認 OK → 跑 /codex:review → findings 整理成表 → 拍板 → commit",
+  "commit 後依工作流程：/qa-only → push；/review + /qa-only → 開 PR",
+  "Session 4 剩餘（History 頁 + Radix Modals）與存雲端/PDF/真實 catalog 另開 session"
+ ],
+ "not_covered": [
+  "Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動",
+  "列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）",
+  "Cross-browser 測試（Safari / Firefox / Edge）",
+  "IAP 登入流程（Phase A 部署後才有 staging URL 可測）",
+  "Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）",
+  "Codex round 10 對 F15 拆 useEffect refactor 的清白簽核"
+ ]
 }

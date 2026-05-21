@@ -77,7 +77,7 @@ describe('History', () => {
     );
   });
 
-  it('deletes a row after confirm, then refetches the list (server pagination consistency)', async () => {
+  it('deletes a row after confirming in the modal, then refetches (server pagination consistency)', async () => {
     // Page 1 has the row; after delete the server returns it empty → refetch must
     // pull the fresh (empty) page rather than only filtering locally (Codex P2).
     const listSpy = vi
@@ -85,14 +85,50 @@ describe('History', () => {
       .mockResolvedValueOnce({ items: [item()], total: 1, page: 1, page_size: 20 })
       .mockResolvedValue({ items: [], total: 0, page: 1, page_size: 20 });
     const delSpy = vi.spyOn(api, 'deleteQuote').mockResolvedValue(undefined);
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     renderHistory();
     await screen.findByRole('link', { name: 'AW-260521-001' });
+    // Open the styled confirm modal, then confirm (legacy .hp-confirm, not window.confirm).
     await userEvent.click(screen.getByRole('button', { name: '刪除' }));
+    await userEvent.click(screen.getByRole('button', { name: '確定刪除' }));
     expect(delSpy).toHaveBeenCalledWith('id-1');
     // Re-fetched from the server (called again after the initial load).
     await waitFor(() => expect(listSpy.mock.calls.length).toBeGreaterThanOrEqual(2));
     expect(await screen.findByText(/沒有符合條件的報價單/)).toBeInTheDocument();
+  });
+
+  it('cancelling the delete modal does NOT delete the row', async () => {
+    vi.spyOn(api, 'listQuotes').mockResolvedValue({
+      items: [item()],
+      total: 1,
+      page: 1,
+      page_size: 20,
+    });
+    const delSpy = vi.spyOn(api, 'deleteQuote').mockResolvedValue(undefined);
+    renderHistory();
+    await screen.findByRole('link', { name: 'AW-260521-001' });
+    await userEvent.click(screen.getByRole('button', { name: '刪除' }));
+    await userEvent.click(screen.getByRole('button', { name: '取消' }));
+    expect(delSpy).not.toHaveBeenCalled();
+    // Modal dismissed; the row is still listed.
+    expect(screen.getByRole('link', { name: 'AW-260521-001' })).toBeInTheDocument();
+  });
+
+  it('a date-range chip applies a dateFrom lower bound and resets to page 1', async () => {
+    const listSpy = vi.spyOn(api, 'listQuotes').mockResolvedValue({
+      items: [item()],
+      total: 1,
+      page: 1,
+      page_size: 20,
+    });
+    renderHistory();
+    await screen.findByRole('link', { name: 'AW-260521-001' });
+    await userEvent.click(screen.getByRole('button', { name: '過去 7 天' }));
+    await waitFor(() =>
+      expect(listSpy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ dateFrom: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/), page: 1 }),
+        expect.anything(),
+      ),
+    );
   });
 
   it('clears the loaded Builder quote when its row is deleted (Codex P2)', async () => {
@@ -100,7 +136,6 @@ describe('History', () => {
       .mockResolvedValueOnce({ items: [item({ id: 'id-X' })], total: 1, page: 1, page_size: 20 })
       .mockResolvedValue({ items: [], total: 0, page: 1, page_size: 20 });
     vi.spyOn(api, 'deleteQuote').mockResolvedValue(undefined);
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
 
     let probeId: string | null = 'sentinel';
     function Probe(): null {
@@ -118,6 +153,7 @@ describe('History', () => {
     await screen.findByRole('link', { name: 'AW-260521-001' });
     expect(probeId).toBe('id-X');
     await userEvent.click(screen.getByRole('button', { name: '刪除' }));
+    await userEvent.click(screen.getByRole('button', { name: '確定刪除' }));
     // newQuote() cleared the deleted quote from shared state (id back to null).
     await waitFor(() => expect(probeId).toBeNull());
   });
