@@ -1,6 +1,6 @@
 {
   "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-21T21:00:00+08:00",
+  "updated_at": "2026-05-21T21:05:00+08:00",
   "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
   "success_criteria": [
     "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -12,8 +12,8 @@
   ],
   "current_focus": {
     "feature_id": "F17",
-    "task_id": "F17-T3",
-    "summary": "Phase 3（History + load）commit gate 過：7 輪 Codex、6 findings 全修、R7 乾淨、273 tests 綠、e2e 閉環驗證。Commit Phase 3 → 全部 1+2+3 開發完成 → /qa-only → push staging → 開 PR。"
+    "task_id": "done",
+    "summary": "1+2+3 全部完成並 push。PR #7（feature/session-3-preview → main）已開：https://github.com/ARTOGO/Artway-quote-system/pull/7。QA smoke（乾淨 dev server 0 console error、三主線正常）通過。剩餘為部署（PR6–8 GCP/IAP/CI-CD）+ cutover（PR9），及使用者人工 dogfood。"
   },
   "conversation_changes": [
     {
@@ -153,6 +153,12 @@
       "source": "user",
       "change": "Phase 3 路由：選『加後端 by-quote_no 查詢』保書籤。",
       "impact": "後端加 GET /quotes/by-number/{quote_no}（先文件後 code + Go test）；前端 getQuoteByNumber；History 頁列改連 #/quote/AW-...；載入用 by-quote_no。"
+    },
+    {
+      "at": "2026-05-21T21:05:00+08:00",
+      "source": "user",
+      "change": "使用者『繼續』→ 完成 push + 開 PR（3）。",
+      "impact": "feature/session-3-preview 推上 origin（7 commits），開 PR #7 → main。push 前 /qa-only smoke（乾淨重啟 dev server、0 console error、3 主線）通過；PR body 註明 15 輪 Codex review 全清 + e2e 閉環證據。"
     }
   ],
   "goal_groups": [
