@@ -1,6 +1,6 @@
 {
   "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-21T17:20:00+08:00",
+  "updated_at": "2026-05-21T19:27:00+08:00",
   "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
   "success_criteria": [
     "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -11,9 +11,9 @@
     "CI/CD 雙環境（staging / prod）自動部署、main 受分支保護"
   ],
   "current_focus": {
-    "feature_id": "F14",
-    "task_id": "F14-T9",
-    "summary": "Codex commit gate 通過：6 輪共 13 findings 全修，R6 乾淨（無 finding）。241 tests / typecheck / lint / build 全綠。等使用者拍板 commit 範圍（是否併入輸出 PDF 按鈕）後 commit 這批 Session 3/4 程式碼。"
+    "feature_id": "F16",
+    "task_id": "F16-T1",
+    "summary": "Phase 1+2（輸出 PDF + 報價存取 API + 儲存 + 兩段式 save-before-print）commit gate 過：8 輪 Codex、13 findings 全修、R8 乾淨、266 tests 綠。Commit Phase 1+2 → Phase 3 History + load（含 by-quote_no 路由決策）。"
   },
   "conversation_changes": [
     {
@@ -129,6 +129,24 @@
       "source": "codex",
       "change": "第六輪 Codex review 乾淨（無 finding），commit gate 通過。",
       "impact": "6 輪 Codex 收斂（6→1→2→3→1→0）。可進入 commit。輸出 PDF 按鈕 + 報價存取 API 仍為已知待補（PR4 收尾 / PR5）。"
+    },
+    {
+      "at": "2026-05-21T17:25:00+08:00",
+      "source": "user",
+      "change": "使用者選 1+2+3：輸出 PDF 按鈕 + History/報價存取 API(PR5) + push。",
+      "impact": "新增 F15(輸出PDF)/F16(報價API)/F17(History+載入)。依 build.md TDD，逐階段 Codex gate + commit，最後 /qa-only → push staging → PR。"
+    },
+    {
+      "at": "2026-05-21T17:58:00+08:00",
+      "source": "codex",
+      "change": "Phase-1 Codex 指出 legacy 列印前先存雲端（save-before-print）。",
+      "impact": "save 屬 Phase 2，故 print 併入 Phase 2 一起 commit；Phase 2 完成兩段式 存雲端→輸出 PDF。Phase 1 print 程式碼留在 working tree 不單獨 commit。"
+    },
+    {
+      "at": "2026-05-21T19:27:00+08:00",
+      "source": "codex",
+      "change": "Phase 1+2 Codex 第八輪乾淨，commit gate 通過。",
+      "impact": "save/print 流程經 8 輪 13 findings 硬化（dedup、型別、save-switch race、日期正規化、total 取整、canonical 合併、defer-stamp 保留編輯、Escape 守衛、flash timer race）。可 commit。"
     }
   ],
   "goal_groups": [
@@ -1767,6 +1785,162 @@
               "result": "No discrete correctness issues；TS/ESLint pass。6 輪收斂"
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "F15",
+      "title": "輸出 PDF 按鈕（PR4 收尾）",
+      "summary": "復刻 legacy 列印流程（3047-3138）：action bar「輸出 PDF」→ 確認 → 暫改 document.title → window.print()。 註：Codex 指出 legacy 列印前先存雲端；save 屬 F16，故 print 併入 F16 的兩段式 存雲端→輸出 PDF 流程一起 commit。",
+      "weight": 1,
+      "goal_contributions": [
+        {
+          "outcome_id": "O2",
+          "why": "legacy 工具列有輸出 PDF，缺它就不算 1:1 復刻",
+          "completion_signal": "點按鈕觸發 window.print()，列印版面 = legacy"
+        }
+      ],
+      "status": "verified",
+      "tasks": [
+        {
+          "id": "F15-T1",
+          "title": "輸出 PDF 按鈕 + window.print（TDD）",
+          "status": "verified",
+          "workstream": "Frontend",
+          "priority": "P1",
+          "progress_percent": 100,
+          "files": [
+            "frontend/src/lib/print.ts",
+            "frontend/src/lib/print.test.ts",
+            "frontend/src/pages/Builder/EditModeBar.tsx",
+            "frontend/src/pages/Builder/EditModeBar.module.scss"
+          ],
+          "evidence": [
+            {
+              "type": "legacy-diff",
+              "ref": "legacy.html:3138-3159 printWithCustomFilename",
+              "result": "檔名格式/safe()/afterprint 還原 1:1"
+            },
+            {
+              "type": "test",
+              "ref": "print.test.ts buildPdfFilename(4)+printWithCustomFilename(1)",
+              "result": "246 tests 綠"
+            },
+            {
+              "type": "playwright",
+              "ref": "localhost:5173 點輸出 PDF",
+              "result": "window.print 呼叫1次；title=藝途科技報價單AW-260521-036_2026-05-21；afterprint 後還原"
+            },
+            {
+              "type": "codex",
+              "ref": "Phase-1 review P2: 無號不可輸出",
+              "result": "修：quoteNo 未配發前 disable 輸出 PDF（= legacy 列印前先存雲端配號）+2 test（248 綠）"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F16",
+      "title": "報價存取 API 接線（PR5）",
+      "summary": "api/quotes.ts 補 create/update/list/get/delete/distinct-sales（後端 PR2 已有）。Builder 加儲存按鈕 → create/update，取代 legacy MOCK。",
+      "weight": 3,
+      "goal_contributions": [
+        {
+          "outcome_id": "O3",
+          "why": "成功條件：報價存雲端 + 歷史共享，需前端接後端 API",
+          "completion_signal": "儲存→Postgres→list/get 取回，docker compose 實測通"
+        }
+      ],
+      "status": "verified",
+      "tasks": [
+        {
+          "id": "F16-T1",
+          "title": "api/quotes CRUD + 儲存按鈕（TDD + 後端實測）",
+          "status": "verified",
+          "workstream": "Frontend/Backend",
+          "priority": "P1",
+          "progress_percent": 100,
+          "files": [
+            "frontend/src/api/quotes.ts",
+            "frontend/src/api/quotes.test.ts",
+            "frontend/src/lib/useSaveQuote.ts",
+            "frontend/src/state/quoteReducer.ts",
+            "frontend/src/pages/Builder/EditModeBar.tsx"
+          ],
+          "evidence": [
+            {
+              "type": "test",
+              "ref": "quotes.test.ts(13)+reducer SET_SAVED(2)+EditModeBar(3)",
+              "result": "261 tests 綠"
+            },
+            {
+              "type": "backend-curl",
+              "ref": "create→get→list→distinct→delete→404",
+              "result": "全通"
+            },
+            {
+              "type": "playwright",
+              "ref": "UI 儲存 → POST /api/quotes（proxy→:8080→Postgres）",
+              "result": "AW-260521-044 已落庫（title/client 正確）"
+            },
+            {
+              "type": "component",
+              "ref": "兩段式 存到雲端→輸出 PDF",
+              "result": "先 POST 後 window.print，save-before-print 驗證"
+            },
+            {
+              "type": "legacy-diff+codex",
+              "ref": "使用者截圖：按鈕應為 存到雲端 非 儲存",
+              "result": "標籤 1:1 對齊（存到雲端/已存到雲端/儲存失敗，1.8s）；另修 Codex P2 重複建立 race（鎖按鈕+hook 去重）+ P3 PUT 回傳型別收斂。使用者確認下載HTML不適用 React、不加提示行。"
+            },
+            {
+              "type": "codex",
+              "ref": "Phase1+2 review R2",
+              "result": "P1 存檔 race（新報價中途完成蓋錯 id）→ SET_SAVED 帶 forQuoteNo reducer 守衛；P2 載入日期未正規化 → fromQuoteResponse 補 canonical issue_date + legacy snake_case。263 tests 綠"
+            },
+            {
+              "type": "codex",
+              "ref": "Phase1+2 commit gate：8 輪 Codex、13 findings 全修，R8 CLEAN",
+              "result": "無 correctness/data-loss/regression。266 tests、typecheck/lint/build 全綠"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F17",
+      "title": "History 頁 + load-into-Builder",
+      "summary": "取代 placeholder。listQuotes + 篩選 + 分頁 + 點列開啟；#/quote/AW-xxx → getQuote → LOAD 進 Builder。",
+      "weight": 3,
+      "goal_contributions": [
+        {
+          "outcome_id": "O2",
+          "why": "成功條件：歷史對全業務共享、可篩選；建立→儲存→歷史→載入閉環",
+          "completion_signal": "建立報價→儲存→History 看到→點進載回 Builder，runtime 驗證"
+        }
+      ],
+      "status": "todo",
+      "tasks": [
+        {
+          "id": "F17-T1",
+          "title": "History 頁（list/filter/page）",
+          "status": "todo",
+          "workstream": "Frontend",
+          "priority": "P1",
+          "progress_percent": 0,
+          "files": [],
+          "evidence": []
+        },
+        {
+          "id": "F17-T2",
+          "title": "#/quote/AW-xxx 載入回 Builder",
+          "status": "todo",
+          "workstream": "Frontend",
+          "priority": "P1",
+          "progress_percent": 0,
+          "files": [],
+          "evidence": []
         }
       ]
     }
