@@ -48,6 +48,72 @@
   }
 }
 
+// 儲存 — secondary action (dark ink), mirrors legacy `.save-btn`.
+.saveBtn {
+  background: $color-surface-ink;
+  color: $color-surface-cream;
+  border: 1.5px solid $color-surface-ink;
+  padding: 9px 22px;
+  font-family: $font-family-base;
+  font-size: $font-size-lg-plus;
+  font-weight: $font-weight-medium;
+  letter-spacing: $letter-spacing-wider;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition:
+    background $transition-fast,
+    border-color $transition-fast;
+  box-shadow: $shadow-medium;
+
+  &:hover {
+    background: $color-ink-base;
+    border-color: $color-ink-base;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+
+    &:hover {
+      background: $color-surface-ink;
+      border-color: $color-surface-ink;
+    }
+  }
+}
+
+// 輸出 PDF — primary action (gold), mirrors legacy `.print-btn`.
+.printBtn {
+  background: $color-gold;
+  color: $color-ink-deep;
+  border: 1.5px solid $color-gold;
+  padding: 9px 22px;
+  font-family: $font-family-base;
+  font-size: $font-size-lg-plus;
+  font-weight: $font-weight-semibold;
+  letter-spacing: $letter-spacing-wider;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition:
+    background $transition-fast,
+    border-color $transition-fast;
+  box-shadow: $shadow-medium;
+
+  &:hover {
+    background: $color-gold-warm;
+    border-color: $color-gold-warm;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+
+    &:hover {
+      background: $color-gold;
+      border-color: $color-gold;
+    }
+  }
+}
+
 // ─── Confirm modal ───────────────────────────────────────────────────────
 .modal {
   position: fixed;
@@ -102,6 +168,11 @@
     font-size: $font-size-xl;
     cursor: pointer;
     letter-spacing: $letter-spacing-wide;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
 }
 

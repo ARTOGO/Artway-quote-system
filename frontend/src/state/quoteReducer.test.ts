@@ -104,6 +104,42 @@ describe('quoteReducer', () => {
     expect(next.meta).not.toBe(initial.meta);
   });
 
+  it('SET_SAVED stamps the backend id when forQuoteNo matches the current quote', () => {
+    expect(initial.id).toBeNull();
+    const next = quoteReducer(initial, {
+      type: 'SET_SAVED',
+      id: 'uuid-1',
+      forQuoteNo: initial.meta.quoteNo,
+    });
+    expect(next.id).toBe('uuid-1');
+  });
+
+  it('SET_SAVED is dropped if the quote was switched mid-save (forQuoteNo mismatch, Codex P1)', () => {
+    // A stale create completion must NOT stamp its id onto a different quote,
+    // or the next save would PUT the wrong row and overwrite it.
+    const next = quoteReducer(initial, {
+      type: 'SET_SAVED',
+      id: 'uuid-1',
+      forQuoteNo: 'AW-SOMETHING-ELSE',
+    });
+    expect(next).toBe(initial);
+    expect(next.id).toBeNull();
+  });
+
+  it('SET_SAVED no-op returns the same reference when id unchanged (===)', () => {
+    const saved = quoteReducer(initial, {
+      type: 'SET_SAVED',
+      id: 'uuid-1',
+      forQuoteNo: initial.meta.quoteNo,
+    });
+    const again = quoteReducer(saved, {
+      type: 'SET_SAVED',
+      id: 'uuid-1',
+      forQuoteNo: initial.meta.quoteNo,
+    });
+    expect(again).toBe(saved);
+  });
+
   it('SET_META updates a single field without touching siblings', () => {
     const next = quoteReducer(initial, {
       type: 'SET_META',

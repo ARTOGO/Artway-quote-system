@@ -129,6 +129,17 @@ export function quoteReducer(state: Quote, action: QuoteAction): Quote {
       if (state.meta.quoteNo === action.quoteNo) return state;
       return { ...state, meta: { ...state.meta, quoteNo: action.quoteNo } };
     }
+    case 'SET_SAVED': {
+      // Stamp the backend-assigned UUID after a successful create so a
+      // subsequent save updates (PUT) the same row instead of inserting again.
+      // Guard against a stale completion: if the user switched quotes (新報價 /
+      // load) while the save was in flight, the current quote_no no longer
+      // matches the one we saved — dropping the stamp avoids attaching the old
+      // row id to a different quote and overwriting it on the next save (Codex P1).
+      if (state.meta.quoteNo !== action.forQuoteNo) return state;
+      if (state.id === action.id) return state;
+      return { ...state, id: action.id };
+    }
     case 'SET_META': {
       if (state.meta[action.field] === action.value) return state;
       return { ...state, meta: { ...state.meta, [action.field]: action.value } };
