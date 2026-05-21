@@ -140,6 +140,36 @@ describe('quoteReducer', () => {
     expect(again).toBe(saved);
   });
 
+  it('SET_SAVED stamps both id and the server-allocated quoteNo (Option B: number assigned at save)', () => {
+    // A brand-new quote has quoteNo='' until it's first saved; the create
+    // response carries the backend-allocated serial, which SET_SAVED stamps
+    // into meta so the preview / PDF show it immediately.
+    expect(initial.meta.quoteNo).toBe('');
+    const next = quoteReducer(initial, {
+      type: 'SET_SAVED',
+      id: 'uuid-1',
+      forQuoteNo: '', // matches the blank quote's current (empty) number
+      quoteNo: 'AW-260518-001', // backend-allocated at save time
+    });
+    expect(next.id).toBe('uuid-1');
+    expect(next.meta.quoteNo).toBe('AW-260518-001');
+    expect(next.meta).not.toBe(initial.meta); // fresh meta object
+  });
+
+  it('SET_SAVED on an UPDATE (no quoteNo in action) leaves meta.quoteNo untouched', () => {
+    // PUT-updates of an already-saved quote don't re-allocate; the action
+    // omits quoteNo, so the existing number must be preserved unchanged.
+    const seeded: Quote = { ...initial, meta: { ...initial.meta, quoteNo: 'AW-260101-042' } };
+    const next = quoteReducer(seeded, {
+      type: 'SET_SAVED',
+      id: 'uuid-9',
+      forQuoteNo: 'AW-260101-042',
+    });
+    expect(next.id).toBe('uuid-9');
+    expect(next.meta.quoteNo).toBe('AW-260101-042');
+    expect(next.meta).toBe(seeded.meta); // meta object reused (no quoteNo change)
+  });
+
   it('SET_META updates a single field without touching siblings', () => {
     const next = quoteReducer(initial, {
       type: 'SET_META',

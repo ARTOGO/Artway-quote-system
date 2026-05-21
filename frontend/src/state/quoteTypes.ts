@@ -134,7 +134,7 @@ export interface Quote {
 export type QuoteAction =
   | { type: 'SET_STATUS'; status: QuoteStatus }
   | { type: 'SET_QUOTE_NO'; quoteNo: string }
-  | { type: 'SET_SAVED'; id: string; forQuoteNo: string }
+  | { type: 'SET_SAVED'; id: string; forQuoteNo: string; quoteNo?: string }
   | { type: 'SET_META'; field: keyof QuoteMeta; value: string }
   | { type: 'SET_CLIENT'; field: keyof QuoteClient; value: string }
   | { type: 'SET_SALES'; field: keyof QuoteSales; value: string }

@@ -1,38 +1,21 @@
 // BuilderPanel — left-side scrollable form panel (Topbar + sections).
 //
-// Owns the one-time auto-allocation of the quote number when a brand-new
-// blank quote is mounted (legacy.html line 3528-3554 `newQuote()`).
-//
-// ─── Quote-number allocation (Codex F9) ──────────────────────────────────
-// We no longer mint AW-... numbers from browser localStorage: two staff
-// members opening Builder on the same day would each cache `001` and ship
-// duplicate permanent IDs. Numbers are now reserved atomically by the
-// backend (`POST /api/quotes/next-number`, Postgres `INSERT ON CONFLICT`).
-// AbortController cancels the request when StrictMode dev mode unmounts +
-// remounts the component, so we don't leak a serial on the first dev
-// double-mount.
-//
-// ─── Allocation re-trigger (Codex F10 / F14) ────────────────────────────
-// `fetchToken` lives in QuoteContext (provider state, survives this
-// component's unmount). `retry()` bumps it so the effect re-runs even
-// when `state.meta.quoteNo` is still `''` (React's `'' === ''` would
-// otherwise skip the effect). Topbar's `+ 新報價` calls `newQuote()`,
-// which both resets state AND bumps fetchToken in the same tick.
+// ─── Quote number ────────────────────────────────────────────────────────
+// The AW-... serial is allocated by the backend at SAVE time (POST /quotes
+// assigns it atomically, race-free) — NOT on Builder mount. So refreshing or
+// previewing an unsaved quote never burns a serial. A brand-new quote shows no
+// number until 存到雲端; the create response stamps the assigned number into
+// state (see useSaveQuote / SET_SAVED).
 //
 // ─── Date refresh (Codex F7 / F11 / F13 / F15) ──────────────────────────
-// QuoteProvider lives at App-level, so `createBlankQuote()` runs at app
-// boot and can capture yesterday's dates if the user enters Builder after
-// midnight. Refresh dates ONLY on the very first Builder entry for this
-// blank quote (`datesInitialised === false`). After that, all subsequent
-// retries / remounts / refetches preserve whatever the user typed —
-// including legitimately back-dated quotes that pre-date today.
-// `newQuote()` flips the flag back to false so a fresh quote gets a
-// fresh refresh cycle.
+// QuoteProvider lives at App-level, so `createBlankQuote()` runs at app boot
+// and can capture yesterday's dates if the user enters Builder after midnight.
+// Refresh dates ONLY on the first Builder entry for this blank quote
+// (`datesInitialised === false`); afterwards preserve whatever the user typed
+// (incl. legitimately back-dated quotes). `newQuote()` resets the flag.
 
-import { useEffect, useState, type JSX } from 'react';
+import { useEffect, type JSX } from 'react';
 
-import { ApiError } from '../../api/client';
-import { nextQuoteNumber } from '../../api/quotes';
 import { addDaysISO, todayISO } from '../../lib/dates';
 import { useQuoteState } from '../../state/QuoteContext';
 import styles from './BuilderPanel.module.scss';
@@ -47,9 +30,7 @@ import { ServicesSection } from './sections/ServicesSection';
 import { Topbar } from './Topbar';
 
 export function BuilderPanel(): JSX.Element {
-  const { state, setQuoteNo, setMeta, fetchToken, retry, datesInitialised, markDatesInitialised } =
-    useQuoteState();
-  const [apiError, setApiError] = useState<string | null>(null);
+  const { state, setMeta, datesInitialised, markDatesInitialised } = useQuoteState();
 
   // ─── Effect 1: one-shot date init ──────────────────────────────────────
   // Runs at most once per provider lifecycle (until newQuote() resets
@@ -82,62 +63,9 @@ export function BuilderPanel(): JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datesInitialised, state.meta.quoteNo, setMeta, markDatesInitialised]);
 
-  // ─── Effect 2: quote-number allocation ────────────────────────────────
-  useEffect(() => {
-    if (state.meta.quoteNo !== '') return;
-    const ctl = new AbortController();
-
-    nextQuoteNumber(ctl.signal)
-      .then((no) => {
-        setQuoteNo(no);
-        setApiError(null);
-      })
-      .catch((err: unknown) => {
-        // AbortError on StrictMode unmount/remount → silent (expected)
-        if (err instanceof DOMException && err.name === 'AbortError') return;
-        const msg =
-          err instanceof ApiError
-            ? `後端錯誤 (${err.status})：${err.message}`
-            : err instanceof Error
-              ? `後端無法連線：${err.message}`
-              : '後端無法連線（未知錯誤）';
-        setApiError(msg);
-      });
-
-    return () => ctl.abort();
-  }, [state.meta.quoteNo, setQuoteNo, fetchToken]);
-
-  function handleRetry(): void {
-    setApiError(null);
-    retry();
-  }
-
   return (
     <aside className={styles.panel}>
       <Topbar />
-      {apiError !== null && (
-        <div role="alert" className={styles.apiError} data-testid="api-error">
-          <div>{apiError}</div>
-          <div className={styles.apiErrorHint}>
-            {import.meta.env.DEV ? (
-              <>
-                請確認後端已啟動（本機：<code>cd backend && docker compose up</code>），
-                然後點下方「重試」。
-              </>
-            ) : (
-              <>請確認網路連線正常或後端服務已啟動，然後點下方「重試」。</>
-            )}
-          </div>
-          <button
-            type="button"
-            className={styles.apiErrorRetry}
-            onClick={handleRetry}
-            data-testid="api-retry"
-          >
-            重試
-          </button>
-        </div>
-      )}
       <div className={styles.body}>
         <MetaSection />
         <ClientSection />

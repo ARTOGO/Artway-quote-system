@@ -28,10 +28,9 @@ export function Topbar(): JSX.Element {
     // Legacy parity (legacy.html line 3838-3854): confirm before clearing.
     // Session 4 swaps this for a Radix AlertDialog with proper UX.
     if (!window.confirm('確定建立新報價？目前未儲存的資料會遺失。')) return;
-    // newQuote() = reset state + bump context.fetchToken so BuilderPanel's
-    // allocation effect re-fires even when state.meta.quoteNo was already
-    // '' (Codex F14: '' === '' makes the dep array look unchanged
-    // otherwise).
+    // newQuote() = reset state to a blank quote and re-arm the one-shot date
+    // refresh. The quote number stays '' until the next save (the backend
+    // allocates it at save time — Option B), so there's nothing to fetch here.
     newQuote();
   }
 

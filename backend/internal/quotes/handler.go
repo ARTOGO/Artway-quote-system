@@ -96,7 +96,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		writeError(w, r, http.StatusBadRequest, "invalid_json", err)
 		return
 	}
-	if err := validateIn(in, true /* requireQuoteNo */); err != nil {
+	if err := validateIn(in, false /* quote_no allocated here if absent */); err != nil {
 		writeError(w, r, http.StatusBadRequest, "invalid_input", err)
 		return
 	}
@@ -106,10 +106,24 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Allocate the serial only when the quote is actually saved (not on every
+	// Builder mount/refresh) — the frontend now sends an empty quote_no for a
+	// brand-new quote and the number is assigned here, so refreshing an unsaved
+	// quote no longer burns serials. A client-supplied quote_no (manual case) is
+	// honoured as-is.
+	quoteNo := in.QuoteNo
+	if quoteNo == "" {
+		quoteNo, err = h.repo.NextNumber(r.Context(), h.now())
+		if err != nil {
+			writeError(w, r, http.StatusInternalServerError, "next_number_failed", err)
+			return
+		}
+	}
+
 	user, _ := auth.UserFromContext(r.Context())
 
 	result, err := h.repo.Create(r.Context(), CreateParams{
-		QuoteNo:       in.QuoteNo,
+		QuoteNo:       quoteNo,
 		Status:        in.Status,
 		Title:         in.Title,
 		TotalAmount:   in.TotalAmount,

@@ -130,15 +130,20 @@ export function quoteReducer(state: Quote, action: QuoteAction): Quote {
       return { ...state, meta: { ...state.meta, quoteNo: action.quoteNo } };
     }
     case 'SET_SAVED': {
-      // Stamp the backend-assigned UUID after a successful create so a
-      // subsequent save updates (PUT) the same row instead of inserting again.
-      // Guard against a stale completion: if the user switched quotes (新報價 /
-      // load) while the save was in flight, the current quote_no no longer
-      // matches the one we saved — dropping the stamp avoids attaching the old
-      // row id to a different quote and overwriting it on the next save (Codex P1).
+      // Stamp the backend-assigned UUID (so a subsequent save PUTs the same row)
+      // and, for a brand-new quote, the server-allocated quote_no (assigned at
+      // save time, not on Builder mount — so refreshing an unsaved quote never
+      // burns a serial). Guard against a stale completion: if the user switched
+      // quotes (新報價 / load) mid-save, the current quote_no no longer matches
+      // the one we saved, so dropping the stamp avoids attaching the row to a
+      // different quote (Codex P1).
       if (state.meta.quoteNo !== action.forQuoteNo) return state;
-      if (state.id === action.id) return state;
-      return { ...state, id: action.id };
+      const meta =
+        action.quoteNo && action.quoteNo !== state.meta.quoteNo
+          ? { ...state.meta, quoteNo: action.quoteNo }
+          : state.meta;
+      if (state.id === action.id && meta === state.meta) return state;
+      return { ...state, id: action.id, meta };
     }
     case 'SET_META': {
       if (state.meta[action.field] === action.value) return state;

@@ -6,9 +6,13 @@
 // become contenteditable; interactive / [data-no-edit] elements are skipped.
 //
 // Edits are DOM-only (NOT written back to quote state) — same as legacy,
-// where edit mode is a print-time visual override. A re-render (e.g. editing
-// a builder field) reconciles the DOM and discards uncommitted preview edits;
-// the MutationObserver re-applies contenteditable so the toggle stays live.
+// where edit mode is a print-time visual override. React reconciliation only
+// touches nodes whose state-derived value changed: editing a builder field
+// rewrites THAT field's preview node (discarding its uncommitted edit; the
+// MutationObserver re-applies contenteditable so the toggle stays live). A save
+// that only stamps id / quote_no re-renders just the number node — every OTHER
+// preview edit survives (verified at runtime with Playwright). So
+// save-before-print keeps last-minute tweaks AND shows the allocated number.
 //
 // The action bar also hosts 輸出 PDF (print → Save as PDF, via
 // printWithCustomFilename). 儲存 (cloud save) lands with the report-API wiring
@@ -75,16 +79,10 @@ function removeEditable(scope: ParentNode): void {
 }
 
 export function EditModeBar(): JSX.Element {
-  const { state, dispatch } = useQuoteState();
+  const { state } = useQuoteState();
   const { save, status: saveStatus, reset: resetSave } = useSaveQuote();
   const [editMode, setEditMode] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  // A create issued during the two-stage print returns an id we stamp only AFTER
-  // the print modal closes — so the SET_SAVED re-render (which discards DOM-only
-  // edit-mode tweaks) happens after the PDF is captured, not before (Codex P2).
-  // Stamped on close whether the user printed or cancelled, so the created row
-  // is never left orphaned (next save would otherwise create a duplicate).
-  const pendingStamp = useRef<{ id: string; forQuoteNo: string } | null>(null);
   // The standalone 已存到雲端 flash auto-resets after 1.8s; track its timer so a
   // new save started within that window cancels the stale reset (which would
   // otherwise clear the later save's status / re-enable buttons mid-flight or
@@ -97,14 +95,11 @@ export function EditModeBar(): JSX.Element {
     }
   };
   // 輸出 PDF is a two-stage 存到雲端 → 輸出 PDF flow (legacy showPrintConfirm,
-  // line 3105) so every exported PDF is persisted/reopenable from History.
+  // line 3105) so every exported PDF is persisted/reopenable, and the quote
+  // number the backend allocates at save is stamped into state before the print
+  // captures it (a brand-new quote has no number until saved).
   const [printOpen, setPrintOpen] = useState(false);
   const [printStep, setPrintStep] = useState<'save' | 'print'>('save');
-
-  // quote_no is the backend-allocated permanent ID; until it lands (next-number
-  // pending / failed) the preview prints "—" and the backend rejects a save
-  // (quote_no required). Gate both 儲存 and 輸出 PDF on it.
-  const hasQuoteNo = state.meta.quoteNo.trim() !== '';
 
   const doPrint = (): void => {
     printWithCustomFilename({
@@ -139,37 +134,27 @@ export function EditModeBar(): JSX.Element {
   const handlePrintAction = async (): Promise<void> => {
     if (printStep === 'save') {
       try {
-        const forQuoteNo = state.meta.quoteNo;
-        // Defer the id stamp (no re-render yet) so edit-mode DOM tweaks survive
-        // to the print; stamped on close. For an already-saved quote this is a
-        // no-op stamp anyway (Codex P2).
-        const res = await save({ stamp: false });
-        pendingStamp.current = { id: res.id, forQuoteNo };
+        // Save first — this assigns + stamps the quote number for a brand-new
+        // quote, so the PDF (preview + filename) shows it (legacy
+        // save-before-print). The stamp re-renders only the quote-no node, so
+        // any 編輯預覽 DOM tweaks survive (runtime-verified — Codex P2-A was a
+        // false positive). Then advance to the print step.
+        await save();
         setPrintStep('print');
       } catch {
         /* saveStatus is 'error'; the modal button shows 儲存失敗，重試 */
       }
     } else {
-      setPrintOpen(false); // queued; the print below runs first (edits intact)
+      setPrintOpen(false);
       doPrint();
     }
   };
 
-  // On print-modal close (printed OR cancelled): stamp the deferred id so the
-  // created row isn't orphaned, then reset the 存到雲端 button label — the
-  // two-stage path otherwise leaves it stuck on 已存到雲端 (Codex P2 + P3).
+  // Reset the 存到雲端 button label once the print modal closes — the two-stage
+  // path otherwise leaves it stuck on 已存到雲端 (Codex P3).
   useEffect(() => {
-    if (printOpen) return;
-    if (pendingStamp.current) {
-      dispatch({
-        type: 'SET_SAVED',
-        id: pendingStamp.current.id,
-        forQuoteNo: pendingStamp.current.forQuoteNo,
-      });
-      pendingStamp.current = null;
-    }
-    resetSave();
-  }, [printOpen, resetSave, dispatch]);
+    if (!printOpen) resetSave();
+  }, [printOpen, resetSave]);
 
   // Cancel a pending flash-reset timer on unmount (no setState after unmount).
   useEffect(
@@ -233,8 +218,8 @@ export function EditModeBar(): JSX.Element {
           type="button"
           className={styles.saveBtn}
           onClick={handleSave}
-          disabled={!hasQuoteNo || saveStatus === 'saving'}
-          title={hasQuoteNo ? '存到雲端（共享歷史紀錄）' : '報價單號尚未配發，無法存到雲端'}
+          disabled={saveStatus === 'saving'}
+          title="存到雲端（共享歷史紀錄）；報價單號於存檔時配發"
         >
           {SAVE_LABEL[saveStatus]}
         </button>
@@ -242,8 +227,8 @@ export function EditModeBar(): JSX.Element {
           type="button"
           className={styles.printBtn}
           onClick={openPrint}
-          disabled={!hasQuoteNo || saveStatus === 'saving'}
-          title={hasQuoteNo ? '輸出 PDF（先存雲端 → 瀏覽器列印）' : '報價單號尚未配發，無法輸出'}
+          disabled={saveStatus === 'saving'}
+          title="輸出 PDF（先存雲端配號 → 瀏覽器列印）"
         >
           輸出 PDF
         </button>

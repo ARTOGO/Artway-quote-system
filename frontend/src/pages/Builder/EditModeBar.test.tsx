@@ -2,10 +2,17 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { QuoteProvider } from '../../state/QuoteContext';
+import { QuoteProvider, useQuoteState } from '../../state/QuoteContext';
 import { createBlankQuote } from '../../state/quoteReducer';
 import type { Quote } from '../../state/quoteTypes';
 import { EditModeBar } from './EditModeBar';
+
+// Reads the live quote number out of context so a test can assert the
+// server-allocated serial got stamped after a save.
+function QuoteNoProbe() {
+  const { state } = useQuoteState();
+  return <span data-testid="qno">{state.meta.quoteNo}</span>;
+}
 
 function seedWithQuoteNo(quoteNo: string): Quote {
   const base = createBlankQuote();
@@ -24,19 +31,38 @@ function writeResponse(): Response {
   );
 }
 
-// Codex Phase-1 P2: quote_no is the backend-allocated permanent ID. Until
-// /api/quotes/next-number lands it stays '' and the preview prints "—", so
-// exporting / saving must be blocked. And the legacy print flow saves to the
-// cloud BEFORE window.print(), so every PDF is persisted/reopenable.
+// Option B: quote_no is the backend-allocated permanent ID, assigned at SAVE
+// time (POST /quotes) — not on Builder mount. So a brand-new quote has no
+// number yet, and 存到雲端 / 輸出 PDF stay ENABLED (the save allocates the
+// number and stamps it into state). The legacy print flow still saves to the
+// cloud BEFORE window.print(), so every PDF is persisted/reopenable and shows
+// the freshly-allocated number.
 describe('EditModeBar — 儲存 / 輸出 PDF gating + save-before-print', () => {
-  it('disables 儲存 and 輸出 PDF until a quote number is allocated', () => {
+  it('keeps 存到雲端 / 輸出 PDF enabled for a brand-new numberless quote (save allocates the number)', () => {
     render(
       <QuoteProvider initial={seedWithQuoteNo('')}>
         <EditModeBar />
       </QuoteProvider>,
     );
-    expect(screen.getByRole('button', { name: '存到雲端' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: '輸出 PDF' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: '存到雲端' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: '輸出 PDF' })).toBeEnabled();
+  });
+
+  it('saving a brand-new numberless quote allocates + stamps the quote number into state', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(writeResponse());
+    render(
+      <QuoteProvider initial={seedWithQuoteNo('')}>
+        <EditModeBar />
+        <QuoteNoProbe />
+      </QuoteProvider>,
+    );
+    // No number before save.
+    expect(screen.getByTestId('qno').textContent).toBe('');
+    await userEvent.click(screen.getByRole('button', { name: '存到雲端' }));
+    // POST create → response quote_no stamped into state (shows in preview/PDF).
+    await waitFor(() => expect(screen.getByTestId('qno').textContent).toBe('AW-260521-001'));
+    expect((fetchSpy.mock.calls[0][1] as RequestInit).method).toBe('POST');
+    fetchSpy.mockRestore();
   });
 
   it('存到雲端 POSTs the quote to the cloud and flashes 已存到雲端', async () => {

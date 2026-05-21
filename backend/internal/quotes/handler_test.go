@@ -200,19 +200,44 @@ func TestCreate_InvalidStatus_400(t *testing.T) {
 	}
 }
 
-func TestCreate_MissingQuoteNo_400(t *testing.T) {
+// A new quote arrives with an empty quote_no — the serial is allocated here at
+// save time (not on every Builder mount), so refreshing an unsaved quote no
+// longer burns numbers. SPEC §3.2 + the save-time allocation change.
+func TestCreate_AllocatesQuoteNoWhenAbsent(t *testing.T) {
 	t.Parallel()
 
-	h := quotes.NewHandler(&fakeRepo{})
+	var createdWith string
+	h := quotes.NewHandler(&fakeRepo{
+		nextNumberFn: func(_ context.Context, _ time.Time) (string, error) {
+			return "AW-260516-007", nil
+		},
+		createFn: func(_ context.Context, p quotes.CreateParams) (*quotes.WriteResult, error) {
+			createdWith = p.QuoteNo
+			return &quotes.WriteResult{
+				ID:        uuid.New(),
+				QuoteNo:   p.QuoteNo,
+				CreatedAt: time.Date(2026, 5, 16, 12, 0, 0, 0, time.UTC),
+				UpdatedAt: time.Date(2026, 5, 16, 12, 0, 0, 0, time.UTC),
+			}, nil
+		},
+	})
 	srv := mountWithAuth(h)
 
-	payload := `{"status":"draft"}`
+	payload := `{"status":"draft","title":"T","groups":[]}` // no quote_no
 	req := httptest.NewRequest(http.MethodPost, "/quotes", strings.NewReader(payload))
 	w := httptest.NewRecorder()
 	srv.ServeHTTP(w, req)
 
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want 400", w.Code)
+	if w.Code != http.StatusCreated {
+		t.Fatalf("status = %d, want 201 (body=%s)", w.Code, w.Body.String())
+	}
+	if createdWith != "AW-260516-007" {
+		t.Errorf("Create got quote_no %q, want allocated AW-260516-007", createdWith)
+	}
+	var body map[string]any
+	_ = json.NewDecoder(w.Body).Decode(&body)
+	if body["quote_no"] != "AW-260516-007" {
+		t.Errorf("response quote_no = %v, want AW-260516-007", body["quote_no"])
 	}
 }
 
