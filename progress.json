@@ -1,6 +1,6 @@
 {
   "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-21T21:05:00+08:00",
+  "updated_at": "2026-05-21T22:00:00+08:00",
   "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
   "success_criteria": [
     "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -13,7 +13,7 @@
   "current_focus": {
     "feature_id": "F17",
     "task_id": "done",
-    "summary": "1+2+3 全部完成並 push。PR #7（feature/session-3-preview → main）已開：https://github.com/ARTOGO/Artway-quote-system/pull/7。QA smoke（乾淨 dev server 0 console error、三主線正常）通過。剩餘為部署（PR6–8 GCP/IAP/CI-CD）+ cutover（PR9），及使用者人工 dogfood。"
+    "summary": "1+2+3 完成 + PR #7 開啟並處理完自動 review（3 P2 全修 + 回覆 + resolve thread）。剩餘：使用者 review/merge PR #7；之後 PR6–8 部署（GCP/IAP/CI-CD）+ PR9 cutover。"
   },
   "conversation_changes": [
     {
@@ -159,6 +159,12 @@
       "source": "user",
       "change": "使用者『繼續』→ 完成 push + 開 PR（3）。",
       "impact": "feature/session-3-preview 推上 origin（7 commits），開 PR #7 → main。push 前 /qa-only smoke（乾淨重啟 dev server、0 console error、3 主線）通過；PR body 註明 15 輪 Codex review 全清 + e2e 閉環證據。"
+    },
+    {
+      "at": "2026-05-21T22:00:00+08:00",
+      "source": "reviewer",
+      "change": "PR #7 自動 review（Gemini + Codex）共 3 個 inline P2。",
+      "impact": "全修：①History 時間改 Asia/Taipei ②Builder latestWidth ref 改 render-body ③QuoteLoader 載入後正規化 #/quote→#/（replace 非 push、success 加 aborted 守衛）。275 tests 綠、Codex 最終乾淨、runtime 驗證（deep-link→#/、Back 回 History）。3 條 thread 已回覆並 resolve。commit 85fa25b。"
     }
   ],
   "goal_groups": [
