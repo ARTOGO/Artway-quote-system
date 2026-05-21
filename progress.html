@@ -242,8 +242,8 @@
         <div class="subtitle">ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO：把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。</div>
       </div>
       <div class="timestamp">
-        <p>資料更新：2026-05-19T00:00:00+08:00</p>
-        <p>HTML 產生：2026-05-19T12:39:53+08:00</p>
+        <p>資料更新：2026-05-20T18:30:00+08:00</p>
+        <p>HTML 產生：2026-05-21T13:49:57+08:00</p>
       </div>
     </header>
 
@@ -251,18 +251,18 @@
       <div class="hero-grid">
         <div>
           <span class="pill danger">需處理</span>
-          <h2 style="margin-top: 16px;">Builder UI Session 1（PR #4 Session 1）</h2>
-          <p>Layout shell + Topbar + 三個基本 section（Meta / Client / Sales）+ state foundation（useReducer + Context）+ backend next-number API wire。</p>
+          <h2 style="margin-top: 16px;">Session 4c — 使用者回報修正（分隔線拖曳 / 階層 picker / 後端 502 / 品項可編輯）</h2>
+          <p>修使用者實測回報：後端沒起導致 502、面板分隔線拖不動、品項選擇器跟舊版不同（搜尋框 vs 三層下拉）且目錄太少（只 A-1/A-2）。</p>
         </div>
         <div class="hero-card">
           <div class="label">整體進度</div>
-          <div class="metric-large">31%</div>
-          <div class="progress-track"><div class="progress-bar" style="width: 31%;"></div></div>
+          <div class="metric-large">52%</div>
+          <div class="progress-track"><div class="progress-bar" style="width: 52%;"></div></div>
         </div>
         <div class="hero-card">
           <div class="label">目前焦點</div>
-          <div style="font-size: 22px; font-weight: 900; margin-bottom: 10px;">功能 F4 · 任務 F4-T13</div>
-          <p>PR 4 Session 1（Layout / Topbar / state foundation / Meta-Client-Sales 三個 section / backend next-number API wire）等使用者授權 commit + 開 PR</p>
+          <div style="font-size: 22px; font-weight: 900; margin-bottom: 10px;">功能 F13 · 任務 F13-T4</div>
+          <p>使用者回報 3 件全修 + 接真實 Google catalog API：① 後端 502 已起 ② 分隔線可拖曳 resize ③ 階層下拉 picker ④ 接真實 API（176 筆真品項 / 8 大品項，live 驗證加入 NT$175,000 真品項）。228 tests 綠。等使用者測 OK → /codex:review → commit。</p>
         </div>
       </div>
     </section>
@@ -270,13 +270,13 @@
     <section class="kpi-grid">
       <article class="card">
         <div class="kpi-label">範圍完成</div>
-        <div class="kpi-value">21 / 53</div>
+        <div class="kpi-value">39 / 68</div>
         <div class="kpi-note">已驗證任務才算真正完成；只有完成實作仍需補驗證證據。</div>
       </article>
       <article class="card">
         <div class="kpi-label">目前階段</div>
-        <div class="kpi-value">卡住</div>
-        <div class="kpi-note">Commit Session 1 + 開 PR</div>
+        <div class="kpi-value">已驗證</div>
+        <div class="kpi-note">接真實 Google catalog API（取代假資料）</div>
       </article>
       <article class="card">
         <div class="kpi-label">阻塞項目</div>
@@ -295,7 +295,7 @@
         <section class="card">
           <div class="card-title">
             <h3>里程碑時程</h3>
-            <span class="pill blue">13 個功能</span>
+            <span class="pill blue">15 個功能</span>
           </div>
           <div class="milestones">
 <div class="milestone-row">
@@ -320,17 +320,31 @@
 </div>
 
 <div class="milestone-row">
-  <strong>Builder UI Session 1（PR #4 Session 1）</strong>
+  <strong>Builder UI Session 1（PR #5 已 merge）</strong>
   <div class="mini-track"><div class="mini-fill yellow" style="width: 83%;"></div></div>
   <strong>83%</strong>
   <span class="pill active">進行中</span>
 </div>
 
 <div class="milestone-row">
-  <strong>Builder Groups Session 2</strong>
-  <div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div>
-  <strong>0%</strong>
-  <span class="pill neutral">待辦</span>
+  <strong>Builder Groups Session 2（PR #6 已 merge）</strong>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <strong>100%</strong>
+  <span class="pill success">已驗證</span>
+</div>
+
+<div class="milestone-row">
+  <strong>Session 4 — 報價單首頁完整功能（本機完成、待檢查）</strong>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <strong>100%</strong>
+  <span class="pill success">已驗證</span>
+</div>
+
+<div class="milestone-row">
+  <strong>Session 4c — 使用者回報修正（分隔線拖曳 / 階層 picker / 後端 502 / 品項可編輯）</strong>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <strong>100%</strong>
+  <span class="pill success">已驗證</span>
 </div>
 
 <div class="milestone-row">
@@ -456,19 +470,19 @@
 
 </div>
 
-<div id="feature-panel-f4-focus" class="feature-focus-panel" data-feature-panel="F4">
+<div id="feature-panel-f4-focus" class="feature-focus-panel" data-feature-panel="F4" hidden>
   
 <div class="feature-focus-card">
   <div>
     <span class="pill danger">目前功能 · 已阻塞</span>
-    <h3>功能 F4：Builder UI Session 1（PR #4 Session 1）</h3>
+    <h3>功能 F4：Builder UI Session 1（PR #5 已 merge）</h3>
     <p>Layout shell + Topbar + 三個基本 section（Meta / Client / Sales）+ state foundation（useReducer + Context）+ backend next-number API wire。</p>
   </div>
   <div class="feature-focus-meta">
     <div class="feature-focus-metric"><small>進度</small><strong>83%</strong></div>
     <div class="feature-focus-metric"><small>任務</small><strong>8/13</strong></div>
     <div class="feature-focus-metric"><small>阻塞</small><strong>2</strong></div>
-    <div class="feature-focus-metric"><small>焦點</small><strong>任務 F4-T13</strong></div>
+    <div class="feature-focus-metric"><small>焦點</small><strong>任務 F4-T5</strong></div>
   </div>
 </div>
 
@@ -478,15 +492,51 @@
   
 <div class="feature-focus-card">
   <div>
-    <span class="pill neutral">目前功能 · 尚未開始</span>
-    <h3>功能 F5：Builder Groups Session 2</h3>
-    <p>報價內容 Groups + 品項 Item picker + 金額計算 + 群組 add/remove/sort。</p>
+    <span class="pill success">目前功能 · 正常</span>
+    <h3>功能 F5：Builder Groups Session 2（PR #6 已 merge）</h3>
+    <p>報價內容 Groups + 品項 Item picker（inline，非 Radix）+ 金額計算 + 群組 add/remove/rename。NumberInput commit-on-blur、seq-based 編號。</p>
   </div>
   <div class="feature-focus-meta">
-    <div class="feature-focus-metric"><small>進度</small><strong>0%</strong></div>
-    <div class="feature-focus-metric"><small>任務</small><strong>0/3</strong></div>
+    <div class="feature-focus-metric"><small>進度</small><strong>100%</strong></div>
+    <div class="feature-focus-metric"><small>任務</small><strong>3/3</strong></div>
     <div class="feature-focus-metric"><small>阻塞</small><strong>0</strong></div>
     <div class="feature-focus-metric"><small>焦點</small><strong>任務 F5-T1</strong></div>
+  </div>
+</div>
+
+</div>
+
+<div id="feature-panel-f12-focus" class="feature-focus-panel" data-feature-panel="F12" hidden>
+  
+<div class="feature-focus-card">
+  <div>
+    <span class="pill success">目前功能 · 正常</span>
+    <h3>功能 F12：Session 4 — 報價單首頁完整功能（本機完成、待檢查）</h3>
+    <p>把報價單首頁做到 legacy 1:1：標題修正、Session 2.5 折扣欄+自動價差+議價/手續費、02 服務說明摘要、附件頁（第2頁起）、編輯模式 contenteditable。存雲端/PDF/真實 catalog/History 留後面。</p>
+  </div>
+  <div class="feature-focus-meta">
+    <div class="feature-focus-metric"><small>進度</small><strong>100%</strong></div>
+    <div class="feature-focus-metric"><small>任務</small><strong>11/11</strong></div>
+    <div class="feature-focus-metric"><small>阻塞</small><strong>0</strong></div>
+    <div class="feature-focus-metric"><small>焦點</small><strong>任務 F12-T1</strong></div>
+  </div>
+</div>
+
+</div>
+
+<div id="feature-panel-f13-focus" class="feature-focus-panel" data-feature-panel="F13">
+  
+<div class="feature-focus-card">
+  <div>
+    <span class="pill success">目前功能 · 正常</span>
+    <h3>功能 F13：Session 4c — 使用者回報修正（分隔線拖曳 / 階層 picker / 後端 502 / 品項可編輯）</h3>
+    <p>修使用者實測回報：後端沒起導致 502、面板分隔線拖不動、品項選擇器跟舊版不同（搜尋框 vs 三層下拉）且目錄太少（只 A-1/A-2）。</p>
+  </div>
+  <div class="feature-focus-meta">
+    <div class="feature-focus-metric"><small>進度</small><strong>100%</strong></div>
+    <div class="feature-focus-metric"><small>任務</small><strong>4/4</strong></div>
+    <div class="feature-focus-metric"><small>阻塞</small><strong>0</strong></div>
+    <div class="feature-focus-metric"><small>焦點</small><strong>任務 F13-T4</strong></div>
   </div>
 </div>
 
@@ -670,10 +720,10 @@
   <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
 </button>
 
-<button class="feature-list-item active" type="button" data-feature-target="F4" aria-controls="feature-panel-f4" aria-pressed="true">
+<button class="feature-list-item" type="button" data-feature-target="F4" aria-controls="feature-panel-f4" aria-pressed="false">
   <div class="feature-list-top">
     <div>
-      <div class="feature-list-title">功能 F4：Builder UI Session 1（PR #4 Session 1）</div>
+      <div class="feature-list-title">功能 F4：Builder UI Session 1（PR #5 已 merge）</div>
       <div class="feature-list-subtitle">Layout shell + Topbar + 三個基本 section（Meta / Client / Sales）+ state foundation（useReducer + Context）+ backend next-number API wire。</div>
     </div>
     <span class="pill yellow">83%</span>
@@ -684,12 +734,34 @@
 <button class="feature-list-item" type="button" data-feature-target="F5" aria-controls="feature-panel-f5" aria-pressed="false">
   <div class="feature-list-top">
     <div>
-      <div class="feature-list-title">功能 F5：Builder Groups Session 2</div>
-      <div class="feature-list-subtitle">報價內容 Groups + 品項 Item picker + 金額計算 + 群組 add/remove/sort。</div>
+      <div class="feature-list-title">功能 F5：Builder Groups Session 2（PR #6 已 merge）</div>
+      <div class="feature-list-subtitle">報價內容 Groups + 品項 Item picker（inline，非 Radix）+ 金額計算 + 群組 add/remove/rename。NumberInput commit-on-blur、seq-based 編號。</div>
     </div>
-    <span class="pill gray">0%</span>
+    <span class="pill green">100%</span>
   </div>
-  <div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+</button>
+
+<button class="feature-list-item" type="button" data-feature-target="F12" aria-controls="feature-panel-f12" aria-pressed="false">
+  <div class="feature-list-top">
+    <div>
+      <div class="feature-list-title">功能 F12：Session 4 — 報價單首頁完整功能（本機完成、待檢查）</div>
+      <div class="feature-list-subtitle">把報價單首頁做到 legacy 1:1：標題修正、Session 2.5 折扣欄+自動價差+議價/手續費、02 服務說明摘要、附件頁（第2頁起）、編輯模式 contenteditable。存雲端/PDF/真實 catalog/History 留後面。</div>
+    </div>
+    <span class="pill green">100%</span>
+  </div>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+</button>
+
+<button class="feature-list-item active" type="button" data-feature-target="F13" aria-controls="feature-panel-f13" aria-pressed="true">
+  <div class="feature-list-top">
+    <div>
+      <div class="feature-list-title">功能 F13：Session 4c — 使用者回報修正（分隔線拖曳 / 階層 picker / 後端 502 / 品項可編輯）</div>
+      <div class="feature-list-subtitle">修使用者實測回報：後端沒起導致 502、面板分隔線拖不動、品項選擇器跟舊版不同（搜尋框 vs 三層下拉）且目錄太少（只 A-1/A-2）。</div>
+    </div>
+    <span class="pill green">100%</span>
+  </div>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
 </button>
 
 <button class="feature-list-item" type="button" data-feature-target="F6" aria-controls="feature-panel-f6" aria-pressed="false">
@@ -833,7 +905,7 @@
 </div>
 </div>
 
-<div id="feature-panel-f4" class="feature-scope-panel" data-feature-panel="F4">
+<div id="feature-panel-f4" class="feature-scope-panel" data-feature-panel="F4" hidden>
   <div class="scope-map">
 <section class="scope-column">
   <div class="scope-column-head">前端 / UI <span class="pill yellow">7/9</span></div>
@@ -954,20 +1026,20 @@
 <div id="feature-panel-f5" class="feature-scope-panel" data-feature-panel="F5" hidden>
   <div class="scope-map">
 <section class="scope-column">
-  <div class="scope-column-head">前端 / UI <span class="pill gray">0/3</span></div>
+  <div class="scope-column-head">前端 / UI <span class="pill green">3/3</span></div>
   
 <article class="scope-task">
   <strong>Groups reducer + Group/Item types</strong>
   <div class="task-meta">
-    <span class="pill neutral">待辦</span>
+    <span class="pill success">已驗證</span>
     <span class="pill blue">任務 F5-T1</span>
   </div>
 </article>
 
 <article class="scope-task">
-  <strong>Item picker（Radix Popover 包裝）</strong>
+  <strong>Item picker（inline CatalogPicker + ManualPicker）</strong>
   <div class="task-meta">
-    <span class="pill neutral">待辦</span>
+    <span class="pill success">已驗證</span>
     <span class="pill blue">任務 F5-T2</span>
   </div>
 </article>
@@ -975,8 +1047,156 @@
 <article class="scope-task">
   <strong>金額計算 lib + 測試</strong>
   <div class="task-meta">
-    <span class="pill neutral">待辦</span>
+    <span class="pill success">已驗證</span>
     <span class="pill blue">任務 F5-T3</span>
+  </div>
+</article>
+
+</section>
+</div>
+</div>
+
+<div id="feature-panel-f12" class="feature-scope-panel" data-feature-panel="F12" hidden>
+  <div class="scope-map">
+<section class="scope-column">
+  <div class="scope-column-head">前端 / UI <span class="pill green">10/10</span></div>
+  
+<article class="scope-task">
+  <strong>標題修正 報價內容 → 01 專案報價內容</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F12-T1</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>catalog 加 service_description + price_arts 已存在</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F12-T2</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>Discount 折扣欄 + 自動價差（builder + preview + calc）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F12-T3</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>議價/手續費 adjustment 列（builder + preview + total）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F12-T4</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>02 服務說明摘要（panel + preview，從品項衍生）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F12-T5</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>附件頁 Appendix（第2頁起、每個 sub_group 一頁）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F12-T6</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>編輯模式 contenteditable（toggle + 確認 modal + 葉節點可編輯）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F12-T7</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>品項重新選擇 repick ⟲（非手動品項）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F12-T9</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>品項拖曳排序 reorder（MOVE_ITEM + drag handle）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F12-T10</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>定價/優惠價 tier switch（autoDiscount 鎖定）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F12-T11</span>
+  </div>
+</article>
+
+</section>
+
+<section class="scope-column">
+  <div class="scope-column-head">Qa / Release <span class="pill green">1/1</span></div>
+  
+<article class="scope-task">
+  <strong>Exhaustive Playwright QA + 全 quality gate</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F12-T8</span>
+  </div>
+</article>
+
+</section>
+</div>
+</div>
+
+<div id="feature-panel-f13" class="feature-scope-panel" data-feature-panel="F13">
+  <div class="scope-map">
+<section class="scope-column">
+  <div class="scope-column-head">前端 / UI <span class="pill green">3/3</span></div>
+  
+<article class="scope-task">
+  <strong>面板分隔線可拖曳 resize</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F13-T2</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>品項選擇器改三層下拉 + 補齊 A-1~A-7 目錄 + 副品項/名稱可編輯</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F13-T3</span>
+  </div>
+</article>
+
+<article class="scope-task">
+  <strong>接真實 Google catalog API（取代假資料）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F13-T4</span>
+  </div>
+</article>
+
+</section>
+
+<section class="scope-column">
+  <div class="scope-column-head">基礎設施 <span class="pill green">1/1</span></div>
+  
+<article class="scope-task">
+  <strong>後端 502 修復（docker compose up）</strong>
+  <div class="task-meta">
+    <span class="pill success">已驗證</span>
+    <span class="pill blue">任務 F13-T1</span>
   </div>
 </article>
 
@@ -1870,7 +2090,7 @@
 
 </div>
 
-<div class="feature-panel" data-feature-panel="F4">
+<div class="feature-panel" data-feature-panel="F4" hidden>
   
 <section class="card">
   <div class="card-title">
@@ -2237,7 +2457,7 @@
     <div class="tab-panels">
       <div class="tab-panel overview-panel">
         <div class="management-grid">
-          <article class="management-card"><h4>目標對齊</h4><div class="detail-value">報價內容 Groups + 品項 Item picker + 金額計算 + 群組 add/remove/sort。</div></article>
+          <article class="management-card"><h4>目標對齊</h4><div class="detail-value">報價內容 Groups + 品項 Item picker（inline，非 Radix）+ 金額計算 + 群組 add/remove/rename。NumberInput commit-on-blur、seq-based 編號。</div></article>
           <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
@@ -2250,33 +2470,9 @@
         </div>
       </div>
       <div class="tab-panel kanban-panel"><div class="compact-kanban">
-<section class="mini-lane">
-  <div class="mini-lane-title">可開始 <span>3</span></div>
-  
-<article class="task-card">
-  <strong>Groups reducer + Group/Item types</strong>
-  <div class="task-meta">
-    <span class="pill purple">前端 / UI</span>
-    <span class="pill neutral">待辦</span>
-  </div>
-</article>
-
-<article class="task-card">
-  <strong>Item picker（Radix Popover 包裝）</strong>
-  <div class="task-meta">
-    <span class="pill purple">前端 / UI</span>
-    <span class="pill neutral">待辦</span>
-  </div>
-</article>
-
-<article class="task-card">
-  <strong>金額計算 lib + 測試</strong>
-  <div class="task-meta">
-    <span class="pill purple">前端 / UI</span>
-    <span class="pill neutral">待辦</span>
-  </div>
-</article>
-
+<section class="mini-lane empty">
+  <div class="mini-lane-title">可開始 <span>0</span></div>
+  <p class="muted small">無任務</p>
 </section>
 
 <section class="mini-lane empty">
@@ -2294,17 +2490,41 @@
   <p class="muted small">無任務</p>
 </section>
 
-<section class="mini-lane empty">
-  <div class="mini-lane-title">已完成 <span>0</span></div>
-  <p class="muted small">無任務</p>
+<section class="mini-lane">
+  <div class="mini-lane-title">已完成 <span>3</span></div>
+  
+<article class="task-card">
+  <strong>Groups reducer + Group/Item types</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>Item picker（inline CatalogPicker + ManualPicker）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>金額計算 lib + 測試</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
 </section>
 </div></div>
       <div class="tab-panel workstream-panel"><div class="load-grid">
 <article class="management-card">
   <h4>前端 / UI</h4>
-  <div class="kpi-value small-value">0%</div>
-  <div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div>
-  <div class="kpi-note">3 未完成 / 0 已阻塞</div>
+  <div class="kpi-value small-value">100%</div>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <div class="kpi-note">0 未完成 / 0 已阻塞</div>
 </article>
 </div></div>
       <div class="tab-panel timeline-panel">
@@ -2314,19 +2534,558 @@
 <div class="timeline-track">
   <div class="timeline-track-label">前端 / UI<small>3 個任務</small></div>
   
-<div class="timeline-bar neutral" style="grid-column: 1 / 3;">
+<div class="timeline-bar success" style="grid-column: 1 / 3;">
   Groups reducer + Group/Item types
-  <small>待辦 · 0%</small>
+  <small>已驗證 · 100%</small>
 </div>
 
-<div class="timeline-bar neutral" style="grid-column: 2 / 4;">
-  Item picker（Radix Popover 包裝）
-  <small>待辦 · 0%</small>
+<div class="timeline-bar success" style="grid-column: 2 / 4;">
+  Item picker（inline CatalogPicker + ManualPicker）
+  <small>已驗證 · 100%</small>
 </div>
 
-<div class="timeline-bar neutral" style="grid-column: 3 / 5;">
+<div class="timeline-bar success" style="grid-column: 3 / 5;">
   金額計算 lib + 測試
-  <small>待辦 · 0%</small>
+  <small>已驗證 · 100%</small>
+</div>
+
+</div>
+</div>
+  <div class="timeline-now-row"><span></span><div class="timeline-now-line"></div></div>
+</div>
+</div>
+      <div class="tab-panel risk-panel">
+<div class="table-wrap">
+  <table class="risk-table">
+    <thead><tr><th>類型</th><th>內容</th><th>狀態</th></tr></thead>
+    <tbody>
+<tr>
+  <td>未覆蓋</td>
+  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+</tbody>
+  </table>
+</div>
+</div>
+    </div>
+  </div>
+</section>
+
+  
+<section class="card blocker-diagnosis">
+  <div class="card-title">
+    <h3>阻塞診斷</h3>
+    <span class="pill green">無阻塞</span>
+  </div>
+  <div class="blocker-grid">
+    <article class="blocker-card">
+      <h4>目前阻塞節點</h4>
+      <dl class="blocker-field-grid">
+        <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>負責人</dt><dd>待指定</dd>
+        <dt>解除期限</dt><dd>待指定</dd>
+      </dl>
+    </article>
+    <article class="blocker-card">
+      <h4>影響鏈</h4>
+      <div class="impact-chain">無啟用中的影響鏈</div>
+      <h4 style="margin-top: 14px;">解除阻塞清單</h4>
+      <div class="unblock-list"><div class="unblock-item"><span class="unblock-num">1</span><span>補齊卡住原因與負責人</span></div><div class="unblock-item"><span class="unblock-num">2</span><span>確認受影響任務 / 工作流</span></div><div class="unblock-item"><span class="unblock-num">3</span><span>定義解除阻塞所需決策或行動</span></div><div class="unblock-item"><span class="unblock-num">4</span><span>解除後重新跑驗證並更新證據</span></div></div>
+    </article>
+  </div>
+</section>
+
+</div>
+
+<div class="feature-panel" data-feature-panel="F12" hidden>
+  
+<section class="card">
+  <div class="card-title">
+    <h3>所選功能的管理視角</h3>
+    <span class="pill blue">同一範圍，多種視角</span>
+  </div>
+
+  <div class="tab-system">
+    <input type="radio" id="feature-f12-view-overview" name="feature-f12-view-feature-view" data-tab="overview" checked>
+    <input type="radio" id="feature-f12-view-kanban" name="feature-f12-view-feature-view" data-tab="kanban">
+    <input type="radio" id="feature-f12-view-workstream" name="feature-f12-view-feature-view" data-tab="workstream">
+    <input type="radio" id="feature-f12-view-timeline" name="feature-f12-view-feature-view" data-tab="timeline">
+    <input type="radio" id="feature-f12-view-risk" name="feature-f12-view-feature-view" data-tab="risk">
+
+    <div class="tab-labels">
+      <label for="feature-f12-view-overview" data-tab="overview">總覽地圖</label>
+      <label for="feature-f12-view-kanban" data-tab="kanban">看板</label>
+      <label for="feature-f12-view-workstream" data-tab="workstream">工作流</label>
+      <label for="feature-f12-view-timeline" data-tab="timeline">時程</label>
+      <label for="feature-f12-view-risk" data-tab="risk">風險 / 決策</label>
+    </div>
+
+    <div class="tab-panels">
+      <div class="tab-panel overview-panel">
+        <div class="management-grid">
+          <article class="management-card"><h4>目標對齊</h4><div class="detail-value">把報價單首頁做到 legacy 1:1：標題修正、Session 2.5 折扣欄+自動價差+議價/手續費、02 服務說明摘要、附件頁（第2頁起）、編輯模式 contenteditable。存雲端/PDF/真實 catalog/History 留後面。</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
+        </div>
+        <div class="readiness-gate">
+          <article class="gate-step"><strong>1. 範圍</strong><span class="pill blue">需檢查</span><small>目標與功能關係需可追溯。</small></article>
+          <article class="gate-step"><strong>2. 實作</strong><span class="pill yellow">進行中</span><small>工作必須落到任務與驗證證據。</small></article>
+          <article class="gate-step"><strong>3. 驗證</strong><span class="pill purple">必要</span><small>實作完成不等於已驗證，必須有證據。</small></article>
+          <article class="gate-step"><strong>4. 風險</strong><span class="pill yellow">待處理</span><small>未覆蓋流程必須可見。</small></article>
+          <article class="gate-step"><strong>5. 發布</strong><span class="pill gray">受阻</span><small>skill MVP 不做完整產品化後端。</small></article>
+        </div>
+      </div>
+      <div class="tab-panel kanban-panel"><div class="compact-kanban">
+<section class="mini-lane empty">
+  <div class="mini-lane-title">可開始 <span>0</span></div>
+  <p class="muted small">無任務</p>
+</section>
+
+<section class="mini-lane empty">
+  <div class="mini-lane-title">進行中 <span>0</span></div>
+  <p class="muted small">無任務</p>
+</section>
+
+<section class="mini-lane empty">
+  <div class="mini-lane-title">審查中 <span>0</span></div>
+  <p class="muted small">無任務</p>
+</section>
+
+<section class="mini-lane empty">
+  <div class="mini-lane-title">已阻塞 <span>0</span></div>
+  <p class="muted small">無任務</p>
+</section>
+
+<section class="mini-lane">
+  <div class="mini-lane-title">已完成 <span>11</span></div>
+  
+<article class="task-card">
+  <strong>標題修正 報價內容 → 01 專案報價內容</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>catalog 加 service_description + price_arts 已存在</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>Discount 折扣欄 + 自動價差（builder + preview + calc）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>議價/手續費 adjustment 列（builder + preview + total）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>02 服務說明摘要（panel + preview，從品項衍生）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>附件頁 Appendix（第2頁起、每個 sub_group 一頁）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>編輯模式 contenteditable（toggle + 確認 modal + 葉節點可編輯）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>Exhaustive Playwright QA + 全 quality gate</strong>
+  <div class="task-meta">
+    <span class="pill purple">Qa / Release</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>品項重新選擇 repick ⟲（非手動品項）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>品項拖曳排序 reorder（MOVE_ITEM + drag handle）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>定價/優惠價 tier switch（autoDiscount 鎖定）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+</section>
+</div></div>
+      <div class="tab-panel workstream-panel"><div class="load-grid">
+<article class="management-card">
+  <h4>前端 / UI</h4>
+  <div class="kpi-value small-value">100%</div>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <div class="kpi-note">0 未完成 / 0 已阻塞</div>
+</article>
+
+<article class="management-card">
+  <h4>Qa / Release</h4>
+  <div class="kpi-value small-value">100%</div>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <div class="kpi-note">0 未完成 / 0 已阻塞</div>
+</article>
+</div></div>
+      <div class="tab-panel timeline-panel">
+<div class="timeline-visual">
+  <div class="timeline-ruler"><span></span><span>範圍</span><span>設計</span><span>實作</span><span>審查</span><span>QA</span><span>發布</span></div>
+  <div class="timeline-board">
+<div class="timeline-track">
+  <div class="timeline-track-label">前端 / UI<small>10 個任務</small></div>
+  
+<div class="timeline-bar success" style="grid-column: 1 / 3;">
+  標題修正 報價內容 → 01 專案報價內容
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 2 / 4;">
+  catalog 加 service_description + price_arts 已存在
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 3 / 5;">
+  Discount 折扣欄 + 自動價差（builder + preview + calc）
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 4 / 6;">
+  議價/手續費 adjustment 列（builder + preview + total）
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 5 / 7;">
+  02 服務說明摘要（panel + preview，從品項衍生）
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 6 / 8;">
+  附件頁 Appendix（第2頁起、每個 sub_group 一頁）
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 6 / 8;">
+  編輯模式 contenteditable（toggle + 確認 modal + 葉節點可編輯）
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 6 / 8;">
+  品項重新選擇 repick ⟲（非手動品項）
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 6 / 8;">
+  品項拖曳排序 reorder（MOVE_ITEM + drag handle）
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 6 / 8;">
+  定價/優惠價 tier switch（autoDiscount 鎖定）
+  <small>已驗證 · 100%</small>
+</div>
+
+</div>
+
+<div class="timeline-track">
+  <div class="timeline-track-label">Qa / Release<small>1 個任務</small></div>
+  
+<div class="timeline-bar success" style="grid-column: 2 / 4;">
+  Exhaustive Playwright QA + 全 quality gate
+  <small>已驗證 · 100%</small>
+</div>
+
+</div>
+</div>
+  <div class="timeline-now-row"><span></span><div class="timeline-now-line"></div></div>
+</div>
+</div>
+      <div class="tab-panel risk-panel">
+<div class="table-wrap">
+  <table class="risk-table">
+    <thead><tr><th>類型</th><th>內容</th><th>狀態</th></tr></thead>
+    <tbody>
+<tr>
+  <td>未覆蓋</td>
+  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+
+<tr>
+  <td>未覆蓋</td>
+  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td><span class="pill yellow">待處理</span></td>
+</tr>
+</tbody>
+  </table>
+</div>
+</div>
+    </div>
+  </div>
+</section>
+
+  
+<section class="card blocker-diagnosis">
+  <div class="card-title">
+    <h3>阻塞診斷</h3>
+    <span class="pill green">無阻塞</span>
+  </div>
+  <div class="blocker-grid">
+    <article class="blocker-card">
+      <h4>目前阻塞節點</h4>
+      <dl class="blocker-field-grid">
+        <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>負責人</dt><dd>待指定</dd>
+        <dt>解除期限</dt><dd>待指定</dd>
+      </dl>
+    </article>
+    <article class="blocker-card">
+      <h4>影響鏈</h4>
+      <div class="impact-chain">無啟用中的影響鏈</div>
+      <h4 style="margin-top: 14px;">解除阻塞清單</h4>
+      <div class="unblock-list"><div class="unblock-item"><span class="unblock-num">1</span><span>補齊卡住原因與負責人</span></div><div class="unblock-item"><span class="unblock-num">2</span><span>確認受影響任務 / 工作流</span></div><div class="unblock-item"><span class="unblock-num">3</span><span>定義解除阻塞所需決策或行動</span></div><div class="unblock-item"><span class="unblock-num">4</span><span>解除後重新跑驗證並更新證據</span></div></div>
+    </article>
+  </div>
+</section>
+
+</div>
+
+<div class="feature-panel" data-feature-panel="F13">
+  
+<section class="card">
+  <div class="card-title">
+    <h3>所選功能的管理視角</h3>
+    <span class="pill blue">同一範圍，多種視角</span>
+  </div>
+
+  <div class="tab-system">
+    <input type="radio" id="feature-f13-view-overview" name="feature-f13-view-feature-view" data-tab="overview" checked>
+    <input type="radio" id="feature-f13-view-kanban" name="feature-f13-view-feature-view" data-tab="kanban">
+    <input type="radio" id="feature-f13-view-workstream" name="feature-f13-view-feature-view" data-tab="workstream">
+    <input type="radio" id="feature-f13-view-timeline" name="feature-f13-view-feature-view" data-tab="timeline">
+    <input type="radio" id="feature-f13-view-risk" name="feature-f13-view-feature-view" data-tab="risk">
+
+    <div class="tab-labels">
+      <label for="feature-f13-view-overview" data-tab="overview">總覽地圖</label>
+      <label for="feature-f13-view-kanban" data-tab="kanban">看板</label>
+      <label for="feature-f13-view-workstream" data-tab="workstream">工作流</label>
+      <label for="feature-f13-view-timeline" data-tab="timeline">時程</label>
+      <label for="feature-f13-view-risk" data-tab="risk">風險 / 決策</label>
+    </div>
+
+    <div class="tab-panels">
+      <div class="tab-panel overview-panel">
+        <div class="management-grid">
+          <article class="management-card"><h4>目標對齊</h4><div class="detail-value">修使用者實測回報：後端沒起導致 502、面板分隔線拖不動、品項選擇器跟舊版不同（搜尋框 vs 三層下拉）且目錄太少（只 A-1/A-2）。</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
+        </div>
+        <div class="readiness-gate">
+          <article class="gate-step"><strong>1. 範圍</strong><span class="pill blue">需檢查</span><small>目標與功能關係需可追溯。</small></article>
+          <article class="gate-step"><strong>2. 實作</strong><span class="pill yellow">進行中</span><small>工作必須落到任務與驗證證據。</small></article>
+          <article class="gate-step"><strong>3. 驗證</strong><span class="pill purple">必要</span><small>實作完成不等於已驗證，必須有證據。</small></article>
+          <article class="gate-step"><strong>4. 風險</strong><span class="pill yellow">待處理</span><small>未覆蓋流程必須可見。</small></article>
+          <article class="gate-step"><strong>5. 發布</strong><span class="pill gray">受阻</span><small>skill MVP 不做完整產品化後端。</small></article>
+        </div>
+      </div>
+      <div class="tab-panel kanban-panel"><div class="compact-kanban">
+<section class="mini-lane empty">
+  <div class="mini-lane-title">可開始 <span>0</span></div>
+  <p class="muted small">無任務</p>
+</section>
+
+<section class="mini-lane empty">
+  <div class="mini-lane-title">進行中 <span>0</span></div>
+  <p class="muted small">無任務</p>
+</section>
+
+<section class="mini-lane empty">
+  <div class="mini-lane-title">審查中 <span>0</span></div>
+  <p class="muted small">無任務</p>
+</section>
+
+<section class="mini-lane empty">
+  <div class="mini-lane-title">已阻塞 <span>0</span></div>
+  <p class="muted small">無任務</p>
+</section>
+
+<section class="mini-lane">
+  <div class="mini-lane-title">已完成 <span>4</span></div>
+  
+<article class="task-card">
+  <strong>後端 502 修復（docker compose up）</strong>
+  <div class="task-meta">
+    <span class="pill purple">基礎設施</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>面板分隔線可拖曳 resize</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>品項選擇器改三層下拉 + 補齊 A-1~A-7 目錄 + 副品項/名稱可編輯</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+<article class="task-card">
+  <strong>接真實 Google catalog API（取代假資料）</strong>
+  <div class="task-meta">
+    <span class="pill purple">前端 / UI</span>
+    <span class="pill success">已驗證</span>
+  </div>
+</article>
+
+</section>
+</div></div>
+      <div class="tab-panel workstream-panel"><div class="load-grid">
+<article class="management-card">
+  <h4>前端 / UI</h4>
+  <div class="kpi-value small-value">100%</div>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <div class="kpi-note">0 未完成 / 0 已阻塞</div>
+</article>
+
+<article class="management-card">
+  <h4>基礎設施</h4>
+  <div class="kpi-value small-value">100%</div>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <div class="kpi-note">0 未完成 / 0 已阻塞</div>
+</article>
+</div></div>
+      <div class="tab-panel timeline-panel">
+<div class="timeline-visual">
+  <div class="timeline-ruler"><span></span><span>範圍</span><span>設計</span><span>實作</span><span>審查</span><span>QA</span><span>發布</span></div>
+  <div class="timeline-board">
+<div class="timeline-track">
+  <div class="timeline-track-label">前端 / UI<small>3 個任務</small></div>
+  
+<div class="timeline-bar success" style="grid-column: 1 / 3;">
+  面板分隔線可拖曳 resize
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 2 / 4;">
+  品項選擇器改三層下拉 + 補齊 A-1~A-7 目錄 + 副品項/名稱可編輯
+  <small>已驗證 · 100%</small>
+</div>
+
+<div class="timeline-bar success" style="grid-column: 3 / 5;">
+  接真實 Google catalog API（取代假資料）
+  <small>已驗證 · 100%</small>
+</div>
+
+</div>
+
+<div class="timeline-track">
+  <div class="timeline-track-label">基礎設施<small>1 個任務</small></div>
+  
+<div class="timeline-bar success" style="grid-column: 2 / 4;">
+  後端 502 修復（docker compose up）
+  <small>已驗證 · 100%</small>
 </div>
 
 </div>
@@ -4195,7 +4954,7 @@
       <h3>報價系統 React 重構 + Cloud Run + IAP 上線（核心目標）</h3>
       <p>把舊單檔 HTML 重構成可內網部署的 React + Go 應用，並完成業務 cutover。</p>
     </div>
-    <strong>31%</strong>
+    <strong>52%</strong>
   </div>
   <ol class="outcome-list">
 <li>
@@ -4211,9 +4970,9 @@
   <div>
     <span>O2</span>
     <strong>Builder 頁完整 1:1 復刻舊版 UX</strong>
-    <em>F4 Builder UI Session 1（PR #4 Session 1）, F5 Builder Groups Session 2, F6 Builder Preview Session 3, F7 Builder Session 4 — History + Radix Modals, F8 Builder Session 5 — Hash router 完整接 + 列印驗證 + polish</em>
+    <em>F4 Builder UI Session 1（PR #5 已 merge）, F5 Builder Groups Session 2（PR #6 已 merge）, F12 Session 4 — 報價單首頁完整功能（本機完成、待檢查）, F6 Builder Preview Session 3, F7 Builder Session 4 — History + Radix Modals, F8 Builder Session 5 — Hash router 完整接 + 列印驗證 + polish</em>
   </div>
-  <b>21%</b>
+  <b>57%</b>
 </li>
 
 <li>
@@ -4277,6 +5036,27 @@
 </li>
 </ol>
 </article>
+
+<article class="goal-summary goal-side">
+  <div class="goal-summary-head">
+    <div>
+      <p class="eyebrow">G-unassigned · 附帶工作</p>
+      <h3>未歸類功能</h3>
+      <p>這些功能尚未連到最終目標或本輪附帶工作。</p>
+    </div>
+    <strong>100%</strong>
+  </div>
+  <ol class="outcome-list">
+<li>
+  <div>
+    <span>G-unassigned-outcome</span>
+    <strong>未歸類功能</strong>
+    <em>F13 Session 4c — 使用者回報修正（分隔線拖曳 / 階層 picker / 後端 502 / 品項可編輯）</em>
+  </div>
+  <b>100%</b>
+</li>
+</ol>
+</article>
 </div>
         </section>
 
@@ -4298,9 +5078,9 @@
 <div class="status-row tone-success">
   <div class="status-row-label">
     <span>已驗證</span>
-    <strong>21</strong>
+    <strong>39</strong>
   </div>
-  <div class="mini-bar"><span style="width: 40%"></span></div>
+  <div class="mini-bar"><span style="width: 57%"></span></div>
 </div>
 
 <div class="status-row tone-warning">
@@ -4332,7 +5112,7 @@
     <span>待驗證</span>
     <strong>4</strong>
   </div>
-  <div class="mini-bar"><span style="width: 8%"></span></div>
+  <div class="mini-bar"><span style="width: 6%"></span></div>
 </div>
 
 <div class="status-row tone-danger">
@@ -4340,7 +5120,7 @@
     <span>卡住</span>
     <strong>3</strong>
   </div>
-  <div class="mini-bar"><span style="width: 6%"></span></div>
+  <div class="mini-bar"><span style="width: 4%"></span></div>
 </div>
 
 <div class="status-row tone-neutral">
@@ -4354,9 +5134,9 @@
 <div class="status-row tone-neutral">
   <div class="status-row-label">
     <span>待辦</span>
-    <strong>25</strong>
+    <strong>22</strong>
   </div>
-  <div class="mini-bar"><span style="width: 47%"></span></div>
+  <div class="mini-bar"><span style="width: 32%"></span></div>
 </div>
 </div>
             <div><h4>下一步</h4><ol class="action-list">
@@ -4623,62 +5403,62 @@
 
 </div>
 
-<div class="feature-drawer-panel" data-feature-panel="F4">
+<div class="feature-drawer-panel" data-feature-panel="F4" hidden>
   
 <aside class="card side-card">
   <div class="card-title drawer-card-title">
     <h3>任務細節抽屜</h3>
     <div class="drawer-title-actions">
-      <span class="pill danger">卡住</span>
+      <span class="pill warning">待驗證</span>
       <button type="button" class="drawer-close" data-drawer-close aria-label="收合任務細節">收合</button>
     </div>
   </div>
   <div class="detail-block-static">
-    <div class="detail-label">功能 F4 · 任務 F4-T13</div>
-    <div class="detail-value"><strong>Commit Session 1 + 開 PR</strong></div>
+    <div class="detail-label">功能 F4 · 任務 F4-T5</div>
+    <div class="detail-value"><strong>Meta / Client / Sales 三個 section</strong></div>
   </div>
-  <div class="progress-detail-row"><strong>進度</strong><div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div><span>0%</span></div>
+  <div class="progress-detail-row"><strong>進度</strong><div class="mini-track"><div class="mini-fill yellow" style="width: 90%;"></div></div><span>90%</span></div>
   <div class="detail-block-static">
     <div class="detail-label">進度拆解</div>
     <div>
 <div class="progress-detail-row">
   <strong>規格</strong>
-  <div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div>
-  <span>0%</span>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <span>100%</span>
 </div>
 
 <div class="progress-detail-row">
   <strong>實作</strong>
-  <div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div>
-  <span>0%</span>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 90%;"></div></div>
+  <span>90%</span>
 </div>
 
 <div class="progress-detail-row">
   <strong>審查</strong>
-  <div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div>
-  <span>0%</span>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 80%;"></div></div>
+  <span>80%</span>
 </div>
 
 <div class="progress-detail-row">
   <strong>測試</strong>
-  <div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div>
-  <span>0%</span>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 40%;"></div></div>
+  <span>40%</span>
 </div>
 
 <div class="progress-detail-row">
   <strong>文件</strong>
-  <div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div>
-  <span>0%</span>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 20%;"></div></div>
+  <span>20%</span>
 </div>
 </div>
   </div>
   <div class="detail-block-static">
     <div class="detail-label">工作流</div>
-    <div class="detail-value">Qa / Release</div>
+    <div class="detail-value">前端 / UI</div>
   </div>
   <div class="detail-block-static">
     <div class="detail-label">修改檔案</div>
-    <div class="detail-value"><p class="muted">尚未連結檔案。</p></div>
+    <div class="detail-value"><ul><li>frontend/src/pages/Builder/sections/MetaSection.tsx</li><li>frontend/src/pages/Builder/sections/ClientSection.tsx</li><li>frontend/src/pages/Builder/sections/SalesSection.tsx</li><li>frontend/src/pages/Builder/sections/sections.module.scss</li></ul></div>
   </div>
   <div class="detail-block-static">
     <div class="detail-label">檢查清單 / 子任務</div>
@@ -4686,7 +5466,7 @@
   </div>
   <div class="detail-block-static">
     <div class="detail-label">驗證證據</div>
-    <div class="detail-value"><p class="muted">尚未記錄驗證證據。</p></div>
+    <div class="detail-value"><ul class="evidence"><li><strong>測試</strong>: pnpm test <span>整合至 BuilderPanel 測試覆蓋</span></li></ul></div>
   </div>
   <div class="detail-block-static">
     <div class="detail-label">驗收條件 / 連結 / 最新更新</div>
@@ -4702,7 +5482,7 @@
   <div class="card-title drawer-card-title">
     <h3>任務細節抽屜</h3>
     <div class="drawer-title-actions">
-      <span class="pill neutral">待辦</span>
+      <span class="pill success">已驗證</span>
       <button type="button" class="drawer-close" data-drawer-close aria-label="收合任務細節">收合</button>
     </div>
   </div>
@@ -4710,38 +5490,38 @@
     <div class="detail-label">功能 F5 · 任務 F5-T1</div>
     <div class="detail-value"><strong>Groups reducer + Group/Item types</strong></div>
   </div>
-  <div class="progress-detail-row"><strong>進度</strong><div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div><span>0%</span></div>
+  <div class="progress-detail-row"><strong>進度</strong><div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div><span>100%</span></div>
   <div class="detail-block-static">
     <div class="detail-label">進度拆解</div>
     <div>
 <div class="progress-detail-row">
   <strong>規格</strong>
-  <div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div>
-  <span>0%</span>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <span>100%</span>
 </div>
 
 <div class="progress-detail-row">
   <strong>實作</strong>
-  <div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div>
-  <span>0%</span>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <span>100%</span>
 </div>
 
 <div class="progress-detail-row">
   <strong>審查</strong>
-  <div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div>
-  <span>0%</span>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 80%;"></div></div>
+  <span>80%</span>
 </div>
 
 <div class="progress-detail-row">
   <strong>測試</strong>
-  <div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div>
-  <span>0%</span>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 40%;"></div></div>
+  <span>40%</span>
 </div>
 
 <div class="progress-detail-row">
   <strong>文件</strong>
-  <div class="mini-track"><div class="mini-fill gray" style="width: 0%;"></div></div>
-  <span>0%</span>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 20%;"></div></div>
+  <span>20%</span>
 </div>
 </div>
   </div>
@@ -4759,7 +5539,153 @@
   </div>
   <div class="detail-block-static">
     <div class="detail-label">驗證證據</div>
-    <div class="detail-value"><p class="muted">尚未記錄驗證證據。</p></div>
+    <div class="detail-value"><ul class="evidence"><li><strong>git</strong>: e5fd3e0 Merge PR #6 <span>已 merge main</span></li></ul></div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">驗收條件 / 連結 / 最新更新</div>
+    <div class="detail-value"><p class="muted">尚未記錄驗收條件。</p></div>
+  </div>
+</aside>
+
+</div>
+
+<div class="feature-drawer-panel" data-feature-panel="F12" hidden>
+  
+<aside class="card side-card">
+  <div class="card-title drawer-card-title">
+    <h3>任務細節抽屜</h3>
+    <div class="drawer-title-actions">
+      <span class="pill success">已驗證</span>
+      <button type="button" class="drawer-close" data-drawer-close aria-label="收合任務細節">收合</button>
+    </div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">功能 F12 · 任務 F12-T1</div>
+    <div class="detail-value"><strong>標題修正 報價內容 → 01 專案報價內容</strong></div>
+  </div>
+  <div class="progress-detail-row"><strong>進度</strong><div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div><span>100%</span></div>
+  <div class="detail-block-static">
+    <div class="detail-label">進度拆解</div>
+    <div>
+<div class="progress-detail-row">
+  <strong>規格</strong>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <span>100%</span>
+</div>
+
+<div class="progress-detail-row">
+  <strong>實作</strong>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <span>100%</span>
+</div>
+
+<div class="progress-detail-row">
+  <strong>審查</strong>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 80%;"></div></div>
+  <span>80%</span>
+</div>
+
+<div class="progress-detail-row">
+  <strong>測試</strong>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 40%;"></div></div>
+  <span>40%</span>
+</div>
+
+<div class="progress-detail-row">
+  <strong>文件</strong>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 20%;"></div></div>
+  <span>20%</span>
+</div>
+</div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">工作流</div>
+    <div class="detail-value">前端 / UI</div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">修改檔案</div>
+    <div class="detail-value"><ul><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li></ul></div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">檢查清單 / 子任務</div>
+    <div class="checklist"><p class="muted">尚未拆檢查清單。</p></div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">驗證證據</div>
+    <div class="detail-value"><ul class="evidence"><li><strong>瀏覽器</strong>: Playwright 左面板標題 <span>顯示 01 專案報價內容（對齊 legacy line 1841）</span></li></ul></div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">驗收條件 / 連結 / 最新更新</div>
+    <div class="detail-value"><p class="muted">尚未記錄驗收條件。</p></div>
+  </div>
+</aside>
+
+</div>
+
+<div class="feature-drawer-panel" data-feature-panel="F13">
+  
+<aside class="card side-card">
+  <div class="card-title drawer-card-title">
+    <h3>任務細節抽屜</h3>
+    <div class="drawer-title-actions">
+      <span class="pill success">已驗證</span>
+      <button type="button" class="drawer-close" data-drawer-close aria-label="收合任務細節">收合</button>
+    </div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">功能 F13 · 任務 F13-T4</div>
+    <div class="detail-value"><strong>接真實 Google catalog API（取代假資料）</strong></div>
+  </div>
+  <div class="progress-detail-row"><strong>進度</strong><div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div><span>100%</span></div>
+  <div class="detail-block-static">
+    <div class="detail-label">進度拆解</div>
+    <div>
+<div class="progress-detail-row">
+  <strong>規格</strong>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <span>100%</span>
+</div>
+
+<div class="progress-detail-row">
+  <strong>實作</strong>
+  <div class="mini-track"><div class="mini-fill green" style="width: 100%;"></div></div>
+  <span>100%</span>
+</div>
+
+<div class="progress-detail-row">
+  <strong>審查</strong>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 80%;"></div></div>
+  <span>80%</span>
+</div>
+
+<div class="progress-detail-row">
+  <strong>測試</strong>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 40%;"></div></div>
+  <span>40%</span>
+</div>
+
+<div class="progress-detail-row">
+  <strong>文件</strong>
+  <div class="mini-track"><div class="mini-fill yellow" style="width: 20%;"></div></div>
+  <span>20%</span>
+</div>
+</div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">工作流</div>
+    <div class="detail-value">前端 / UI</div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">修改檔案</div>
+    <div class="detail-value"><ul><li>frontend/src/api/items.ts</li><li>frontend/src/api/items.test.ts</li><li>frontend/src/lib/useItemsCatalog.ts</li><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li></ul></div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">檢查清單 / 子任務</div>
+    <div class="checklist"><p class="muted">尚未拆檢查清單。</p></div>
+  </div>
+  <div class="detail-block-static">
+    <div class="detail-label">驗證證據</div>
+    <div class="detail-value"><ul class="evidence"><li><strong>瀏覽器</strong>: Playwright live fetch <span>載入 176 筆真品項 / 8 大品項；A-1~A-7 真實副品項；加入 NT$175,000 真品項並帶入預覽</span></li><li><strong>測試</strong>: items.test 7（normalizeCatalog + fetch cache/error） <span>pass</span></li><li><strong>network</strong>: GET Apps Script exec <span>302→googleusercontent 200；CORS 從瀏覽器可達</span></li></ul></div>
   </div>
   <div class="detail-block-static">
     <div class="detail-label">驗收條件 / 連結 / 最新更新</div>
@@ -5376,7 +6302,7 @@
       <p>把舊單檔 HTML 重構成可內網部署的 React + Go 應用，並完成業務 cutover。</p>
     </div>
     <div class="goal-percent">
-      <strong>31%</strong>
+      <strong>52%</strong>
       <span>最終目標進度</span>
     </div>
   </div>
@@ -5490,7 +6416,7 @@
   <div class="goal-outcome-head">
     <p class="eyebrow">O2</p>
     <h3>Builder 頁完整 1:1 復刻舊版 UX</h3>
-    <p>Topbar / 三個基本 section / Groups / 預覽 / History / Modals / Print 全部對齊舊版，業務能完成所有操作</p>
+    <p>Topbar / 三個基本 section / Groups / 折扣議價 / 02 服務 / 附件頁 / 編輯模式 / 預覽 / History / Modals / Print 全部對齊舊版，業務能完成所有操作</p>
   </div>
   <div class="goal-feature-list">
     <h4>關聯功能</h4>
@@ -5499,7 +6425,7 @@
   <div class="goal-feature-head">
     <div>
       <p class="eyebrow">F4</p>
-      <h3>Builder UI Session 1（PR #4 Session 1）</h3>
+      <h3>Builder UI Session 1（PR #5 已 merge）</h3>
       <p>Layout shell + Topbar + 三個基本 section（Meta / Client / Sales）+ state foundation（useReducer + Context）+ backend next-number API wire。</p>
     </div>
     <strong>83%</strong>
@@ -5590,12 +6516,12 @@
   <div class="goal-feature-head">
     <div>
       <p class="eyebrow">F5</p>
-      <h3>Builder Groups Session 2</h3>
-      <p>報價內容 Groups + 品項 Item picker + 金額計算 + 群組 add/remove/sort。</p>
+      <h3>Builder Groups Session 2（PR #6 已 merge）</h3>
+      <p>報價內容 Groups + 品項 Item picker（inline，非 Radix）+ 金額計算 + 群組 add/remove/rename。NumberInput commit-on-blur、seq-based 編號。</p>
     </div>
-    <strong>0%</strong>
+    <strong>100%</strong>
   </div>
-  <div class="road-track" aria-label="功能進度"><span class="road-segment tone-neutral" style="width: 33%" title="Groups reducer + Group/Item types"></span><span class="road-segment tone-neutral" style="width: 33%" title="Item picker（Radix Popover 包裝）"></span><span class="road-segment tone-neutral" style="width: 33%" title="金額計算 lib + 測試"></span></div>
+  <div class="road-track" aria-label="功能進度"><span class="road-segment tone-success" style="width: 33%" title="Groups reducer + Group/Item types"></span><span class="road-segment tone-success" style="width: 33%" title="Item picker（inline CatalogPicker + ManualPicker）"></span><span class="road-segment tone-success" style="width: 33%" title="金額計算 lib + 測試"></span></div>
   <div class="feature-rationale">
     <div>
       <h4>為何必要</h4>
@@ -5609,19 +6535,100 @@
   <div class="feature-work">
     <h4>功能要做的事</h4>
     <ul>
-<li class="work-chip tone-neutral">
-  <span>待辦</span>
+<li class="work-chip tone-success">
+  <span>已驗證</span>
   <strong>Groups reducer + Group/Item types</strong>
 </li>
 
-<li class="work-chip tone-neutral">
-  <span>待辦</span>
-  <strong>Item picker（Radix Popover 包裝）</strong>
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>Item picker（inline CatalogPicker + ManualPicker）</strong>
 </li>
 
-<li class="work-chip tone-neutral">
-  <span>待辦</span>
+<li class="work-chip tone-success">
+  <span>已驗證</span>
   <strong>金額計算 lib + 測試</strong>
+</li>
+</ul>
+  </div>
+</article>
+
+<article class="goal-feature">
+  <div class="goal-feature-head">
+    <div>
+      <p class="eyebrow">F12</p>
+      <h3>Session 4 — 報價單首頁完整功能（本機完成、待檢查）</h3>
+      <p>把報價單首頁做到 legacy 1:1：標題修正、Session 2.5 折扣欄+自動價差+議價/手續費、02 服務說明摘要、附件頁（第2頁起）、編輯模式 contenteditable。存雲端/PDF/真實 catalog/History 留後面。</p>
+    </div>
+    <strong>100%</strong>
+  </div>
+  <div class="road-track" aria-label="功能進度"><span class="road-segment tone-success" style="width: 9%" title="標題修正 報價內容 → 01 專案報價內容"></span><span class="road-segment tone-success" style="width: 9%" title="catalog 加 service_description + price_arts 已存在"></span><span class="road-segment tone-success" style="width: 9%" title="Discount 折扣欄 + 自動價差（builder + preview + calc）"></span><span class="road-segment tone-success" style="width: 9%" title="議價/手續費 adjustment 列（builder + preview + total）"></span><span class="road-segment tone-success" style="width: 9%" title="02 服務說明摘要（panel + preview，從品項衍生）"></span><span class="road-segment tone-success" style="width: 9%" title="附件頁 Appendix（第2頁起、每個 sub_group 一頁）"></span><span class="road-segment tone-success" style="width: 9%" title="編輯模式 contenteditable（toggle + 確認 modal + 葉節點可編輯）"></span><span class="road-segment tone-success" style="width: 9%" title="Exhaustive Playwright QA + 全 quality gate"></span><span class="road-segment tone-success" style="width: 9%" title="品項重新選擇 repick ⟲（非手動品項）"></span><span class="road-segment tone-success" style="width: 9%" title="品項拖曳排序 reorder（MOVE_ITEM + drag handle）"></span><span class="road-segment tone-success" style="width: 9%" title="定價/優惠價 tier switch（autoDiscount 鎖定）"></span></div>
+  <div class="feature-rationale">
+    <div>
+      <h4>為何必要</h4>
+      <p>使用者要求本階段把報價單首頁所有功能補齊到與舊版一致，否則無法整體驗收</p>
+    </div>
+    <div>
+      <h4>完成後證明</h4>
+      <p>每個 field 填入、每個按鈕點過，新版首頁與 legacy 結構/視覺/計算一致；Playwright 逐功能驗證通過</p>
+    </div>
+  </div>
+  <div class="feature-work">
+    <h4>功能要做的事</h4>
+    <ul>
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>標題修正 報價內容 → 01 專案報價內容</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>catalog 加 service_description + price_arts 已存在</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>Discount 折扣欄 + 自動價差（builder + preview + calc）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>議價/手續費 adjustment 列（builder + preview + total）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>02 服務說明摘要（panel + preview，從品項衍生）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>附件頁 Appendix（第2頁起、每個 sub_group 一頁）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>編輯模式 contenteditable（toggle + 確認 modal + 葉節點可編輯）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>Exhaustive Playwright QA + 全 quality gate</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>品項重新選擇 repick ⟲（非手動品項）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>品項拖曳排序 reorder（MOVE_ITEM + drag handle）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>定價/優惠價 tier switch（autoDiscount 鎖定）</strong>
 </li>
 </ul>
   </div>
@@ -6087,6 +7094,79 @@
 </article>
 </div>
 </section>
+
+<section class="goal-group goal-side">
+  <div class="goal-group-head">
+    <div>
+      <p class="eyebrow">G-unassigned · 本輪附帶工作</p>
+      <h2>未歸類功能</h2>
+      <p>這些功能尚未連到最終目標或本輪附帶工作。</p>
+    </div>
+    <div class="goal-percent">
+      <strong>100%</strong>
+      <span>本輪附帶工作進度</span>
+    </div>
+  </div>
+  <div class="goal-outcomes"><h3>目標成功條件</h3>
+<article class="goal-outcome">
+  <div class="goal-outcome-head">
+    <p class="eyebrow">G-unassigned-outcome</p>
+    <h3>未歸類功能</h3>
+    <p>這些功能尚未連到最終目標或本輪附帶工作。</p>
+  </div>
+  <div class="goal-feature-list">
+    <h4>關聯功能</h4>
+    
+<article class="goal-feature">
+  <div class="goal-feature-head">
+    <div>
+      <p class="eyebrow">F13</p>
+      <h3>Session 4c — 使用者回報修正（分隔線拖曳 / 階層 picker / 後端 502 / 品項可編輯）</h3>
+      <p>修使用者實測回報：後端沒起導致 502、面板分隔線拖不動、品項選擇器跟舊版不同（搜尋框 vs 三層下拉）且目錄太少（只 A-1/A-2）。</p>
+    </div>
+    <strong>100%</strong>
+  </div>
+  <div class="road-track" aria-label="功能進度"><span class="road-segment tone-success" style="width: 25%" title="後端 502 修復（docker compose up）"></span><span class="road-segment tone-success" style="width: 25%" title="面板分隔線可拖曳 resize"></span><span class="road-segment tone-success" style="width: 25%" title="品項選擇器改三層下拉 + 補齊 A-1~A-7 目錄 + 副品項/名稱可編輯"></span><span class="road-segment tone-success" style="width: 25%" title="接真實 Google catalog API（取代假資料）"></span></div>
+  <div class="feature-rationale">
+    <div>
+      <h4>為何必要</h4>
+      <p>這些是使用者實際操作時撞到的 legacy parity 落差；不修報價單首頁就不算跟舊版一致</p>
+    </div>
+    <div>
+      <h4>完成後證明</h4>
+      <p>後端可達、分隔線可拖曳 resize、品項選擇器三層下拉且含 A-1~A-7、品項列副品項/名稱可編輯</p>
+    </div>
+  </div>
+  <div class="feature-work">
+    <h4>功能要做的事</h4>
+    <ul>
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>後端 502 修復（docker compose up）</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>面板分隔線可拖曳 resize</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>品項選擇器改三層下拉 + 補齊 A-1~A-7 目錄 + 副品項/名稱可編輯</strong>
+</li>
+
+<li class="work-chip tone-success">
+  <span>已驗證</span>
+  <strong>接真實 Google catalog API（取代假資料）</strong>
+</li>
+</ul>
+  </div>
+</article>
+
+  </div>
+</article>
+</div>
+</section>
 </div>
         </div>
       </details>
@@ -6110,7 +7190,7 @@
             <strong>展開任務明細</strong>
             <span>查看每個功能底下的任務、修改檔案與驗證證據。</span>
           </div>
-          <span>53 個任務</span>
+          <span>68 個任務</span>
         </summary>
         <div class="detail-body">
           
@@ -6222,7 +7302,7 @@
 <details class="feature-detail">
   <summary>
     <span>功能 F4</span>
-    <strong>Builder UI Session 1（PR #4 Session 1）</strong>
+    <strong>Builder UI Session 1（PR #5 已 merge）</strong>
     <em>83%</em>
   </summary>
   <p class="detail-summary">Layout shell + Topbar + 三個基本 section（Meta / Client / Sales）+ state foundation（useReducer + Context）+ backend next-number API wire。</p>
@@ -6569,22 +7649,22 @@
 <details class="feature-detail">
   <summary>
     <span>功能 F5</span>
-    <strong>Builder Groups Session 2</strong>
-    <em>0%</em>
+    <strong>Builder Groups Session 2（PR #6 已 merge）</strong>
+    <em>100%</em>
   </summary>
-  <p class="detail-summary">報價內容 Groups + 品項 Item picker + 金額計算 + 群組 add/remove/sort。</p>
+  <p class="detail-summary">報價內容 Groups + 品項 Item picker（inline，非 Radix）+ 金額計算 + 群組 add/remove/rename。NumberInput commit-on-blur、seq-based 編號。</p>
   <div class="tasks">
-<article class="task task-todo">
+<article class="task task-verified">
   <div class="task-head">
     <div>
       <p class="eyebrow">任務 F5-T1</p>
       <h4>Groups reducer + Group/Item types</h4>
     </div>
-    <span class="status">待辦</span>
+    <span class="status">已驗證</span>
   </div>
   <div class="task-progress">
-    <span>0%</span>
-    <div class="bar" aria-label="進度"><span style="width: 0%"></span></div>
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
   </div>
   <div class="task-grid">
     <section>
@@ -6593,24 +7673,24 @@
     </section>
     <section>
       <h5>驗證證據</h5>
-      <p class="muted">尚未記錄驗證證據。</p>
+      <ul class="evidence"><li><strong>git</strong>: e5fd3e0 Merge PR #6 <span>已 merge main</span></li></ul>
     </section>
   </div>
   
 </article>
 
 
-<article class="task task-todo">
+<article class="task task-verified">
   <div class="task-head">
     <div>
       <p class="eyebrow">任務 F5-T2</p>
-      <h4>Item picker（Radix Popover 包裝）</h4>
+      <h4>Item picker（inline CatalogPicker + ManualPicker）</h4>
     </div>
-    <span class="status">待辦</span>
+    <span class="status">已驗證</span>
   </div>
   <div class="task-progress">
-    <span>0%</span>
-    <div class="bar" aria-label="進度"><span style="width: 0%"></span></div>
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
   </div>
   <div class="task-grid">
     <section>
@@ -6619,24 +7699,24 @@
     </section>
     <section>
       <h5>驗證證據</h5>
-      <p class="muted">尚未記錄驗證證據。</p>
+      <ul class="evidence"><li><strong>測試</strong>: GroupsSection.test 17 tests <span>pass</span></li></ul>
     </section>
   </div>
   
 </article>
 
 
-<article class="task task-todo">
+<article class="task task-verified">
   <div class="task-head">
     <div>
       <p class="eyebrow">任務 F5-T3</p>
       <h4>金額計算 lib + 測試</h4>
     </div>
-    <span class="status">待辦</span>
+    <span class="status">已驗證</span>
   </div>
   <div class="task-progress">
-    <span>0%</span>
-    <div class="bar" aria-label="進度"><span style="width: 0%"></span></div>
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
   </div>
   <div class="task-grid">
     <section>
@@ -6645,10 +7725,418 @@
     </section>
     <section>
       <h5>驗證證據</h5>
-      <p class="muted">尚未記錄驗證證據。</p>
+      <ul class="evidence"><li><strong>測試</strong>: quoteCalc.test 22 tests <span>pass</span></li></ul>
     </section>
   </div>
   
+</article>
+</div>
+</details>
+
+<details class="feature-detail">
+  <summary>
+    <span>功能 F12</span>
+    <strong>Session 4 — 報價單首頁完整功能（本機完成、待檢查）</strong>
+    <em>100%</em>
+  </summary>
+  <p class="detail-summary">把報價單首頁做到 legacy 1:1：標題修正、Session 2.5 折扣欄+自動價差+議價/手續費、02 服務說明摘要、附件頁（第2頁起）、編輯模式 contenteditable。存雲端/PDF/真實 catalog/History 留後面。</p>
+  <div class="tasks">
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F12-T1</p>
+      <h4>標題修正 報價內容 → 01 專案報價內容</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>瀏覽器</strong>: Playwright 左面板標題 <span>顯示 01 專案報價內容（對齊 legacy line 1841）</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F12-T2</p>
+      <h4>catalog 加 service_description + price_arts 已存在</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/lib/itemsCatalog.ts</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>測試</strong>: itemsCatalog.test 11 tests <span>pass</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F12-T3</p>
+      <h4>Discount 折扣欄 + 自動價差（builder + preview + calc）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/lib/quoteCalc.ts</li><li>frontend/src/state/quoteReducer.ts</li><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li><li>frontend/src/pages/Builder/PreviewPlaceholder.tsx</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>瀏覽器</strong>: Playwright 自動價差 <span>12000→9600（折扣 2400），預覽 Discount 欄顯示 −2,400</span></li><li><strong>測試</strong>: quoteCalc + quoteReducer tests <span>pass</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F12-T4</p>
+      <h4>議價/手續費 adjustment 列（builder + preview + total）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/lib/quoteCalc.ts</li><li>frontend/src/state/quoteReducer.ts</li><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li><li>frontend/src/pages/Builder/PreviewPlaceholder.tsx</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>瀏覽器</strong>: Playwright 議價折讓 -1080 <span>總價 9600+480−1080=9000，預覽顯示 議價折讓 −NT$ 1,080</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F12-T5</p>
+      <h4>02 服務說明摘要（panel + preview，從品項衍生）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/lib/services.ts</li><li>frontend/src/pages/Builder/sections/ServicesSection.tsx</li><li>frontend/src/pages/Builder/PreviewPlaceholder.tsx</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>瀏覽器</strong>: Playwright 加 A-1 品項 <span>02 出現 A-1 + 完整服務說明請見附件 A-1；含附件 toggle 可開關</span></li><li><strong>測試</strong>: services.test 9 tests + ServicesSection.test 5 tests <span>pass</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F12-T6</p>
+      <h4>附件頁 Appendix（第2頁起、每個 sub_group 一頁）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/lib/services.ts</li><li>frontend/src/pages/Builder/PreviewPlaceholder.tsx</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>瀏覽器</strong>: Playwright 附件頁截圖 qa-s4-04-appendix.png <span>附件 APPENDIX + A-1 + 拍攝規格/交付物/作業時程 三 section 條列、金色帶邊到邊</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F12-T7</p>
+      <h4>編輯模式 contenteditable（toggle + 確認 modal + 葉節點可編輯）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/pages/Builder/EditModeBar.tsx</li><li>frontend/src/pages/Builder/Builder.tsx</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>瀏覽器</strong>: Playwright 編輯預覽 <span>點按→確認 modal→81 個葉節點變 contenteditable、footer(data-no-edit)略過、結束編輯→歸零</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F12-T8</p>
+      <h4>Exhaustive Playwright QA + 全 quality gate</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <p class="muted">尚未連結檔案。</p>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>測試</strong>: vitest --run <span>214 / 214 tests pass（含 services / discount / adjustment / ServicesSection / GroupsSection / MOVE_ITEM / repick / tier 新測試）</span></li><li><strong>建置</strong>: tsc -b + vite build <span>57 modules、245 KB JS、30 KB CSS、綠</span></li><li><strong>lint</strong>: eslint + prettier --check <span>0 error / 0 warning、格式全綠</span></li><li><strong>瀏覽器</strong>: qa-s4-01~04 + qa-s4b-01 截圖 <span>01/02/附件/折扣/議價/編輯模式/品項控制 逐功能 Playwright 驗證</span></li></ul>
+    </section>
+  </div>
+  <p class="notes">Session 4 新功能對照 legacy 原始碼 + CSS 1:1 復刻並驗證渲染；與線上 legacy 即時 side-by-side 受真實 catalog API 限制未做，但 cover-page 已在 Session 3 做過 pixel 對比。</p>
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F12-T9</p>
+      <h4>品項重新選擇 repick ⟲（非手動品項）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>瀏覽器</strong>: Playwright 點 ⟲ <span>catalog 重開為「重新選擇品項（10）」模式、選新品項就地替換、保留 qty</span></li><li><strong>測試</strong>: GroupsSection.test repick <span>pass</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F12-T10</p>
+      <h4>品項拖曳排序 reorder（MOVE_ITEM + drag handle）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/state/quoteReducer.ts</li><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>測試</strong>: quoteReducer MOVE_ITEM 2 tests + GroupsSection drag regression test <span>重排 + 邊界 no-op + 拖放重排 + dataTransfer.setData 被呼叫 全通過</span></li><li><strong>瀏覽器</strong>: Playwright 合成 HTML5 drag <span>[立體,網站] 拖放後變 [網站,立體]</span></li></ul>
+    </section>
+  </div>
+  <p class="notes">使用者回報「無法拖拉」→ root cause：onDragStart 沒呼叫 e.dataTransfer.setData，原生 HTML5 DnD 不成立、drop 不觸發。修法：dragstart 設 effectAllowed+setData、dragover 設 dropEffect。已加 regression test（fireEvent dragStart/drop + 斷言 setData 被呼叫）。</p>
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F12-T11</p>
+      <h4>定價/優惠價 tier switch（autoDiscount 鎖定）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>瀏覽器</strong>: Playwright 點 tier switch <span>定價→優惠價、單價 12000→9600；autoDiscount 開啟時 disabled</span></li><li><strong>測試</strong>: GroupsSection.test tier 3 tests <span>pass</span></li></ul>
+    </section>
+  </div>
+  
+</article>
+</div>
+</details>
+
+<details class="feature-detail">
+  <summary>
+    <span>功能 F13</span>
+    <strong>Session 4c — 使用者回報修正（分隔線拖曳 / 階層 picker / 後端 502 / 品項可編輯）</strong>
+    <em>100%</em>
+  </summary>
+  <p class="detail-summary">修使用者實測回報：後端沒起導致 502、面板分隔線拖不動、品項選擇器跟舊版不同（搜尋框 vs 三層下拉）且目錄太少（只 A-1/A-2）。</p>
+  <div class="tasks">
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F13-T1</p>
+      <h4>後端 502 修復（docker compose up）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <p class="muted">尚未連結檔案。</p>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>請求</strong>: GET :8080/healthz <span>200；migrations 完成；前端配號 AW-260521-xxx 無錯誤橫幅</span></li></ul>
+    </section>
+  </div>
+  <p class="notes">502 Bad Gateway = 後端容器沒起（Vite proxy 連不到）。docker compose up 後恢復。</p>
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F13-T2</p>
+      <h4>面板分隔線可拖曳 resize</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/pages/Builder/Builder.tsx</li><li>frontend/src/pages/Builder/Builder.module.scss</li><li>frontend/src/pages/Builder/BuilderPanel.module.scss</li><li>frontend/src/styles/globals.scss</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>瀏覽器</strong>: Playwright 真實 mouse drag <span>拖右→530(寬)、拖左→330(窄)、clamp 於 MIN_W；dblclick 重設；localStorage 記憶</span></li></ul>
+    </section>
+  </div>
+  <p class="notes">使用者說的『中間拖拉 bar』= 面板分隔線（我先前誤以為是品項排序）。對齊 legacy 3955-4003。</p>
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F13-T3</p>
+      <h4>品項選擇器改三層下拉 + 補齊 A-1~A-7 目錄 + 副品項/名稱可編輯</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/lib/itemsCatalog.ts</li><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>瀏覽器</strong>: Playwright picker <span>大品項(A展間系統/B/C/D)→副品項(A-1_實境展間2.0~A-7_展間其他製作)→品項名稱 三層下拉</span></li><li><strong>測試</strong>: itemsCatalog.test 15 + GroupsSection.test 24 <span>pass（含 listSubGroups/itemsInSubGroup + 階層 picker 流程）</span></li></ul>
+    </section>
+  </div>
+  <p class="notes">對齊 legacy buildPicker 2763-2830。fixture 補齊真實結構（A展間系統 A-1~A-7）作為離線 fallback。</p>
+</article>
+
+
+<article class="task task-verified">
+  <div class="task-head">
+    <div>
+      <p class="eyebrow">任務 F13-T4</p>
+      <h4>接真實 Google catalog API（取代假資料）</h4>
+    </div>
+    <span class="status">已驗證</span>
+  </div>
+  <div class="task-progress">
+    <span>100%</span>
+    <div class="bar" aria-label="進度"><span style="width: 100%"></span></div>
+  </div>
+  <div class="task-grid">
+    <section>
+      <h5>修改檔案</h5>
+      <ul><li>frontend/src/api/items.ts</li><li>frontend/src/api/items.test.ts</li><li>frontend/src/lib/useItemsCatalog.ts</li><li>frontend/src/pages/Builder/sections/GroupsSection.tsx</li></ul>
+    </section>
+    <section>
+      <h5>驗證證據</h5>
+      <ul class="evidence"><li><strong>瀏覽器</strong>: Playwright live fetch <span>載入 176 筆真品項 / 8 大品項；A-1~A-7 真實副品項；加入 NT$175,000 真品項並帶入預覽</span></li><li><strong>測試</strong>: items.test 7（normalizeCatalog + fetch cache/error） <span>pass</span></li><li><strong>network</strong>: GET Apps Script exec <span>302→googleusercontent 200；CORS 從瀏覽器可達</span></li></ul>
+    </section>
+  </div>
+  <p class="notes">使用者授權後接。fetch 約 10s（Apps Script redirect），載入中顯示『正在載入品項資料…』，完成顯示『已載入 N 筆線上品項』；失敗自動 fallback 內建 fixture。模組級快取一頁只抓一次。</p>
 </article>
 </div>
 </details>
@@ -7618,10 +9106,10 @@
             <strong>展開變更紀錄</strong>
             <span>查看對話中造成範圍、需求或驗證狀態改變的紀錄。</span>
           </div>
-          <span>6 筆</span>
+          <span>14 筆</span>
         </summary>
         <div class="detail-body">
-          <ul class="change-log"><li><strong>2026-05-18T15:00:00+08:00</strong> user: 看到 GitHub Pages 顯示空白：要求診斷與修復<span>插隊一個 hotfix PR #4，把 root index.html redirect 從 frontend/ 改成 frontend/legacy.html，並在 frontend/index.html 加 github.io hostname 偵測 + hash 保留 JS。已 merge 04452af，Pages re-build 完成。</span></li><li><strong>2026-05-18T17:30:00+08:00</strong> user: Session 1 完成後選 option C：分多 session 做完整 React 復刻<span>建立 Session 1-5 拆分計畫，本輪只做 Layout + Topbar + 3 個簡單 section + state foundation。</span></li><li><strong>2026-05-18T19:00:00+08:00</strong> user: 對 Codex F1-F4 第一輪 finding 回 &#x27;全休（全修）&#x27;<span>授權批次修 F1-F4 的 4 個 finding。</span></li><li><strong>2026-05-18T20:00:00+08:00</strong> user: 質疑：為啥你自己決定沒有等我選擇<span>承認 F5-F8 自作主張、違反 CLAUDE.md commit gate。改為每輪 Codex finding 都需使用者拍板才能修。</span></li><li><strong>2026-05-18T21:30:00+08:00</strong> user: 對 F9（撞號 P2）回 &#x27;該怎麼做怎麼做、錯的就要修&#x27;<span>把 F9 從 &#x27;defer to PR 5&#x27; 升級為立即修 — 本 session 提前實作 backend API client + Vite proxy + nextQuoteNumber wire。等於把 PR 5 的部分 scope 拉前。</span></li><li><strong>2026-05-19T00:00:00+08:00</strong> user: 提示重讀 CLAUDE.md 看是否該做進度說明頁面<span>發現 CLAUDE.md L240-284 進度儀表板 Gate 從一開始就漏做。補建 progress.json + progress.html。</span></li></ul>
+          <ul class="change-log"><li><strong>2026-05-21T11:50:00+08:00</strong> user: 授權『整份預覽全區塊 computed-style 全比對』（localhost-vs-prod-parity skill）<span>對整份預覽逐元素 live-vs-live computed-style 比對（我的 localhost vs legacy github.io）：header / parties(含分隔線) / 01 表格 / ◎交付物 / 02 服務摘要 / 03 備註 / 付款表 / 簽章 / 銀行帳戶 / 頁尾 / 附件頁，共 30+ 元素的 color/bg/border/padding/margin/font*/letterSpacing/textTransform。結果：除了本輪稍早已修的 01 表格(7處) + 字級(16處)，其餘全部本來就一致 → 整份預覽 0 剩餘差異。教訓：computed-style 逐欄量是抓 pixel parity 的正解，目視會漏。</span></li><li><strong>2026-05-21T11:30:00+08:00</strong> user: 回報 01 表格 + 03 備註 style 還沒完全對上（貼了 mine vs legacy 截圖）<span>逐元素量 computed style 兩邊對照。發現表格多處不符並修正：表頭文字色米白→金#D4B080 + 加 UPPERCASE + 2px 金底線；Category 欄加金色左邊框 + 灰字 500；總價文字米白→深#1A1510 + 700 + border；小計框寬 240→400px；小計列加分隔線 + 標籤灰色；組標題 bg #EDE6DA→#EFE9DF、padding/margin 對齊。Playwright 重量測全部 0 mismatch。03 備註經量測本來就一致（sectionNum/notesLi/noteNum 完全相同）。228 tests 綠。教訓：先前憑截圖目視會漏，改用 runtime computed-style 逐欄比對。</span></li><li><strong>2026-05-21T11:05:00+08:00</strong> user: 回報預覽文字比原本小，要確認字級<span>root cause：legacy.html 1169-1197 有一段『字級放大 +20%』top-level 覆寫區會蓋掉基礎字級，我當初只抄基礎值、漏抄覆寫。修 PreviewPlaceholder.module.scss 16 處 font-size 對到 legacy 覆寫值（sectionNum 25→31、sectionZh 12.5→15、sectionEn 8→11.5、groupTitle 11→12.5、qt 9.5→11.5、qt th +10、qt .no 8.5→10、deliverable/notes/payment td/sigLine 9.5→11.5、payment th/sigLabel/sigFieldLbl/sigStamp 8.5→10、pageFooter 8→9.5）。Playwright 量測 10+ 元素全部與 legacy 一致（0 mismatch）。Builder 面板 .bp-* 不在覆寫區、不受影響。228 tests 綠。</span></li><li><strong>2026-05-21T10:55:00+08:00</strong> user: 前 3 件確認可以了；授權『先接 API，接完測沒問題再 commit』<span>接真實 Google Apps Script catalog API：新增 api/items.ts（fetch + normalize + cache）+ lib/useItemsCatalog.ts（fixture fallback）；CatalogPicker 改用真實資料。Playwright live 驗證：載入 176 筆真品項、8 個真實大品項（A展間系統/B平台系統/C導覽內容製作/D數位出版/E行銷/F客製化工程/G其他項目/P專案管理），A-1~A-7 真實副品項 + 真實品項名稱/價格（NT$175,000）加入成功並帶入預覽。CORS 從瀏覽器可達（Apps Script 302→googleusercontent 200）。228 tests 綠。</span></li><li><strong>2026-05-21T10:40:00+08:00</strong> user: 回報 3 件：後端 502 連不到、中間『拖拉 bar』（=面板分隔線）拖不動、品項選擇介面跟舊版不同且只有 A-1/A-2（舊版 A展間系統有 A-1~A-7）<span>釐清『拖不動』一直指的是面板分隔線（不是品項排序，我先前誤解）。修：① docker compose up 起後端（502=沒起）② 實作分隔線拖曳 resize（mousedown→clamp→localStorage、dblclick reset）③ CatalogPicker 由搜尋框改成 legacy 三層下拉 + fixture 補齊 A展間系統 A-1~A-7、B/C/D 群組。真實上百筆品項仍需接 Google API（PR5）。</span></li><li><strong>2026-05-20T22:30:00+08:00</strong> user: 盤點後問「還有哪些沒做不能測、UI 是否都測好」，我誠實回報漏掉 3 個首頁品項級操作（重選/拖曳/定價優惠價切換），使用者回「要」補做<span>補做品項重新選擇 ⟲（重開 catalog replace）、拖曳排序（MOVE_ITEM reducer + drag handle）、定價/優惠價 tier switch（autoDiscount 時鎖定）。同時 docker compose up 起後端讓使用者能測新報價配號。214 tests 綠。</span></li><li><strong>2026-05-20T18:30:00+08:00</strong> user: 要求「這個階段把所有報價單首頁的功能都要完成」，我一起檢查、所有 field 填入、按鈕都點過、比對 legacy、全完成才回報<span>把 Session 4 範圍從原本只做 History+Radix 重新定義為『報價單首頁 100% legacy parity』：補 Session 2.5 折扣/議價、02 服務摘要、附件頁、編輯模式、標題修正。先用 AskUserQuestion 鎖定 2 個模糊邊界（編輯模式=做、存雲端/PDF=留後面；02+附件頁=一起做）。完成後用 Playwright 逐功能 + 截圖驗證。</span></li><li><strong>2026-05-20T12:00:00+08:00</strong> user: Session 3 visual QA 發現預設值/銀行框/頁尾/起始組等 7 個 legacy parity gap，使用者要求全修（含起始組）<span>createBlankQuote 補 3 條預設備註 + 付款預設值 + 1 個起始組；Preview 補 ARTOGO 指定帳戶 + 頁尾 + 付款表淡金底；標題修 01 專案報價內容。</span></li><li><strong>2026-05-18T15:00:00+08:00</strong> user: 看到 GitHub Pages 顯示空白：要求診斷與修復<span>插隊一個 hotfix PR #4，把 root index.html redirect 從 frontend/ 改成 frontend/legacy.html，並在 frontend/index.html 加 github.io hostname 偵測 + hash 保留 JS。已 merge 04452af，Pages re-build 完成。</span></li><li><strong>2026-05-18T17:30:00+08:00</strong> user: Session 1 完成後選 option C：分多 session 做完整 React 復刻<span>建立 Session 1-5 拆分計畫，本輪只做 Layout + Topbar + 3 個簡單 section + state foundation。</span></li><li><strong>2026-05-18T19:00:00+08:00</strong> user: 對 Codex F1-F4 第一輪 finding 回 &#x27;全休（全修）&#x27;<span>授權批次修 F1-F4 的 4 個 finding。</span></li><li><strong>2026-05-18T20:00:00+08:00</strong> user: 質疑：為啥你自己決定沒有等我選擇<span>承認 F5-F8 自作主張、違反 CLAUDE.md commit gate。改為每輪 Codex finding 都需使用者拍板才能修。</span></li><li><strong>2026-05-18T21:30:00+08:00</strong> user: 對 F9（撞號 P2）回 &#x27;該怎麼做怎麼做、錯的就要修&#x27;<span>把 F9 從 &#x27;defer to PR 5&#x27; 升級為立即修 — 本 session 提前實作 backend API client + Vite proxy + nextQuoteNumber wire。等於把 PR 5 的部分 scope 拉前。</span></li><li><strong>2026-05-19T00:00:00+08:00</strong> user: 提示重讀 CLAUDE.md 看是否該做進度說明頁面<span>發現 CLAUDE.md L240-284 進度儀表板 Gate 從一開始就漏做。補建 progress.json + progress.html。</span></li></ul>
         </div>
       </details>
     </div>

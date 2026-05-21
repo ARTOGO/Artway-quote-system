@@ -1,6 +1,6 @@
 {
   "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-19T00:00:00+08:00",
+  "updated_at": "2026-05-20T18:30:00+08:00",
   "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
   "success_criteria": [
     "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -11,11 +11,59 @@
     "CI/CD 雙環境（staging / prod）自動部署、main 受分支保護"
   ],
   "current_focus": {
-    "feature_id": "F4",
-    "task_id": "F4-T13",
-    "summary": "PR 4 Session 1（Layout / Topbar / state foundation / Meta-Client-Sales 三個 section / backend next-number API wire）等使用者授權 commit + 開 PR"
+    "feature_id": "F13",
+    "task_id": "F13-T4",
+    "summary": "使用者回報 3 件全修 + 接真實 Google catalog API：① 後端 502 已起 ② 分隔線可拖曳 resize ③ 階層下拉 picker ④ 接真實 API（176 筆真品項 / 8 大品項，live 驗證加入 NT$175,000 真品項）。228 tests 綠。等使用者測 OK → /codex:review → commit。"
   },
   "conversation_changes": [
+    {
+      "at": "2026-05-21T11:50:00+08:00",
+      "source": "user",
+      "change": "授權『整份預覽全區塊 computed-style 全比對』（localhost-vs-prod-parity skill）",
+      "impact": "對整份預覽逐元素 live-vs-live computed-style 比對（我的 localhost vs legacy github.io）：header / parties(含分隔線) / 01 表格 / ◎交付物 / 02 服務摘要 / 03 備註 / 付款表 / 簽章 / 銀行帳戶 / 頁尾 / 附件頁，共 30+ 元素的 color/bg/border/padding/margin/font*/letterSpacing/textTransform。結果：除了本輪稍早已修的 01 表格(7處) + 字級(16處)，其餘全部本來就一致 → 整份預覽 0 剩餘差異。教訓：computed-style 逐欄量是抓 pixel parity 的正解，目視會漏。"
+    },
+    {
+      "at": "2026-05-21T11:30:00+08:00",
+      "source": "user",
+      "change": "回報 01 表格 + 03 備註 style 還沒完全對上（貼了 mine vs legacy 截圖）",
+      "impact": "逐元素量 computed style 兩邊對照。發現表格多處不符並修正：表頭文字色米白→金#D4B080 + 加 UPPERCASE + 2px 金底線；Category 欄加金色左邊框 + 灰字 500；總價文字米白→深#1A1510 + 700 + border；小計框寬 240→400px；小計列加分隔線 + 標籤灰色；組標題 bg #EDE6DA→#EFE9DF、padding/margin 對齊。Playwright 重量測全部 0 mismatch。03 備註經量測本來就一致（sectionNum/notesLi/noteNum 完全相同）。228 tests 綠。教訓：先前憑截圖目視會漏，改用 runtime computed-style 逐欄比對。"
+    },
+    {
+      "at": "2026-05-21T11:05:00+08:00",
+      "source": "user",
+      "change": "回報預覽文字比原本小，要確認字級",
+      "impact": "root cause：legacy.html 1169-1197 有一段『字級放大 +20%』top-level 覆寫區會蓋掉基礎字級，我當初只抄基礎值、漏抄覆寫。修 PreviewPlaceholder.module.scss 16 處 font-size 對到 legacy 覆寫值（sectionNum 25→31、sectionZh 12.5→15、sectionEn 8→11.5、groupTitle 11→12.5、qt 9.5→11.5、qt th +10、qt .no 8.5→10、deliverable/notes/payment td/sigLine 9.5→11.5、payment th/sigLabel/sigFieldLbl/sigStamp 8.5→10、pageFooter 8→9.5）。Playwright 量測 10+ 元素全部與 legacy 一致（0 mismatch）。Builder 面板 .bp-* 不在覆寫區、不受影響。228 tests 綠。"
+    },
+    {
+      "at": "2026-05-21T10:55:00+08:00",
+      "source": "user",
+      "change": "前 3 件確認可以了；授權『先接 API，接完測沒問題再 commit』",
+      "impact": "接真實 Google Apps Script catalog API：新增 api/items.ts（fetch + normalize + cache）+ lib/useItemsCatalog.ts（fixture fallback）；CatalogPicker 改用真實資料。Playwright live 驗證：載入 176 筆真品項、8 個真實大品項（A展間系統/B平台系統/C導覽內容製作/D數位出版/E行銷/F客製化工程/G其他項目/P專案管理），A-1~A-7 真實副品項 + 真實品項名稱/價格（NT$175,000）加入成功並帶入預覽。CORS 從瀏覽器可達（Apps Script 302→googleusercontent 200）。228 tests 綠。"
+    },
+    {
+      "at": "2026-05-21T10:40:00+08:00",
+      "source": "user",
+      "change": "回報 3 件：後端 502 連不到、中間『拖拉 bar』（=面板分隔線）拖不動、品項選擇介面跟舊版不同且只有 A-1/A-2（舊版 A展間系統有 A-1~A-7）",
+      "impact": "釐清『拖不動』一直指的是面板分隔線（不是品項排序，我先前誤解）。修：① docker compose up 起後端（502=沒起）② 實作分隔線拖曳 resize（mousedown→clamp→localStorage、dblclick reset）③ CatalogPicker 由搜尋框改成 legacy 三層下拉 + fixture 補齊 A展間系統 A-1~A-7、B/C/D 群組。真實上百筆品項仍需接 Google API（PR5）。"
+    },
+    {
+      "at": "2026-05-20T22:30:00+08:00",
+      "source": "user",
+      "change": "盤點後問「還有哪些沒做不能測、UI 是否都測好」，我誠實回報漏掉 3 個首頁品項級操作（重選/拖曳/定價優惠價切換），使用者回「要」補做",
+      "impact": "補做品項重新選擇 ⟲（重開 catalog replace）、拖曳排序（MOVE_ITEM reducer + drag handle）、定價/優惠價 tier switch（autoDiscount 時鎖定）。同時 docker compose up 起後端讓使用者能測新報價配號。214 tests 綠。"
+    },
+    {
+      "at": "2026-05-20T18:30:00+08:00",
+      "source": "user",
+      "change": "要求「這個階段把所有報價單首頁的功能都要完成」，我一起檢查、所有 field 填入、按鈕都點過、比對 legacy、全完成才回報",
+      "impact": "把 Session 4 範圍從原本只做 History+Radix 重新定義為『報價單首頁 100% legacy parity』：補 Session 2.5 折扣/議價、02 服務摘要、附件頁、編輯模式、標題修正。先用 AskUserQuestion 鎖定 2 個模糊邊界（編輯模式=做、存雲端/PDF=留後面；02+附件頁=一起做）。完成後用 Playwright 逐功能 + 截圖驗證。"
+    },
+    {
+      "at": "2026-05-20T12:00:00+08:00",
+      "source": "user",
+      "change": "Session 3 visual QA 發現預設值/銀行框/頁尾/起始組等 7 個 legacy parity gap，使用者要求全修（含起始組）",
+      "impact": "createBlankQuote 補 3 條預設備註 + 付款預設值 + 1 個起始組；Preview 補 ARTOGO 指定帳戶 + 頁尾 + 付款表淡金底；標題修 01 專案報價內容。"
+    },
     {
       "at": "2026-05-18T15:00:00+08:00",
       "source": "user",
@@ -59,7 +107,7 @@
       "title": "報價系統 React 重構 + Cloud Run + IAP 上線（核心目標）",
       "summary": "把舊單檔 HTML 重構成可內網部署的 React + Go 應用，並完成業務 cutover。",
       "kind": "primary",
-      "feature_ids": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11"],
+      "feature_ids": ["F1", "F2", "F3", "F4", "F5", "F12", "F6", "F7", "F8", "F9", "F10", "F11"],
       "outcomes": [
         {
           "id": "O1",
@@ -70,8 +118,8 @@
         {
           "id": "O2",
           "title": "Builder 頁完整 1:1 復刻舊版 UX",
-          "description": "Topbar / 三個基本 section / Groups / 預覽 / History / Modals / Print 全部對齊舊版，業務能完成所有操作",
-          "feature_ids": ["F4", "F5", "F6", "F7", "F8"]
+          "description": "Topbar / 三個基本 section / Groups / 折扣議價 / 02 服務 / 附件頁 / 編輯模式 / 預覽 / History / Modals / Print 全部對齊舊版，業務能完成所有操作",
+          "feature_ids": ["F4", "F5", "F12", "F13", "F6", "F7", "F8"]
         },
         {
           "id": "O3",
@@ -224,7 +272,7 @@
     },
     {
       "id": "F4",
-      "title": "Builder UI Session 1（PR #4 Session 1）",
+      "title": "Builder UI Session 1（PR #5 已 merge）",
       "summary": "Layout shell + Topbar + 三個基本 section（Meta / Client / Sales）+ state foundation（useReducer + Context）+ backend next-number API wire。",
       "weight": 4,
       "goal_contributions": [
@@ -239,7 +287,7 @@
           "completion_signal": "BuilderPanel 進場時呼叫 backend、retry button 可重試、newQuote 動作可重新配發"
         }
       ],
-      "status": "done",
+      "status": "verified",
       "tasks": [
         {
           "id": "F4-T1",
@@ -446,8 +494,8 @@
     },
     {
       "id": "F5",
-      "title": "Builder Groups Session 2",
-      "summary": "報價內容 Groups + 品項 Item picker + 金額計算 + 群組 add/remove/sort。",
+      "title": "Builder Groups Session 2（PR #6 已 merge）",
+      "summary": "報價內容 Groups + 品項 Item picker（inline，非 Radix）+ 金額計算 + 群組 add/remove/rename。NumberInput commit-on-blur、seq-based 編號。",
       "weight": 4,
       "goal_contributions": [
         {
@@ -456,11 +504,110 @@
           "completion_signal": "業務可加群組、加品項、自動帶單價、自動計算總額"
         }
       ],
-      "status": "todo",
+      "status": "verified",
       "tasks": [
-        { "id": "F5-T1", "title": "Groups reducer + Group/Item types", "status": "todo", "workstream": "Frontend", "priority": "P0" },
-        { "id": "F5-T2", "title": "Item picker（Radix Popover 包裝）", "status": "todo", "workstream": "Frontend", "priority": "P0" },
-        { "id": "F5-T3", "title": "金額計算 lib + 測試", "status": "todo", "workstream": "Frontend", "priority": "P0" }
+        { "id": "F5-T1", "title": "Groups reducer + Group/Item types", "status": "verified", "workstream": "Frontend", "priority": "P0",
+          "evidence": [{ "type": "git", "ref": "e5fd3e0 Merge PR #6", "result": "已 merge main" }] },
+        { "id": "F5-T2", "title": "Item picker（inline CatalogPicker + ManualPicker）", "status": "verified", "workstream": "Frontend", "priority": "P0",
+          "evidence": [{ "type": "test", "ref": "GroupsSection.test 17 tests", "result": "pass" }] },
+        { "id": "F5-T3", "title": "金額計算 lib + 測試", "status": "verified", "workstream": "Frontend", "priority": "P0",
+          "evidence": [{ "type": "test", "ref": "quoteCalc.test 22 tests", "result": "pass" }] }
+      ]
+    },
+    {
+      "id": "F12",
+      "title": "Session 4 — 報價單首頁完整功能（本機完成、待檢查）",
+      "summary": "把報價單首頁做到 legacy 1:1：標題修正、Session 2.5 折扣欄+自動價差+議價/手續費、02 服務說明摘要、附件頁（第2頁起）、編輯模式 contenteditable。存雲端/PDF/真實 catalog/History 留後面。",
+      "weight": 4,
+      "goal_contributions": [
+        {
+          "outcome_id": "O2",
+          "why": "使用者要求本階段把報價單首頁所有功能補齊到與舊版一致，否則無法整體驗收",
+          "completion_signal": "每個 field 填入、每個按鈕點過，新版首頁與 legacy 結構/視覺/計算一致；Playwright 逐功能驗證通過"
+        }
+      ],
+      "status": "done",
+      "tasks": [
+        { "id": "F12-T1", "title": "標題修正 報價內容 → 01 專案報價內容", "status": "verified", "workstream": "Frontend", "priority": "P1",
+          "files": ["frontend/src/pages/Builder/sections/GroupsSection.tsx"],
+          "evidence": [{ "type": "browser", "ref": "Playwright 左面板標題", "result": "顯示 01 專案報價內容（對齊 legacy line 1841）" }] },
+        { "id": "F12-T2", "title": "catalog 加 service_description + price_arts 已存在", "status": "verified", "workstream": "Frontend", "priority": "P0",
+          "files": ["frontend/src/lib/itemsCatalog.ts"],
+          "evidence": [{ "type": "test", "ref": "itemsCatalog.test 11 tests", "result": "pass" }] },
+        { "id": "F12-T3", "title": "Discount 折扣欄 + 自動價差（builder + preview + calc）", "status": "verified", "workstream": "Frontend", "priority": "P0",
+          "files": ["frontend/src/lib/quoteCalc.ts", "frontend/src/state/quoteReducer.ts", "frontend/src/pages/Builder/sections/GroupsSection.tsx", "frontend/src/pages/Builder/PreviewPlaceholder.tsx"],
+          "evidence": [{ "type": "browser", "ref": "Playwright 自動價差", "result": "12000→9600（折扣 2400），預覽 Discount 欄顯示 −2,400" }, { "type": "test", "ref": "quoteCalc + quoteReducer tests", "result": "pass" }] },
+        { "id": "F12-T4", "title": "議價/手續費 adjustment 列（builder + preview + total）", "status": "verified", "workstream": "Frontend", "priority": "P0",
+          "files": ["frontend/src/lib/quoteCalc.ts", "frontend/src/state/quoteReducer.ts", "frontend/src/pages/Builder/sections/GroupsSection.tsx", "frontend/src/pages/Builder/PreviewPlaceholder.tsx"],
+          "evidence": [{ "type": "browser", "ref": "Playwright 議價折讓 -1080", "result": "總價 9600+480−1080=9000，預覽顯示 議價折讓 −NT$ 1,080" }] },
+        { "id": "F12-T5", "title": "02 服務說明摘要（panel + preview，從品項衍生）", "status": "verified", "workstream": "Frontend", "priority": "P0",
+          "files": ["frontend/src/lib/services.ts", "frontend/src/pages/Builder/sections/ServicesSection.tsx", "frontend/src/pages/Builder/PreviewPlaceholder.tsx"],
+          "evidence": [{ "type": "browser", "ref": "Playwright 加 A-1 品項", "result": "02 出現 A-1 + 完整服務說明請見附件 A-1；含附件 toggle 可開關" }, { "type": "test", "ref": "services.test 9 tests + ServicesSection.test 5 tests", "result": "pass" }] },
+        { "id": "F12-T6", "title": "附件頁 Appendix（第2頁起、每個 sub_group 一頁）", "status": "verified", "workstream": "Frontend", "priority": "P0",
+          "files": ["frontend/src/lib/services.ts", "frontend/src/pages/Builder/PreviewPlaceholder.tsx"],
+          "evidence": [{ "type": "browser", "ref": "Playwright 附件頁截圖 qa-s4-04-appendix.png", "result": "附件 APPENDIX + A-1 + 拍攝規格/交付物/作業時程 三 section 條列、金色帶邊到邊" }] },
+        { "id": "F12-T7", "title": "編輯模式 contenteditable（toggle + 確認 modal + 葉節點可編輯）", "status": "verified", "workstream": "Frontend", "priority": "P1",
+          "files": ["frontend/src/pages/Builder/EditModeBar.tsx", "frontend/src/pages/Builder/Builder.tsx"],
+          "evidence": [{ "type": "browser", "ref": "Playwright 編輯預覽", "result": "點按→確認 modal→81 個葉節點變 contenteditable、footer(data-no-edit)略過、結束編輯→歸零" }] },
+        { "id": "F12-T8", "title": "Exhaustive Playwright QA + 全 quality gate", "status": "verified", "workstream": "QA / Release", "priority": "P0",
+          "evidence": [
+            { "type": "test", "ref": "vitest --run", "result": "214 / 214 tests pass（含 services / discount / adjustment / ServicesSection / GroupsSection / MOVE_ITEM / repick / tier 新測試）" },
+            { "type": "build", "ref": "tsc -b + vite build", "result": "57 modules、245 KB JS、30 KB CSS、綠" },
+            { "type": "lint", "ref": "eslint + prettier --check", "result": "0 error / 0 warning、格式全綠" },
+            { "type": "browser", "ref": "qa-s4-01~04 + qa-s4b-01 截圖", "result": "01/02/附件/折扣/議價/編輯模式/品項控制 逐功能 Playwright 驗證" }
+          ],
+          "notes": "Session 4 新功能對照 legacy 原始碼 + CSS 1:1 復刻並驗證渲染；與線上 legacy 即時 side-by-side 受真實 catalog API 限制未做，但 cover-page 已在 Session 3 做過 pixel 對比。" },
+        { "id": "F12-T9", "title": "品項重新選擇 repick ⟲（非手動品項）", "status": "verified", "workstream": "Frontend", "priority": "P1",
+          "files": ["frontend/src/pages/Builder/sections/GroupsSection.tsx"],
+          "evidence": [{ "type": "browser", "ref": "Playwright 點 ⟲", "result": "catalog 重開為「重新選擇品項（10）」模式、選新品項就地替換、保留 qty" }, { "type": "test", "ref": "GroupsSection.test repick", "result": "pass" }] },
+        { "id": "F12-T10", "title": "品項拖曳排序 reorder（MOVE_ITEM + drag handle）", "status": "verified", "workstream": "Frontend", "priority": "P1",
+          "files": ["frontend/src/state/quoteReducer.ts", "frontend/src/pages/Builder/sections/GroupsSection.tsx"],
+          "evidence": [
+            { "type": "test", "ref": "quoteReducer MOVE_ITEM 2 tests + GroupsSection drag regression test", "result": "重排 + 邊界 no-op + 拖放重排 + dataTransfer.setData 被呼叫 全通過" },
+            { "type": "browser", "ref": "Playwright 合成 HTML5 drag", "result": "[立體,網站] 拖放後變 [網站,立體]" }
+          ],
+          "notes": "使用者回報「無法拖拉」→ root cause：onDragStart 沒呼叫 e.dataTransfer.setData，原生 HTML5 DnD 不成立、drop 不觸發。修法：dragstart 設 effectAllowed+setData、dragover 設 dropEffect。已加 regression test（fireEvent dragStart/drop + 斷言 setData 被呼叫）。" },
+        { "id": "F12-T11", "title": "定價/優惠價 tier switch（autoDiscount 鎖定）", "status": "verified", "workstream": "Frontend", "priority": "P1",
+          "files": ["frontend/src/pages/Builder/sections/GroupsSection.tsx"],
+          "evidence": [{ "type": "browser", "ref": "Playwright 點 tier switch", "result": "定價→優惠價、單價 12000→9600；autoDiscount 開啟時 disabled" }, { "type": "test", "ref": "GroupsSection.test tier 3 tests", "result": "pass" }] }
+      ]
+    },
+    {
+      "id": "F13",
+      "title": "Session 4c — 使用者回報修正（分隔線拖曳 / 階層 picker / 後端 502 / 品項可編輯）",
+      "summary": "修使用者實測回報：後端沒起導致 502、面板分隔線拖不動、品項選擇器跟舊版不同（搜尋框 vs 三層下拉）且目錄太少（只 A-1/A-2）。",
+      "weight": 3,
+      "goal_contributions": [
+        {
+          "outcome_id": "O2",
+          "why": "這些是使用者實際操作時撞到的 legacy parity 落差；不修報價單首頁就不算跟舊版一致",
+          "completion_signal": "後端可達、分隔線可拖曳 resize、品項選擇器三層下拉且含 A-1~A-7、品項列副品項/名稱可編輯"
+        }
+      ],
+      "status": "done",
+      "tasks": [
+        { "id": "F13-T1", "title": "後端 502 修復（docker compose up）", "status": "verified", "workstream": "Infra", "priority": "P0",
+          "evidence": [{ "type": "curl", "ref": "GET :8080/healthz", "result": "200；migrations 完成；前端配號 AW-260521-xxx 無錯誤橫幅" }],
+          "notes": "502 Bad Gateway = 後端容器沒起（Vite proxy 連不到）。docker compose up 後恢復。" },
+        { "id": "F13-T2", "title": "面板分隔線可拖曳 resize", "status": "verified", "workstream": "Frontend", "priority": "P0",
+          "files": ["frontend/src/pages/Builder/Builder.tsx", "frontend/src/pages/Builder/Builder.module.scss", "frontend/src/pages/Builder/BuilderPanel.module.scss", "frontend/src/styles/globals.scss"],
+          "evidence": [{ "type": "browser", "ref": "Playwright 真實 mouse drag", "result": "拖右→530(寬)、拖左→330(窄)、clamp 於 MIN_W；dblclick 重設；localStorage 記憶" }],
+          "notes": "使用者說的『中間拖拉 bar』= 面板分隔線（我先前誤以為是品項排序）。對齊 legacy 3955-4003。" },
+        { "id": "F13-T3", "title": "品項選擇器改三層下拉 + 補齊 A-1~A-7 目錄 + 副品項/名稱可編輯", "status": "verified", "workstream": "Frontend", "priority": "P0",
+          "files": ["frontend/src/lib/itemsCatalog.ts", "frontend/src/pages/Builder/sections/GroupsSection.tsx"],
+          "evidence": [
+            { "type": "browser", "ref": "Playwright picker", "result": "大品項(A展間系統/B/C/D)→副品項(A-1_實境展間2.0~A-7_展間其他製作)→品項名稱 三層下拉" },
+            { "type": "test", "ref": "itemsCatalog.test 15 + GroupsSection.test 24", "result": "pass（含 listSubGroups/itemsInSubGroup + 階層 picker 流程）" }
+          ],
+          "notes": "對齊 legacy buildPicker 2763-2830。fixture 補齊真實結構（A展間系統 A-1~A-7）作為離線 fallback。" },
+        { "id": "F13-T4", "title": "接真實 Google catalog API（取代假資料）", "status": "verified", "workstream": "Frontend", "priority": "P0",
+          "files": ["frontend/src/api/items.ts", "frontend/src/api/items.test.ts", "frontend/src/lib/useItemsCatalog.ts", "frontend/src/pages/Builder/sections/GroupsSection.tsx"],
+          "evidence": [
+            { "type": "browser", "ref": "Playwright live fetch", "result": "載入 176 筆真品項 / 8 大品項；A-1~A-7 真實副品項；加入 NT$175,000 真品項並帶入預覽" },
+            { "type": "test", "ref": "items.test 7（normalizeCatalog + fetch cache/error）", "result": "pass" },
+            { "type": "network", "ref": "GET Apps Script exec", "result": "302→googleusercontent 200；CORS 從瀏覽器可達" }
+          ],
+          "notes": "使用者授權後接。fetch 約 10s（Apps Script redirect），載入中顯示『正在載入品項資料…』，完成顯示『已載入 N 筆線上品項』；失敗自動 fallback 內建 fixture。模組級快取一頁只抓一次。" }
       ]
     },
     {
@@ -714,10 +861,10 @@
     }
   ],
   "next_actions": [
-    "使用者選 A / B / C（commit / round 10 / dogfood）",
-    "若 A：git add + commit + gh pr create + 等 reviewer / 自決 merge",
-    "若 B：codex review --uncommitted → 等 90s 回讀 → 視結果再決定",
-    "若 C：本機 docker compose up + pnpm dev + 開瀏覽器測試 → 回報問題或授權 commit"
+    "使用者一起檢查 Session 4 首頁完整功能（localhost:5173 開瀏覽器：折扣/議價/02/附件/編輯模式 + Cmd+P 列印）",
+    "使用者確認 OK → 跑 /codex:review → findings 整理成表 → 拍板 → commit",
+    "commit 後依工作流程：/qa-only → push；/review + /qa-only → 開 PR",
+    "Session 4 剩餘（History 頁 + Radix Modals）與存雲端/PDF/真實 catalog 另開 session"
   ],
   "not_covered": [
     "Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動",
