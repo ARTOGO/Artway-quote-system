@@ -1,6 +1,6 @@
 {
  "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
- "updated_at": "2026-05-22T00:30:00+08:00",
+ "updated_at": "2026-05-22T13:41:33+08:00",
  "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
  "success_criteria": [
   "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -13,9 +13,15 @@
  "current_focus": {
   "feature_id": "F19",
   "task_id": "verified",
-  "summary": "Option B（含 P2-1 instance-epoch、P2-B saved-status dirty 檢查）+ 歷史紀錄頁 1:1 深色復刻 皆完成、runtime 驗證、276 tests/typecheck/lint/build 全綠、Codex 最終 clean。Option B 已 commit（f31ffe7）；History 與 dashboard 一起 commit。下一步：push 前跑 /qa-only → 更新 PR #7。之後 PR6–8 部署 + PR9 cutover。"
+  "summary": "Option B（含 P2-1 instance-epoch、P2-B saved-status dirty 檢查）+ 歷史紀錄頁 1:1 深色復刻 皆完成。2026-05-22 正式 /qa-only 已通過：frontend lint、276 tests、typecheck、build 全綠；backend go vet/go test 全綠；live smoke 證明重整不燒號、存檔才配號、History 深色頁載入且 0 console error。Option B 已 commit（f31ffe7）；History 與 dashboard 一起 commit。下一步：需使用者明確同意後才 git push 更新 PR #7；之後 PR6–8 部署 + PR9 cutover。"
  },
  "conversation_changes": [
+  {
+   "at": "2026-05-22T13:41:33+08:00",
+   "source": "codex",
+   "change": "使用者確認後執行 push 前正式 /qa-only，但未授權 git push。",
+   "impact": "自動化 gate 全綠：frontend lint、276 tests、typecheck、build；backend go vet、go test。Playwright live smoke：新報價重整 3 次仍維持空白編號與「（儲存後配發）」placeholder，DB quote_serials 260522 next_seq 3→3 不燒號；存檔後 POST /api/quotes 201，配發 AW-260522-003、預覽出現 2 處、按鈕顯示已存到雲端，測試資料已 DELETE 204 清理；History #/history 載入 9 筆，body bg #0D0804、標題金色、5 個日期 chip、logo/回 Builder 存在，console error 0。"
+  },
   {
    "at": "2026-05-21T11:50:00+08:00",
    "source": "user",
@@ -2277,53 +2283,31 @@
  ],
  "blockers": [
   {
-   "title": "等使用者授權 commit Session 1 PR",
-   "reason": "Codex round 1 後我曾自作主張批次修 F5-F8，使用者明確要求之後每輪都拍板。Session 1 完成但需明確授權才能 commit。",
-   "blocked_by": "使用者選 A（直接 commit）/ B（再跑 round 10）/ C（先 dogfood）",
+   "title": "本機 2 commit（Option B + History parity）待授權 push",
+   "reason": "正式 /qa-only 已通過；依交接規則 commit / push 只在使用者明確要求時做。",
+   "blocked_by": "使用者明確同意 git push",
    "owner": "user",
-   "needed_by": "Session 2 開工前",
-   "impact": "F4 無法標 verified、Session 2-5 無法開工、F9 / F10 / F11 連動延後",
-   "impact_chain": [
-    "F4-T13 → F5 開工 → F6 → F7 → F8 → F9 → F10 → F11"
-   ],
+   "needed_by": "更新 PR #7",
+   "impact": "PR #7 仍停在 3ed7d4f；reviewer 看不到 Option B + History 修正",
    "unblock_checklist": [
-    "使用者選 A/B/C 之一",
-    "若選 A：跑 git commit + gh pr create",
-    "若選 B：跑 codex review --uncommitted round 10",
-    "若選 C：等使用者完成 dogfood 回報"
+    "localhost:5173 #/history 看深色頁（已由 Playwright smoke 驗證）",
+    "localhost:5173 試存檔配號流程（已由 Playwright smoke 驗證）",
+    "跑 /qa-only（已通過）",
+    "git push 更新 PR #7"
    ],
    "status": "open"
   },
   {
-   "title": "本機 dogfood 需先啟動後端",
-   "reason": "F9 已改為 backend API、F4 完整體驗依賴 docker compose up；目前後端 Cloud Run 尚未部署",
-   "blocked_by": "使用者啟動 backend/docker-compose.yml 或 Phase A 完成",
-   "owner": "user",
-   "needed_by": "F4-T12 dogfood",
-   "impact": "F4-T12 無法執行、看不到完整 Builder 流程（會看到 api-error 重試 banner）",
-   "impact_chain": [
-    "F4-T12 → F4-T13 commit 風險增加（少了 e2e 驗證）"
-   ],
+   "title": "部署 infra（PR6–8）尚未建置 → 無 staging / prod URL",
+   "reason": "infra/ 只有 README skeleton、.github/workflows/ 為空；GCP WIF / Cloud SQL / Artifact Registry / Secret Manager / IAP 都還沒建。",
+   "blocked_by": "工程師執行 infra/setup-*.sh（需 GCP 權限）",
+   "owner": "工程師（需 GCP admin）",
+   "needed_by": "業務 cutover（PR9）",
+   "impact": "IAP 登入、cross-browser、prod 列印 PDF 比對都還不能在真實環境測；業務仍用舊 GitHub Pages",
    "unblock_checklist": [
-    "cd backend && docker compose up",
-    "確認 :8080 監聽中",
-    "pnpm dev 看到 quoteNo 自動帶入"
-   ],
-   "status": "open"
-  },
-  {
-   "title": "Codex round 10 尚未跑於 F15 修補後",
-   "reason": "我為了結束 iteration loop 自決定停在 round 9 後，但 round 10 應該確認 F15（split-effect + datesInitialised flag）是 clean",
-   "blocked_by": "等使用者選 A（接受跳過 round 10）或 B（跑）",
-   "owner": "user",
-   "needed_by": "commit 前",
-   "impact": "嚴格而言 Session 1 程式碼沒有 'Codex 全 clean' 終結簽核",
-   "impact_chain": [
-    "F-side-codex-T10 → F4-T11 完整 verified → F4-T13 commit"
-   ],
-   "unblock_checklist": [
-    "使用者選 A → 跳過 round 10、進 commit",
-    "使用者選 B → 跑 codex review --uncommitted、若 clean 才 commit"
+    "PR6：WIF/Cloud SQL/Artifact Registry/Secret Manager/IAP",
+    "PR7：ci.yml + deploy-staging.yml",
+    "PR8：deploy-prod.yml + main 分支保護"
    ],
    "status": "open"
   }
@@ -2353,11 +2337,10 @@
   "Session 4 剩餘（History 頁 + Radix Modals）與存雲端/PDF/真實 catalog 另開 session"
  ],
  "not_covered": [
-  "Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動",
-  "列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）",
-  "Cross-browser 測試（Safari / Firefox / Edge）",
-  "IAP 登入流程（Phase A 部署後才有 staging URL 可測）",
-  "Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）",
-  "Codex round 10 對 F15 拆 useEffect refactor 的清白簽核"
+  "IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）",
+  "Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗",
+  "列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）",
+  "並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）",
+  "存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）"
  ]
 }

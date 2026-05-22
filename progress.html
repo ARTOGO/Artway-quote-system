@@ -242,8 +242,8 @@
         <div class="subtitle">ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO：把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。</div>
       </div>
       <div class="timestamp">
-        <p>資料更新：2026-05-22T00:30:00+08:00</p>
-        <p>HTML 產生：2026-05-22T00:31:15+08:00</p>
+        <p>資料更新：2026-05-22T13:41:33+08:00</p>
+        <p>HTML 產生：2026-05-22T13:42:11+08:00</p>
       </div>
     </header>
 
@@ -262,7 +262,7 @@
         <div class="hero-card">
           <div class="label">目前焦點</div>
           <div style="font-size: 22px; font-weight: 900; margin-bottom: 10px;">功能 F19 · 任務 verified</div>
-          <p>Option B（含 P2-1 instance-epoch、P2-B saved-status dirty 檢查）+ 歷史紀錄頁 1:1 深色復刻 皆完成、runtime 驗證、276 tests/typecheck/lint/build 全綠、Codex 最終 clean。Option B 已 commit（f31ffe7）；History 與 dashboard 一起 commit。下一步：push 前跑 /qa-only → 更新 PR #7。之後 PR6–8 部署 + PR9 cutover。</p>
+          <p>Option B（含 P2-1 instance-epoch、P2-B saved-status dirty 檢查）+ 歷史紀錄頁 1:1 深色復刻 皆完成。2026-05-22 正式 /qa-only 已通過：frontend lint、276 tests、typecheck、build 全綠；backend go vet/go test 全綠；live smoke 證明重整不燒號、存檔才配號、History 深色頁載入且 0 console error。Option B 已 commit（f31ffe7）；History 與 dashboard 一起 commit。下一步：需使用者明確同意後才 git push 更新 PR #7；之後 PR6–8 部署 + PR9 cutover。</p>
         </div>
       </div>
     </section>
@@ -2064,7 +2064,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">repo 重組為 frontend/ + backend/ + docs/ + infra/，搬 index.html → legacy.html、加 CLAUDE.md / AGENTS.md / spec 等基礎文件。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -2141,37 +2141,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -2193,8 +2187,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -2237,7 +2231,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">Go 1.26 + chi + pgx + sqlc + goose；8 個 endpoints；IAP middleware；Docker multi-stage build。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -2314,37 +2308,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -2366,8 +2354,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -2410,7 +2398,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">pnpm + Vite 8 + React 19.2 + TS 6 + Sass 1.99；tokens.scss 286 行 / 160+ tokens；hash router；Button、Vitest 設定。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -2487,37 +2475,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -2539,8 +2521,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -2583,7 +2565,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">Layout shell + Topbar + 三個基本 section（Meta / Client / Sales）+ state foundation（useReducer + Context）+ backend next-number API wire。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -2828,37 +2810,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -2924,7 +2900,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">報價內容 Groups + 品項 Item picker（inline，非 Radix）+ 金額計算 + 群組 add/remove/rename。NumberInput commit-on-blur、seq-based 編號。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -3027,37 +3003,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -3079,8 +3049,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -3123,7 +3093,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">把報價單首頁做到 legacy 1:1：標題修正、Session 2.5 折扣欄+自動價差+議價/手續費、02 服務說明摘要、附件頁（第2頁起）、編輯模式 contenteditable。存雲端/PDF/真實 catalog/History 留後面。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -3342,37 +3312,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -3394,8 +3358,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -3438,7 +3402,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">修使用者實測回報：後端沒起導致 502、面板分隔線拖不動、品項選擇器跟舊版不同（搜尋框 vs 三層下拉）且目錄太少（只 A-1/A-2）。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -3566,37 +3530,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -3618,8 +3576,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -3662,7 +3620,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">右側 A4 預覽全部 binding（從 placeholder 升級為真實 1:1 復刻）+ Print CSS + 交付項目 / 服務內容 / 備註 / 付款條件 4 個 section。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -3765,37 +3723,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -3817,8 +3769,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -3861,7 +3813,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">History page（filter / list / load / delete）+ Radix DropdownMenu / AlertDialog / Toast 改造。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -3977,37 +3929,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -4029,8 +3975,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -4073,7 +4019,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">deep-link 載入歷史報價進 Builder、列印 PDF 對比驗證、可拖拉 divider、final visual polish。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -4188,37 +4134,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -4240,8 +4180,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -4284,7 +4224,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">Session 1 已先做 next-number；剩餘 create / update / list / get / delete / distinct-sales 6 個 endpoints 接通。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -4413,37 +4353,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -4465,8 +4399,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -4509,7 +4443,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">Cloud Run + Cloud SQL + LB host rule + IAP + DNS。第一個可由業務瀏覽的 staging URL。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -4638,37 +4572,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -4690,8 +4618,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -4734,7 +4662,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">GitHub Actions deploy-staging + deploy-prod workflow；main 分支保護；舊 GitHub Pages 退場。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -4849,37 +4777,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -4901,8 +4823,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -4945,7 +4867,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">9 輪 Codex review、F1-F15 共 15 個 finding 的修補追蹤。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -5163,37 +5085,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -5259,7 +5175,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">root index.html 跳轉 + frontend/index.html github.io guard，保留 hash 給 deep link 書籤。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -5336,37 +5252,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -5388,8 +5298,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -5432,7 +5342,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">Commit 前 Codex gate（5 輪、共 13 findings 全修）。R1 6、R2 unit 斜線、R3 2、R4 3（含 auto-discount P1）、R5 1：編輯副品項只改 sub_group、留下舊 service_description → syncServices 印錯附件；改為編輯時清掉（= legacy 由 catalog 重推，:2354）。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -5613,37 +5523,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -5665,8 +5569,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -5709,7 +5613,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">復刻 legacy 列印流程（3047-3138）：action bar「輸出 PDF」→ 確認 → 暫改 document.title → window.print()。 註：Codex 指出 legacy 列印前先存雲端；save 屬 F16，故 print 併入 F16 的兩段式 存雲端→輸出 PDF 流程一起 commit。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -5786,37 +5690,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -5838,8 +5736,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -5882,7 +5780,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">api/quotes.ts 補 create/update/list/get/delete/distinct-sales（後端 PR2 已有）。Builder 加儲存按鈕 → create/update，取代 legacy MOCK。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -5959,37 +5857,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -6011,8 +5903,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -6055,7 +5947,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">取代 placeholder。listQuotes + 篩選 + 分頁 + 點列開啟；#/quote/AW-xxx → getQuote → LOAD 進 Builder。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -6183,37 +6075,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -6235,8 +6121,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -6279,7 +6165,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">流水號不再於 Builder mount 配發（重整不再 +1）；改由後端在存檔時原子配發、回傳號碼 stamp 進預覽 / PDF。淨移除 fetch-on-mount + error banner + retry 機制（−248 行）。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -6419,37 +6305,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -6471,8 +6351,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -6515,7 +6395,7 @@
       <div class="tab-panel overview-panel">
         <div class="management-grid">
           <article class="management-card"><h4>目標對齊</h4><div class="detail-value">Phase 3 誤把 History 做成淺色；改成 legacy .hp-* 深色頁：#0D0804 + logo + 副標 + chip 日期篩選 + 數字分頁 + 站內刪除 modal+toast + 金色表頭 + 狀態 pill 描邊色。保留真實後端、Asia/Taipei 時間、Abort、刪除後 refetch。</div></article>
-          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</div></article>
+          <article class="management-card"><h4>目前卡點</h4><div class="detail-value">未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</div></article>
           <article class="management-card"><h4>上線判斷</h4><div class="detail-value">必須等 P0 任務、驗收條件、驗證證據與未覆蓋清單都完成後，才可宣稱上線就緒。</div></article>
         </div>
         <div class="readiness-gate">
@@ -6630,37 +6510,31 @@
     <tbody>
 <tr>
   <td>未覆蓋</td>
-  <td>Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</td>
+  <td>IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</td>
+  <td>Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Cross-browser 測試（Safari / Firefox / Edge）</td>
+  <td>列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>IAP 登入流程（Phase A 部署後才有 staging URL 可測）</td>
+  <td>並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 
 <tr>
   <td>未覆蓋</td>
-  <td>Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</td>
-  <td><span class="pill yellow">待處理</span></td>
-</tr>
-
-<tr>
-  <td>未覆蓋</td>
-  <td>Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</td>
+  <td>存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</td>
   <td><span class="pill yellow">待處理</span></td>
 </tr>
 </tbody>
@@ -6682,8 +6556,8 @@
       <h4>目前阻塞節點</h4>
       <dl class="blocker-field-grid">
         <dt>節點</dt><dd>目前沒有已阻塞任務</dd>
-        <dt>卡住原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
-        <dt>受阻原因</dt><dd>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</dd>
+        <dt>卡住原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
+        <dt>受阻原因</dt><dd>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</dd>
         <dt>負責人</dt><dd>待指定</dd>
         <dt>解除期限</dt><dd>待指定</dd>
       </dl>
@@ -6936,7 +6810,7 @@
   <em>功能 F4 · 任務 F4-T5 · 90%</em>
 </li>
 </ol></div>
-            <div><h4>風險 / 缺口</h4><ul><li>未覆蓋：Session 1 由使用者本機開瀏覽器手動 dogfood 驗證 UI / 互動</li><li>未覆蓋：列印 PDF 視覺與舊版 1:1 對比（Session 3 才會做完整 A4 preview）</li><li>未覆蓋：Cross-browser 測試（Safari / Firefox / Edge）</li><li>未覆蓋：IAP 登入流程（Phase A 部署後才有 staging URL 可測）</li><li>未覆蓋：Backend 連線失敗時的 UX 是否符合業務預期（已實作 retry banner，但未實地 dogfood）</li><li>未覆蓋：Codex round 10 對 F15 拆 useEffect refactor 的清白簽核</li></ul></div>
+            <div><h4>風險 / 缺口</h4><ul><li>未覆蓋：IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）</li><li>未覆蓋：Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗</li><li>未覆蓋：列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）</li><li>未覆蓋：並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）</li><li>未覆蓋：存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）</li></ul></div>
           </div>
         </section>
       </div>
@@ -12196,10 +12070,10 @@
             <strong>展開變更紀錄</strong>
             <span>查看對話中造成範圍、需求或驗證狀態改變的紀錄。</span>
           </div>
-          <span>28 筆</span>
+          <span>29 筆</span>
         </summary>
         <div class="detail-body">
-          <ul class="change-log"><li><strong>2026-05-21T11:50:00+08:00</strong> user: 授權『整份預覽全區塊 computed-style 全比對』（localhost-vs-prod-parity skill）<span>對整份預覽逐元素 live-vs-live computed-style 比對（我的 localhost vs legacy github.io）：header / parties(含分隔線) / 01 表格 / ◎交付物 / 02 服務摘要 / 03 備註 / 付款表 / 簽章 / 銀行帳戶 / 頁尾 / 附件頁，共 30+ 元素的 color/bg/border/padding/margin/font*/letterSpacing/textTransform。結果：除了本輪稍早已修的 01 表格(7處) + 字級(16處)，其餘全部本來就一致 → 整份預覽 0 剩餘差異。教訓：computed-style 逐欄量是抓 pixel parity 的正解，目視會漏。</span></li><li><strong>2026-05-21T11:30:00+08:00</strong> user: 回報 01 表格 + 03 備註 style 還沒完全對上（貼了 mine vs legacy 截圖）<span>逐元素量 computed style 兩邊對照。發現表格多處不符並修正：表頭文字色米白→金#D4B080 + 加 UPPERCASE + 2px 金底線；Category 欄加金色左邊框 + 灰字 500；總價文字米白→深#1A1510 + 700 + border；小計框寬 240→400px；小計列加分隔線 + 標籤灰色；組標題 bg #EDE6DA→#EFE9DF、padding/margin 對齊。Playwright 重量測全部 0 mismatch。03 備註經量測本來就一致（sectionNum/notesLi/noteNum 完全相同）。228 tests 綠。教訓：先前憑截圖目視會漏，改用 runtime computed-style 逐欄比對。</span></li><li><strong>2026-05-21T11:05:00+08:00</strong> user: 回報預覽文字比原本小，要確認字級<span>root cause：legacy.html 1169-1197 有一段『字級放大 +20%』top-level 覆寫區會蓋掉基礎字級，我當初只抄基礎值、漏抄覆寫。修 PreviewPlaceholder.module.scss 16 處 font-size 對到 legacy 覆寫值（sectionNum 25→31、sectionZh 12.5→15、sectionEn 8→11.5、groupTitle 11→12.5、qt 9.5→11.5、qt th +10、qt .no 8.5→10、deliverable/notes/payment td/sigLine 9.5→11.5、payment th/sigLabel/sigFieldLbl/sigStamp 8.5→10、pageFooter 8→9.5）。Playwright 量測 10+ 元素全部與 legacy 一致（0 mismatch）。Builder 面板 .bp-* 不在覆寫區、不受影響。228 tests 綠。</span></li><li><strong>2026-05-21T10:55:00+08:00</strong> user: 前 3 件確認可以了；授權『先接 API，接完測沒問題再 commit』<span>接真實 Google Apps Script catalog API：新增 api/items.ts（fetch + normalize + cache）+ lib/useItemsCatalog.ts（fixture fallback）；CatalogPicker 改用真實資料。Playwright live 驗證：載入 176 筆真品項、8 個真實大品項（A展間系統/B平台系統/C導覽內容製作/D數位出版/E行銷/F客製化工程/G其他項目/P專案管理），A-1~A-7 真實副品項 + 真實品項名稱/價格（NT$175,000）加入成功並帶入預覽。CORS 從瀏覽器可達（Apps Script 302→googleusercontent 200）。228 tests 綠。</span></li><li><strong>2026-05-21T10:40:00+08:00</strong> user: 回報 3 件：後端 502 連不到、中間『拖拉 bar』（=面板分隔線）拖不動、品項選擇介面跟舊版不同且只有 A-1/A-2（舊版 A展間系統有 A-1~A-7）<span>釐清『拖不動』一直指的是面板分隔線（不是品項排序，我先前誤解）。修：① docker compose up 起後端（502=沒起）② 實作分隔線拖曳 resize（mousedown→clamp→localStorage、dblclick reset）③ CatalogPicker 由搜尋框改成 legacy 三層下拉 + fixture 補齊 A展間系統 A-1~A-7、B/C/D 群組。真實上百筆品項仍需接 Google API（PR5）。</span></li><li><strong>2026-05-20T22:30:00+08:00</strong> user: 盤點後問「還有哪些沒做不能測、UI 是否都測好」，我誠實回報漏掉 3 個首頁品項級操作（重選/拖曳/定價優惠價切換），使用者回「要」補做<span>補做品項重新選擇 ⟲（重開 catalog replace）、拖曳排序（MOVE_ITEM reducer + drag handle）、定價/優惠價 tier switch（autoDiscount 時鎖定）。同時 docker compose up 起後端讓使用者能測新報價配號。214 tests 綠。</span></li><li><strong>2026-05-20T18:30:00+08:00</strong> user: 要求「這個階段把所有報價單首頁的功能都要完成」，我一起檢查、所有 field 填入、按鈕都點過、比對 legacy、全完成才回報<span>把 Session 4 範圍從原本只做 History+Radix 重新定義為『報價單首頁 100% legacy parity』：補 Session 2.5 折扣/議價、02 服務摘要、附件頁、編輯模式、標題修正。先用 AskUserQuestion 鎖定 2 個模糊邊界（編輯模式=做、存雲端/PDF=留後面；02+附件頁=一起做）。完成後用 Playwright 逐功能 + 截圖驗證。</span></li><li><strong>2026-05-20T12:00:00+08:00</strong> user: Session 3 visual QA 發現預設值/銀行框/頁尾/起始組等 7 個 legacy parity gap，使用者要求全修（含起始組）<span>createBlankQuote 補 3 條預設備註 + 付款預設值 + 1 個起始組；Preview 補 ARTOGO 指定帳戶 + 頁尾 + 付款表淡金底；標題修 01 專案報價內容。</span></li><li><strong>2026-05-18T15:00:00+08:00</strong> user: 看到 GitHub Pages 顯示空白：要求診斷與修復<span>插隊一個 hotfix PR #4，把 root index.html redirect 從 frontend/ 改成 frontend/legacy.html，並在 frontend/index.html 加 github.io hostname 偵測 + hash 保留 JS。已 merge 04452af，Pages re-build 完成。</span></li><li><strong>2026-05-18T17:30:00+08:00</strong> user: Session 1 完成後選 option C：分多 session 做完整 React 復刻<span>建立 Session 1-5 拆分計畫，本輪只做 Layout + Topbar + 3 個簡單 section + state foundation。</span></li><li><strong>2026-05-18T19:00:00+08:00</strong> user: 對 Codex F1-F4 第一輪 finding 回 &#x27;全休（全修）&#x27;<span>授權批次修 F1-F4 的 4 個 finding。</span></li><li><strong>2026-05-18T20:00:00+08:00</strong> user: 質疑：為啥你自己決定沒有等我選擇<span>承認 F5-F8 自作主張、違反 CLAUDE.md commit gate。改為每輪 Codex finding 都需使用者拍板才能修。</span></li><li><strong>2026-05-18T21:30:00+08:00</strong> user: 對 F9（撞號 P2）回 &#x27;該怎麼做怎麼做、錯的就要修&#x27;<span>把 F9 從 &#x27;defer to PR 5&#x27; 升級為立即修 — 本 session 提前實作 backend API client + Vite proxy + nextQuoteNumber wire。等於把 PR 5 的部分 scope 拉前。</span></li><li><strong>2026-05-19T00:00:00+08:00</strong> user: 提示重讀 CLAUDE.md 看是否該做進度說明頁面<span>發現 CLAUDE.md L240-284 進度儀表板 Gate 從一開始就漏做。補建 progress.json + progress.html。</span></li><li><strong>2026-05-21T15:50:00+08:00</strong> codex: 第二輪 Codex review 確認第一輪 6 findings 已解決，另冒出 1 P2：預覽 Qty 欄印出 unit 前導斜線（/式 → 應為 式）。<span>新增 quoteCalc.stripUnitSlash（mirror legacy.html:2525）+ 預覽套用 + 4 regression test。live catalog 174/176 筆帶斜線，屬主流路徑。runtime DOM 驗證原始 /場 → 預覽「1 場」。</span></li><li><strong>2026-05-21T16:15:00+08:00</strong> codex: 第三輪 Codex deep sweep 確認前兩輪已解決，另抓 2 個新 P2：①預設/重設面板寬度未 clamp ②arts-only 列切定價歸零 NT$0。<span>① Builder.tsx init+reset 都套 clampWidth ② catalogItemFields 缺價存 undefined（= legacy null，legacy.html:2838），既有 guard 即正確跳過。+3 regression test（238 綠）。runtime 雙證：arts-only 切定價維持 12,500；1200px 面板夾到 380px。</span></li><li><strong>2026-05-21T16:31:00+08:00</strong> codex: 第四輪 Codex deep sweep 抓 3 findings：①auto-discount 時 standard-only 列歸零[P1] ②客戶簽名欄被預填 ③附件列印頂部多 12mm。<span>①catalogItemFields discount 改 `hasArts?max(0,ps-pa):0`（= legacy:2562 + reducer）②客戶簽名欄渲染空白（= legacy renderSig:2515）③globals 加 @page appendix-page + .appendixPage page:appendix-page。+2 test（240 綠），runtime/CSS 三證。</span></li><li><strong>2026-05-21T17:09:00+08:00</strong> codex: 第五輪（重跑）Codex 抓 1 P2：編輯副品項只改 sub_group，留下舊 service_description → 印出錯誤附件。<span>副品項 onChange 同時清掉 service_description（= legacy 由 catalog 依 sub_group 重推:2354 的效果）。+1 regression test（241 綠）。runtime：live A-1 改副品項後舊『3D實境掃描』附件消失。</span></li><li><strong>2026-05-21T17:20:00+08:00</strong> codex: 第六輪 Codex review 乾淨（無 finding），commit gate 通過。<span>6 輪 Codex 收斂（6→1→2→3→1→0）。可進入 commit。輸出 PDF 按鈕 + 報價存取 API 仍為已知待補（PR4 收尾 / PR5）。</span></li><li><strong>2026-05-21T17:25:00+08:00</strong> user: 使用者選 1+2+3：輸出 PDF 按鈕 + History/報價存取 API(PR5) + push。<span>新增 F15(輸出PDF)/F16(報價API)/F17(History+載入)。依 build.md TDD，逐階段 Codex gate + commit，最後 /qa-only → push staging → PR。</span></li><li><strong>2026-05-21T17:58:00+08:00</strong> codex: Phase-1 Codex 指出 legacy 列印前先存雲端（save-before-print）。<span>save 屬 Phase 2，故 print 併入 Phase 2 一起 commit；Phase 2 完成兩段式 存雲端→輸出 PDF。Phase 1 print 程式碼留在 working tree 不單獨 commit。</span></li><li><strong>2026-05-21T19:27:00+08:00</strong> codex: Phase 1+2 Codex 第八輪乾淨，commit gate 通過。<span>save/print 流程經 8 輪 13 findings 硬化（dedup、型別、save-switch race、日期正規化、total 取整、canonical 合併、defer-stamp 保留編輯、Escape 守衛、flash timer race）。可 commit。</span></li><li><strong>2026-05-21T19:30:00+08:00</strong> user: Phase 3 路由：選『加後端 by-quote_no 查詢』保書籤。<span>後端加 GET /quotes/by-number/{quote_no}（先文件後 code + Go test）；前端 getQuoteByNumber；History 頁列改連 #/quote/AW-...；載入用 by-quote_no。</span></li><li><strong>2026-05-21T21:05:00+08:00</strong> user: 使用者『繼續』→ 完成 push + 開 PR（3）。<span>feature/session-3-preview 推上 origin（7 commits），開 PR #7 → main。push 前 /qa-only smoke（乾淨重啟 dev server、0 console error、3 主線）通過；PR body 註明 15 輪 Codex review 全清 + e2e 閉環證據。</span></li><li><strong>2026-05-21T22:00:00+08:00</strong> reviewer: PR #7 自動 review（Gemini + Codex）共 3 個 inline P2。<span>全修：①History 時間改 Asia/Taipei ②Builder latestWidth ref 改 render-body ③QuoteLoader 載入後正規化 #/quote→#/（replace 非 push、success 加 aborted 守衛）。275 tests 綠、Codex 最終乾淨、runtime 驗證（deep-link→#/、Back 回 History）。3 條 thread 已回覆並 resolve。commit 85fa25b。</span></li><li><strong>2026-05-21T23:10:00+08:00</strong> user: 使用者質疑：報價單號為何重新整理就 +1？應該先看目前號到哪、還沒用到就不加。選定 Option B『存檔後才配號（不顯示預覽）』。<span>修正流水號 burn-on-refresh bug。配號從 Builder mount 移到存檔（POST /quotes）：後端在 quote_no 缺省時於 save 原子配發；前端移除 mount 抓號 + error banner + retry + fetchToken/retry side-channel；SET_SAVED 帶回配發號並 stamp 進 state；EditModeBar 不再因無號 disable、兩段式存檔→列印；MetaSection placeholder 改『（儲存後配發）』。淨 −248 行。</span></li><li><strong>2026-05-21T23:35:00+08:00</strong> reviewer: Option B 的 Codex pre-commit review 抓到 2 個 P2。<span>P2-1（in-flight 編輯導致重複建立 + 燒第二個序號）：真 bug，用 instance-epoch 修（QuoteContext 切換報價才 bump、欄位編輯不 bump；useSaveQuote 改用 epoch 而非物件 identity 判斷 stamp）+ 加 useSaveQuote.test.tsx 2 例回歸。P2-2（首次輸出 PDF 洗掉編輯預覽 DOM 修改）：用 Playwright 實測兩個節點（靜態 QUOTATION + 動態 sales phone）證明 React reconciliation 不會洗掉未變節點 → Codex 誤判（false positive），不修。</span></li><li><strong>2026-05-22T00:05:00+08:00</strong> user: 使用者指出歷史紀錄頁跟既有 legacy「長得完全不同」。<span>Root cause：Phase 3 有個 Codex P2 說 History 內容 dark-on-dark，我當時用『整頁改淺色』來解、而非把內容改深色 → 主題整個反了。改成 1:1 復刻 legacy .hp-* 深色頁：#0D0804 滿版 + ARTWAY logo + 副標 + chip 日期篩選（過去7天/1個月/1季/1年/全部）+ 數字分頁 + 站內刪除確認 modal + toast（取代 window.confirm/alert）+ 金色大寫表頭 + 狀態 pill 描邊色。</span></li></ul>
+          <ul class="change-log"><li><strong>2026-05-22T13:41:33+08:00</strong> codex: 使用者確認後執行 push 前正式 /qa-only，但未授權 git push。<span>自動化 gate 全綠：frontend lint、276 tests、typecheck、build；backend go vet、go test。Playwright live smoke：新報價重整 3 次仍維持空白編號與「（儲存後配發）」placeholder，DB quote_serials 260522 next_seq 3→3 不燒號；存檔後 POST /api/quotes 201，配發 AW-260522-003、預覽出現 2 處、按鈕顯示已存到雲端，測試資料已 DELETE 204 清理；History #/history 載入 9 筆，body bg #0D0804、標題金色、5 個日期 chip、logo/回 Builder 存在，console error 0。</span></li><li><strong>2026-05-21T11:50:00+08:00</strong> user: 授權『整份預覽全區塊 computed-style 全比對』（localhost-vs-prod-parity skill）<span>對整份預覽逐元素 live-vs-live computed-style 比對（我的 localhost vs legacy github.io）：header / parties(含分隔線) / 01 表格 / ◎交付物 / 02 服務摘要 / 03 備註 / 付款表 / 簽章 / 銀行帳戶 / 頁尾 / 附件頁，共 30+ 元素的 color/bg/border/padding/margin/font*/letterSpacing/textTransform。結果：除了本輪稍早已修的 01 表格(7處) + 字級(16處)，其餘全部本來就一致 → 整份預覽 0 剩餘差異。教訓：computed-style 逐欄量是抓 pixel parity 的正解，目視會漏。</span></li><li><strong>2026-05-21T11:30:00+08:00</strong> user: 回報 01 表格 + 03 備註 style 還沒完全對上（貼了 mine vs legacy 截圖）<span>逐元素量 computed style 兩邊對照。發現表格多處不符並修正：表頭文字色米白→金#D4B080 + 加 UPPERCASE + 2px 金底線；Category 欄加金色左邊框 + 灰字 500；總價文字米白→深#1A1510 + 700 + border；小計框寬 240→400px；小計列加分隔線 + 標籤灰色；組標題 bg #EDE6DA→#EFE9DF、padding/margin 對齊。Playwright 重量測全部 0 mismatch。03 備註經量測本來就一致（sectionNum/notesLi/noteNum 完全相同）。228 tests 綠。教訓：先前憑截圖目視會漏，改用 runtime computed-style 逐欄比對。</span></li><li><strong>2026-05-21T11:05:00+08:00</strong> user: 回報預覽文字比原本小，要確認字級<span>root cause：legacy.html 1169-1197 有一段『字級放大 +20%』top-level 覆寫區會蓋掉基礎字級，我當初只抄基礎值、漏抄覆寫。修 PreviewPlaceholder.module.scss 16 處 font-size 對到 legacy 覆寫值（sectionNum 25→31、sectionZh 12.5→15、sectionEn 8→11.5、groupTitle 11→12.5、qt 9.5→11.5、qt th +10、qt .no 8.5→10、deliverable/notes/payment td/sigLine 9.5→11.5、payment th/sigLabel/sigFieldLbl/sigStamp 8.5→10、pageFooter 8→9.5）。Playwright 量測 10+ 元素全部與 legacy 一致（0 mismatch）。Builder 面板 .bp-* 不在覆寫區、不受影響。228 tests 綠。</span></li><li><strong>2026-05-21T10:55:00+08:00</strong> user: 前 3 件確認可以了；授權『先接 API，接完測沒問題再 commit』<span>接真實 Google Apps Script catalog API：新增 api/items.ts（fetch + normalize + cache）+ lib/useItemsCatalog.ts（fixture fallback）；CatalogPicker 改用真實資料。Playwright live 驗證：載入 176 筆真品項、8 個真實大品項（A展間系統/B平台系統/C導覽內容製作/D數位出版/E行銷/F客製化工程/G其他項目/P專案管理），A-1~A-7 真實副品項 + 真實品項名稱/價格（NT$175,000）加入成功並帶入預覽。CORS 從瀏覽器可達（Apps Script 302→googleusercontent 200）。228 tests 綠。</span></li><li><strong>2026-05-21T10:40:00+08:00</strong> user: 回報 3 件：後端 502 連不到、中間『拖拉 bar』（=面板分隔線）拖不動、品項選擇介面跟舊版不同且只有 A-1/A-2（舊版 A展間系統有 A-1~A-7）<span>釐清『拖不動』一直指的是面板分隔線（不是品項排序，我先前誤解）。修：① docker compose up 起後端（502=沒起）② 實作分隔線拖曳 resize（mousedown→clamp→localStorage、dblclick reset）③ CatalogPicker 由搜尋框改成 legacy 三層下拉 + fixture 補齊 A展間系統 A-1~A-7、B/C/D 群組。真實上百筆品項仍需接 Google API（PR5）。</span></li><li><strong>2026-05-20T22:30:00+08:00</strong> user: 盤點後問「還有哪些沒做不能測、UI 是否都測好」，我誠實回報漏掉 3 個首頁品項級操作（重選/拖曳/定價優惠價切換），使用者回「要」補做<span>補做品項重新選擇 ⟲（重開 catalog replace）、拖曳排序（MOVE_ITEM reducer + drag handle）、定價/優惠價 tier switch（autoDiscount 時鎖定）。同時 docker compose up 起後端讓使用者能測新報價配號。214 tests 綠。</span></li><li><strong>2026-05-20T18:30:00+08:00</strong> user: 要求「這個階段把所有報價單首頁的功能都要完成」，我一起檢查、所有 field 填入、按鈕都點過、比對 legacy、全完成才回報<span>把 Session 4 範圍從原本只做 History+Radix 重新定義為『報價單首頁 100% legacy parity』：補 Session 2.5 折扣/議價、02 服務摘要、附件頁、編輯模式、標題修正。先用 AskUserQuestion 鎖定 2 個模糊邊界（編輯模式=做、存雲端/PDF=留後面；02+附件頁=一起做）。完成後用 Playwright 逐功能 + 截圖驗證。</span></li><li><strong>2026-05-20T12:00:00+08:00</strong> user: Session 3 visual QA 發現預設值/銀行框/頁尾/起始組等 7 個 legacy parity gap，使用者要求全修（含起始組）<span>createBlankQuote 補 3 條預設備註 + 付款預設值 + 1 個起始組；Preview 補 ARTOGO 指定帳戶 + 頁尾 + 付款表淡金底；標題修 01 專案報價內容。</span></li><li><strong>2026-05-18T15:00:00+08:00</strong> user: 看到 GitHub Pages 顯示空白：要求診斷與修復<span>插隊一個 hotfix PR #4，把 root index.html redirect 從 frontend/ 改成 frontend/legacy.html，並在 frontend/index.html 加 github.io hostname 偵測 + hash 保留 JS。已 merge 04452af，Pages re-build 完成。</span></li><li><strong>2026-05-18T17:30:00+08:00</strong> user: Session 1 完成後選 option C：分多 session 做完整 React 復刻<span>建立 Session 1-5 拆分計畫，本輪只做 Layout + Topbar + 3 個簡單 section + state foundation。</span></li><li><strong>2026-05-18T19:00:00+08:00</strong> user: 對 Codex F1-F4 第一輪 finding 回 &#x27;全休（全修）&#x27;<span>授權批次修 F1-F4 的 4 個 finding。</span></li><li><strong>2026-05-18T20:00:00+08:00</strong> user: 質疑：為啥你自己決定沒有等我選擇<span>承認 F5-F8 自作主張、違反 CLAUDE.md commit gate。改為每輪 Codex finding 都需使用者拍板才能修。</span></li><li><strong>2026-05-18T21:30:00+08:00</strong> user: 對 F9（撞號 P2）回 &#x27;該怎麼做怎麼做、錯的就要修&#x27;<span>把 F9 從 &#x27;defer to PR 5&#x27; 升級為立即修 — 本 session 提前實作 backend API client + Vite proxy + nextQuoteNumber wire。等於把 PR 5 的部分 scope 拉前。</span></li><li><strong>2026-05-19T00:00:00+08:00</strong> user: 提示重讀 CLAUDE.md 看是否該做進度說明頁面<span>發現 CLAUDE.md L240-284 進度儀表板 Gate 從一開始就漏做。補建 progress.json + progress.html。</span></li><li><strong>2026-05-21T15:50:00+08:00</strong> codex: 第二輪 Codex review 確認第一輪 6 findings 已解決，另冒出 1 P2：預覽 Qty 欄印出 unit 前導斜線（/式 → 應為 式）。<span>新增 quoteCalc.stripUnitSlash（mirror legacy.html:2525）+ 預覽套用 + 4 regression test。live catalog 174/176 筆帶斜線，屬主流路徑。runtime DOM 驗證原始 /場 → 預覽「1 場」。</span></li><li><strong>2026-05-21T16:15:00+08:00</strong> codex: 第三輪 Codex deep sweep 確認前兩輪已解決，另抓 2 個新 P2：①預設/重設面板寬度未 clamp ②arts-only 列切定價歸零 NT$0。<span>① Builder.tsx init+reset 都套 clampWidth ② catalogItemFields 缺價存 undefined（= legacy null，legacy.html:2838），既有 guard 即正確跳過。+3 regression test（238 綠）。runtime 雙證：arts-only 切定價維持 12,500；1200px 面板夾到 380px。</span></li><li><strong>2026-05-21T16:31:00+08:00</strong> codex: 第四輪 Codex deep sweep 抓 3 findings：①auto-discount 時 standard-only 列歸零[P1] ②客戶簽名欄被預填 ③附件列印頂部多 12mm。<span>①catalogItemFields discount 改 `hasArts?max(0,ps-pa):0`（= legacy:2562 + reducer）②客戶簽名欄渲染空白（= legacy renderSig:2515）③globals 加 @page appendix-page + .appendixPage page:appendix-page。+2 test（240 綠），runtime/CSS 三證。</span></li><li><strong>2026-05-21T17:09:00+08:00</strong> codex: 第五輪（重跑）Codex 抓 1 P2：編輯副品項只改 sub_group，留下舊 service_description → 印出錯誤附件。<span>副品項 onChange 同時清掉 service_description（= legacy 由 catalog 依 sub_group 重推:2354 的效果）。+1 regression test（241 綠）。runtime：live A-1 改副品項後舊『3D實境掃描』附件消失。</span></li><li><strong>2026-05-21T17:20:00+08:00</strong> codex: 第六輪 Codex review 乾淨（無 finding），commit gate 通過。<span>6 輪 Codex 收斂（6→1→2→3→1→0）。可進入 commit。輸出 PDF 按鈕 + 報價存取 API 仍為已知待補（PR4 收尾 / PR5）。</span></li><li><strong>2026-05-21T17:25:00+08:00</strong> user: 使用者選 1+2+3：輸出 PDF 按鈕 + History/報價存取 API(PR5) + push。<span>新增 F15(輸出PDF)/F16(報價API)/F17(History+載入)。依 build.md TDD，逐階段 Codex gate + commit，最後 /qa-only → push staging → PR。</span></li><li><strong>2026-05-21T17:58:00+08:00</strong> codex: Phase-1 Codex 指出 legacy 列印前先存雲端（save-before-print）。<span>save 屬 Phase 2，故 print 併入 Phase 2 一起 commit；Phase 2 完成兩段式 存雲端→輸出 PDF。Phase 1 print 程式碼留在 working tree 不單獨 commit。</span></li><li><strong>2026-05-21T19:27:00+08:00</strong> codex: Phase 1+2 Codex 第八輪乾淨，commit gate 通過。<span>save/print 流程經 8 輪 13 findings 硬化（dedup、型別、save-switch race、日期正規化、total 取整、canonical 合併、defer-stamp 保留編輯、Escape 守衛、flash timer race）。可 commit。</span></li><li><strong>2026-05-21T19:30:00+08:00</strong> user: Phase 3 路由：選『加後端 by-quote_no 查詢』保書籤。<span>後端加 GET /quotes/by-number/{quote_no}（先文件後 code + Go test）；前端 getQuoteByNumber；History 頁列改連 #/quote/AW-...；載入用 by-quote_no。</span></li><li><strong>2026-05-21T21:05:00+08:00</strong> user: 使用者『繼續』→ 完成 push + 開 PR（3）。<span>feature/session-3-preview 推上 origin（7 commits），開 PR #7 → main。push 前 /qa-only smoke（乾淨重啟 dev server、0 console error、3 主線）通過；PR body 註明 15 輪 Codex review 全清 + e2e 閉環證據。</span></li><li><strong>2026-05-21T22:00:00+08:00</strong> reviewer: PR #7 自動 review（Gemini + Codex）共 3 個 inline P2。<span>全修：①History 時間改 Asia/Taipei ②Builder latestWidth ref 改 render-body ③QuoteLoader 載入後正規化 #/quote→#/（replace 非 push、success 加 aborted 守衛）。275 tests 綠、Codex 最終乾淨、runtime 驗證（deep-link→#/、Back 回 History）。3 條 thread 已回覆並 resolve。commit 85fa25b。</span></li><li><strong>2026-05-21T23:10:00+08:00</strong> user: 使用者質疑：報價單號為何重新整理就 +1？應該先看目前號到哪、還沒用到就不加。選定 Option B『存檔後才配號（不顯示預覽）』。<span>修正流水號 burn-on-refresh bug。配號從 Builder mount 移到存檔（POST /quotes）：後端在 quote_no 缺省時於 save 原子配發；前端移除 mount 抓號 + error banner + retry + fetchToken/retry side-channel；SET_SAVED 帶回配發號並 stamp 進 state；EditModeBar 不再因無號 disable、兩段式存檔→列印；MetaSection placeholder 改『（儲存後配發）』。淨 −248 行。</span></li><li><strong>2026-05-21T23:35:00+08:00</strong> reviewer: Option B 的 Codex pre-commit review 抓到 2 個 P2。<span>P2-1（in-flight 編輯導致重複建立 + 燒第二個序號）：真 bug，用 instance-epoch 修（QuoteContext 切換報價才 bump、欄位編輯不 bump；useSaveQuote 改用 epoch 而非物件 identity 判斷 stamp）+ 加 useSaveQuote.test.tsx 2 例回歸。P2-2（首次輸出 PDF 洗掉編輯預覽 DOM 修改）：用 Playwright 實測兩個節點（靜態 QUOTATION + 動態 sales phone）證明 React reconciliation 不會洗掉未變節點 → Codex 誤判（false positive），不修。</span></li><li><strong>2026-05-22T00:05:00+08:00</strong> user: 使用者指出歷史紀錄頁跟既有 legacy「長得完全不同」。<span>Root cause：Phase 3 有個 Codex P2 說 History 內容 dark-on-dark，我當時用『整頁改淺色』來解、而非把內容改深色 → 主題整個反了。改成 1:1 復刻 legacy .hp-* 深色頁：#0D0804 滿版 + ARTWAY logo + 副標 + chip 日期篩選（過去7天/1個月/1季/1年/全部）+ 數字分頁 + 站內刪除確認 modal + toast（取代 window.confirm/alert）+ 金色大寫表頭 + 狀態 pill 描邊色。</span></li></ul>
         </div>
       </details>
     </div>
