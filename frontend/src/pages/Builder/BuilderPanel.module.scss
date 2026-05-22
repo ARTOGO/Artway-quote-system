@@ -1,7 +1,9 @@
 @use '../../styles/tokens.scss' as *;
 
 .panel {
-  width: $builder-panel-width-default;
+  // Width is driven by the draggable divider via a CSS custom property set on
+  // the Builder root (falls back to the default when not dragging-initialised).
+  width: var(--builder-panel-width, #{$builder-panel-width-default});
   min-width: $builder-panel-width-min;
   flex-shrink: 0;
   background: $color-surface-deep;
@@ -66,5 +68,13 @@
   &:hover {
     background: $color-alert-warning;
     color: $color-surface-paper;
+  }
+}
+
+// ─── Print (Session 3) ───────────────────────────────────────────────────
+// The editor panel never prints — only the preview's A4 page does.
+@media print {
+  .panel {
+    display: none !important;
   }
 }

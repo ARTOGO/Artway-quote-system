@@ -192,21 +192,21 @@
 }
 
 .sectionNum {
-  font-size: $font-size-9xl; // 25px (legacy `.section-num`)
+  font-size: $font-size-display; // 31px (legacy +20% override, line 1177)
   font-weight: $font-weight-bold;
   color: $color-gold;
   line-height: 1;
 }
 
 .sectionZh {
-  font-size: $font-size-lg-plus; // 12.5px (legacy `.section-zh`)
+  font-size: $font-size-3xl; // 15px (legacy +20% override, line 1178)
   font-weight: $font-weight-semibold;
   color: $color-ink-deep;
   letter-spacing: $letter-spacing-wide;
 }
 
 .sectionEn {
-  font-size: $font-size-2xs; // 8px (legacy `.section-en`)
+  font-size: $font-size-md-plus; // 11.5px (legacy +20% override, line 1179)
   color: $color-gold-deep;
   letter-spacing: $letter-spacing-widest;
   margin-top: 2px;
@@ -218,12 +218,12 @@
 }
 
 .groupTitle {
-  font-size: $font-size-md; // 11px
+  font-size: $font-size-lg-plus; // 12.5px (legacy +20% override .group-title, line 1180)
   font-weight: $font-weight-semibold;
-  color: $color-ink-table; // #2C1F10 (legacy 用 ink-table 系)
-  background: $color-bg-table-head;
-  padding: $space-1_5 $space-2_5;
-  margin-bottom: $space-1_5;
+  color: $color-ink-deep; // #1A1510 (legacy .group-title)
+  background: $color-surface-warm; // #EFE9DF (legacy exact)
+  padding: 5px $space-2_5; // 5px 10px (legacy exact)
+  margin-bottom: 0; // legacy: no gap before the table
   border-left: 3px solid $color-gold;
 }
 
@@ -243,6 +243,9 @@
 .colUnitPrice {
   width: 68px;
 }
+.colDiscount {
+  width: 60px;
+}
 .colAmount {
   width: 78px;
 }
@@ -251,7 +254,7 @@
 .qt {
   width: 100%;
   border-collapse: collapse;
-  font-size: $font-size-sm-plus; // 9.5px (legacy `.qt`)
+  font-size: $font-size-md-plus; // 11.5px (legacy +20% override .qt, line 1181)
   table-layout: fixed;
 
   thead {
@@ -263,11 +266,14 @@
   }
 
   thead th {
-    padding: 6px 8px;
-    color: $color-surface-cream;
+    padding: 7px 8px 6px; // legacy exact
+    color: $color-gold-warm; // #D4B080 (legacy `.qt thead th`)
     font-weight: $font-weight-semibold;
     text-align: left;
-    letter-spacing: $letter-spacing-wide;
+    letter-spacing: 0.05em; // legacy exact
+    text-transform: uppercase; // legacy exact (No.→NO., Category→CATEGORY…)
+    font-size: $font-size-base; // 10px (legacy +20% override .qt thead th, line 1182)
+    border-bottom: $border-width-base solid $color-gold; // 2px gold underline
   }
 
   tbody tr {
@@ -303,13 +309,21 @@
 
   .no {
     color: $color-gold-deep;
-    font-size: $font-size-xs;
+    font-size: $font-size-base; // 10px (legacy +20% override .qt td.no, line 1183)
     white-space: nowrap;
   }
 
   .subCat {
     white-space: pre-wrap;
-    font-size: $font-size-md;
+    font-size: $font-size-md; // 11px (legacy +20% override .qt td.sub-cat, line 1184)
+    // legacy `.qt tbody td.sub-cat` (line 916-924): muted 500-weight text with
+    // a gold left accent bar.
+    color: $color-ink-soft; // #4A3F32
+    font-weight: $font-weight-medium;
+    letter-spacing: 0.02em;
+    border-left: $border-width-base solid $overlay-gold-35;
+    padding-left: 7px;
+    line-height: 1.35;
   }
 
   .desc {
@@ -326,33 +340,509 @@
   font-size: $font-size-md;
 }
 
-// Group totals (Subtotal / Tax / Grand)
+// Group totals (Subtotal / Tax / Grand) — legacy `.group-totals` (line 926):
+// flush under the table, gold top hairline, right-aligned 400px box.
 .groupTotals {
   display: flex;
   justify-content: flex-end;
-  margin-top: $space-2;
+  border-top: $border-width-thin solid $color-gold-warm; // legacy `.group-totals`
 }
 
 .totalsBox {
-  min-width: 240px;
-  border-top: $border-width-thin solid $overlay-gold-35;
+  min-width: 400px; // legacy exact
 }
 
 .totalsRow {
   display: flex;
   justify-content: space-between;
   font-size: $font-size-md-plus;
-  color: $color-ink-soft;
-  padding: 2px $space-2;
+  padding: $space-1 $space-2_5; // 4px 10px (legacy exact)
+  border-bottom: $border-width-thin solid $color-surface-soft; // legacy #EDE6DA
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  // Legacy: label (first span) muted gold-deep, value (last span) medium.
+  > span:first-child {
+    color: $color-gold-deep;
+  }
+
+  > span:last-child {
+    color: $color-ink-deep;
+    font-weight: $font-weight-medium;
+  }
 }
 
 .totalsGrand {
   display: flex;
   justify-content: space-between;
   font-size: $font-size-lg-plus; // 12.5px
-  font-weight: $font-weight-semibold;
-  color: $color-surface-cream;
+  font-weight: $font-weight-bold; // legacy 700
+  color: $color-ink-deep; // #1A1510 — DARK text on gold (legacy), not cream
   background: $color-gold;
-  padding: $space-1_5 $space-2;
-  margin-top: $space-1;
+  padding: $space-2 $space-2_5; // 8px 10px (legacy exact)
+  letter-spacing: 0.03em; // legacy exact
+  border: 1.5px solid $color-gold; // legacy exact
+}
+
+// ─── ◎ 本案交付物 / 03 備註 / 付款 / 簽章 (Session 3) ────────────────────
+// Mirrors legacy `.deliverable-grid`, `.notes-list`, `.payment-table`,
+// `.sig-section`, `.sig-block`, `.sig-stamp` (legacy.html 940-1099).
+// Tokens-only — every numeric / colour value lives in tokens.scss.
+
+// Reused for ◎ (the deliverables glyph) — legacy uses a smaller font for
+// the ◎ glyph than the regular section number ("◎" at 20px vs "01" at
+// 25px), with line-height 1.4 to vertical-centre against the two-line
+// section name. Numeric value preserved verbatim from legacy.html line
+// 1964 inline-style.
+.sectionNumGlyph {
+  font-size: $font-size-7xl; // 20px (legacy inline `font-size:20px`)
+  line-height: $line-height-snug; // 1.4 (legacy inline `line-height:1.4`)
+}
+
+// Used by the payment table block — legacy `.mt14` = `margin-top: 10px`
+// (the class name is misleading but the value is 10px, see line 1123).
+.sectionWrapTight {
+  margin-top: $space-2_5;
+}
+
+// ─── Deliverables (legacy `.deliverable-grid`) ───────────────────────────
+.deliverableGrid {
+  list-style: none;
+  margin-top: 7px;
+  padding: 0;
+
+  li {
+    font-size: $font-size-md-plus; // 11.5px (legacy +20% override .deliverable-grid li, line 1187)
+    color: $color-ink-table;
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    padding: $space-1 0;
+    border-bottom: $border-width-thin solid $overlay-gold-18;
+    line-height: $line-height-base;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &::before {
+      content: '✓';
+      color: $color-gold;
+      font-weight: $font-weight-bold;
+      flex-shrink: 0;
+      min-width: 14px;
+    }
+  }
+}
+
+// ─── Notes / Remarks (legacy `.notes-list`) ──────────────────────────────
+.notesList {
+  list-style: none;
+  padding: 0;
+
+  li {
+    display: flex;
+    gap: 7px;
+    font-size: $font-size-md-plus; // 11.5px (legacy +20% override .notes-list li, line 1190)
+    color: $color-ink-table;
+    padding: $space-1 0;
+    border-bottom: $border-width-thin solid $color-surface-bg;
+    line-height: 1.5; // legacy exact (slightly tighter than $line-height-base)
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    > span:last-child {
+      white-space: pre-wrap;
+    }
+  }
+}
+
+.noteNum {
+  color: $color-gold;
+  font-weight: $font-weight-bold;
+  flex-shrink: 0;
+  min-width: 18px;
+}
+
+// ─── Payment table (legacy `.payment-table`) ─────────────────────────────
+.paymentTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-sm-plus; // 9.5px (legacy exact)
+  margin-top: $space-2;
+
+  th {
+    background: $color-surface-ink; // #2A1D11 (legacy exact)
+    color: $color-gold-warm; // #D4B080 (legacy exact)
+    padding: 9px 9px 7px;
+    font-size: $font-size-base; // 10px (legacy +20% override .payment-table th, line 1191)
+    font-weight: $font-weight-semibold;
+    letter-spacing: 0.07em; // legacy exact
+    text-transform: uppercase;
+    text-align: left;
+    border-bottom: $border-width-base solid $color-gold;
+    // Force print colour fidelity — legacy uses the same -webkit declaration
+    // because the dark th must survive the browser's "ignore backgrounds"
+    // print default.
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  td {
+    padding: 7px 9px;
+    border: $border-width-thin solid $color-surface-soft;
+    color: $color-ink-deep;
+    vertical-align: top;
+    line-height: $line-height-base;
+    font-size: $font-size-md-plus; // 11.5px (legacy +20% override .payment-table td, line 1192)
+    // pre-line so '\n' in payment.terms / deliveryNote renders as a line
+    // break in the printed PDF — matches legacy `.payment-table td`.
+    white-space: pre-line;
+    // Light-gold tint matching the bank-account-box (legacy line 1162-1164).
+    background: $overlay-gold-08;
+  }
+}
+
+// ─── Signature section (legacy `.sig-section` / `.sig-block`) ────────────
+.sigSection {
+  display: flex;
+  gap: $space-4; // 16px (legacy exact)
+  margin-top: $space-4;
+}
+
+.sigBlock {
+  flex: 1;
+  border: $border-width-thin solid $color-gold-warm;
+  border-radius: $radius-md;
+  padding: $space-2_5 $space-3;
+}
+
+.sigLabel {
+  font-size: $font-size-base; // 10px (legacy +20% override .sig-label, line 1193)
+  letter-spacing: 0.14em; // legacy exact
+  text-transform: uppercase;
+  color: $color-gold;
+  font-weight: $font-weight-semibold;
+  border-bottom: $border-width-thin solid $color-surface-soft;
+  padding-bottom: 5px;
+  margin-bottom: 9px;
+}
+
+.sigRow {
+  display: flex;
+  gap: $space-2_5;
+  margin-bottom: $space-2;
+}
+
+.sigField {
+  flex: 1;
+}
+
+.sigFieldLbl {
+  font-size: $font-size-base; // 10px (legacy +20% override .sig-field-lbl, line 1194)
+  color: $color-gold-deep;
+  margin-bottom: 3px;
+}
+
+.sigLine {
+  border-bottom: $border-width-thin solid $color-gold-warm;
+  height: 20px;
+  font-size: $font-size-md-plus; // 11.5px (legacy +20% override .sig-line, line 1195)
+  color: $color-ink-deep;
+  padding: 1px 2px;
+}
+
+.sigStamp {
+  margin-top: $space-2_5;
+  height: 150px;
+  border: $border-width-thin dashed $color-gold-warm;
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: $space-1_5;
+  font-size: $font-size-base; // 10px (legacy +20% override .sig-stamp, line 1196)
+  color: $color-ink-quiet;
+  letter-spacing: $letter-spacing-wider;
+}
+
+.sigStampFilled {
+  align-items: center;
+  padding-bottom: 0;
+  border-style: none;
+
+  img {
+    max-height: 148px;
+    max-width: 100%;
+    width: auto;
+    object-fit: contain;
+    display: block;
+  }
+}
+
+// ─── ARTOGO 指定帳戶 (legacy `.bank-account-box`) ─────────────────────────
+// Legacy line 1120-1160. Effective margin-top is 26px (the `!important`
+// override at line 1121 wins over the 16px base). Light-gold fill, gold
+// border, never split across a page break.
+.bankAccountBox {
+  margin-top: $space-6_5; // 26px (legacy !important override)
+  padding: $space-2_5 $space-3_5 $space-3;
+  border: $border-width-thin solid $color-gold-warm;
+  border-radius: $radius-md;
+  background: $overlay-gold-08;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.bankAccountTitle {
+  font-size: $font-size-base; // 10px (legacy exact)
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.14em; // legacy exact
+  color: $color-gold;
+  text-transform: uppercase;
+  margin-bottom: $space-2;
+  padding-bottom: 5px;
+  border-bottom: $border-width-thin solid $color-surface-soft;
+}
+
+.bankAccountRow {
+  display: flex;
+  gap: $space-3_5;
+  padding: $space-0_5 0;
+  font-size: $font-size-md-plus; // 11.5px (legacy exact)
+  line-height: 1.6;
+}
+
+.baLbl {
+  flex: 0 0 44px; // legacy exact
+  color: $color-gold-deep;
+}
+
+.baVal {
+  color: $color-ink-deep;
+  font-weight: $font-weight-medium;
+}
+
+// ─── A4 頁尾 (legacy `.page-footer`) ──────────────────────────────────────
+// Legacy line 1101. `margin-top: auto` is a no-op in this block (non-flex)
+// context — same as legacy — so the footer flows directly after the bank
+// box, separated only by the hairline border + 7px padding.
+.pageFooter {
+  margin-top: auto;
+  padding-top: 7px;
+  border-top: $border-width-thin solid $color-surface-frost;
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-sm-plus; // 9.5px (legacy +20% override .page-footer, line 1197)
+  color: $color-gold-deep;
+  flex-shrink: 0;
+}
+
+// ─── 02 服務說明摘要 (legacy `.svc-summary-*`, line 954-986) ───────────────
+.svcSummaryRow {
+  padding: $space-2 0;
+  border-bottom: $border-width-thin solid $overlay-gold-18;
+  font-size: $font-size-base-plus; // 10.5px
+  line-height: 1.6;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.svcSummaryName {
+  font-weight: $font-weight-semibold;
+  color: $color-ink-deep;
+  margin-bottom: 3px;
+  font-size: $font-size-md; // 11px
+}
+
+.svcSummaryText {
+  color: $color-ink-muted; // #5A4F40
+  font-size: $font-size-base; // 10px
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.svcSummaryRef {
+  color: $color-gold;
+  font-weight: $font-weight-medium;
+  margin-top: 5px;
+  font-size: $font-size-sm-plus; // 9.5px
+  letter-spacing: $letter-spacing-wide;
+}
+
+// ─── 附件頁 Appendix (legacy `.appendix-*`, line 988-1061) ─────────────────
+.appendixPage {
+  page-break-before: always;
+  break-before: page;
+}
+
+.appendixHead {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding-bottom: $space-3_5;
+  border-bottom: $border-width-base solid $color-gold;
+  margin-bottom: 18px;
+}
+
+.appendixLabel {
+  font-size: $font-size-6xl; // 18px
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.18em;
+  color: $color-gold;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.appendixTitle {
+  font-size: $font-size-3xl; // 15px
+  font-weight: $font-weight-semibold;
+  color: $color-ink-deep;
+  flex: 1;
+  line-height: $line-height-snug;
+}
+
+.appendixTitleSub {
+  display: block;
+  font-size: $font-size-sm-plus; // 9.5px
+  color: $color-gold-deep;
+  letter-spacing: 0.1em;
+  font-weight: $font-weight-regular;
+  margin-top: 3px;
+  text-transform: uppercase;
+}
+
+.appendixMeta {
+  font-size: $font-size-sm-plus; // 9.5px
+  color: $color-gold-deep;
+  letter-spacing: $letter-spacing-wider;
+  white-space: nowrap;
+}
+
+.appendixSection {
+  margin-bottom: $space-2_5;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.appendixSectionTitle {
+  font-size: $font-size-md-plus; // 11.5px
+  font-weight: $font-weight-semibold;
+  color: $color-ink-table;
+  padding: $space-1 $space-2_5;
+  background: $color-surface-warm; // #EFE9DF
+  border-left: 3px solid $color-gold;
+  margin-bottom: 5px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.appendixBullets {
+  list-style: none;
+  padding-left: $space-1;
+
+  li {
+    font-size: $font-size-base-plus; // 10.5px
+    color: $color-ink-table;
+    line-height: 1.5;
+    padding: 1.5px 0 1.5px 14px;
+    position: relative;
+
+    &::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: $color-gold;
+    }
+  }
+}
+
+// ─── Print (Session 3) ───────────────────────────────────────────────────
+// Legacy: preview-area becomes the whole printable surface, .page sheds
+// its drop shadow + auto margins, A4 padding shrinks to left/right only
+// (the @page block in globals.scss owns top/bottom). Section spacing
+// tightens to fit more content per sheet.
+@media print {
+  .area {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    background: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 210mm;
+    display: block !important;
+  }
+
+  .page {
+    width: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 16mm !important;
+    box-shadow: none !important;
+    background: $page-color-paper !important;
+  }
+
+  .docHeader {
+    margin-bottom: 8px !important;
+    padding-bottom: 6px !important;
+  }
+
+  .parties {
+    margin-bottom: 10px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .sectionWrap {
+    margin-bottom: 8px !important;
+  }
+
+  .quoteGroup {
+    margin-bottom: 8px !important;
+  }
+
+  .sigSection {
+    margin-top: 8px !important;
+  }
+
+  .notesList li,
+  .deliverableGrid li {
+    padding: 2px 0 !important;
+  }
+
+  .pageFooter {
+    padding-top: 4px !important;
+    margin-top: 8px !important;
+  }
+
+  // Appendix pages start edge-to-edge (the gold stripe reaches the paper
+  // edge) with a 12mm breathing gap above the heading — legacy
+  // `.page.appendix-page { page: appendix-page; padding-top: 12mm }`
+  // (line 1288-1291). The `page:` assignment is what removes the default 12mm
+  // top page margin (via the named `@page appendix-page` in globals.scss);
+  // padding-top then supplies the breathing gap (Codex round-4 P2).
+  .appendixPage {
+    page: appendix-page;
+    padding-top: 12mm !important;
+  }
+
+  // Keep these chunks together across page breaks — legacy uses the same
+  // page-break-inside: avoid on the matching selectors.
+  .paymentTable,
+  .sectionHd,
+  .notesList li,
+  .deliverableGrid li,
+  .bankAccountBox,
+  .appendixSection,
+  .appendixHead {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
 }

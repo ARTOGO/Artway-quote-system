@@ -1,8 +1,10 @@
 // Global styles — minimal reset + body baseline.
 // Imported once by main.tsx so it applies to the whole app.
 //
-// PR 4 will add print stylesheets (@media print) for the A4 PDF flow;
-// keeping that separate so this file stays small and editable.
+// Session 3 added the @page rules + universal "print all backgrounds"
+// override below (legacy.html lines 1200-1299). Module-scoped print
+// overrides (e.g. `.panel { display: none }`) live in each component's
+// `.module.scss` because CSS modules give those classes a hash suffix.
 
 @use './tokens.scss' as *;
 
@@ -72,4 +74,71 @@ select,
 textarea {
   font: inherit;
   color: inherit;
+}
+
+// ─── Divider drag (Session 4b) ───────────────────────────────────────────
+// While the builder/preview divider is being dragged, force the col-resize
+// cursor everywhere and suppress text selection (legacy body.divider-dragging,
+// legacy.html line 76-79). The Builder component toggles this body class.
+body.divider-dragging {
+  user-select: none;
+  cursor: col-resize;
+
+  * {
+    cursor: col-resize !important;
+  }
+}
+
+// ─── Print: page geometry + global colour fidelity (Session 3) ───────────
+// Legacy `@page` rules (line 1250-1252): A4 portrait, 14mm bottom margin,
+// no top margin on the cover page (gold edge stripe must reach the paper
+// edge). Appendix pages reuse the same edge-to-edge convention via a
+// named @page (`page: appendix-page` is assigned on `.appendixPage`).
+
+@page {
+  size: A4 portrait;
+  margin: 12mm 0 14mm 0;
+}
+
+@page :first {
+  margin: 0 0 14mm 0;
+}
+
+// Appendix pages aren't the first page, so without a named page they'd inherit
+// the default 12mm top margin and the gold edge stripe would print 12mm below
+// the paper edge. Match legacy `@page appendix-page { margin: 0 0 14mm 0 }`
+// (legacy.html:1252) so the stripe stays edge-to-edge; the 12mm breathing gap
+// above the heading comes from `.appendixPage` padding-top, not the page margin
+// (Codex round-4 P2).
+@page appendix-page {
+  size: A4 portrait;
+  margin: 0 0 14mm 0;
+}
+
+@media print {
+  // Force every element to honour its declared background — Chrome's
+  // print default is "ignore background colours" which would drop the
+  // gold edge stripe, dark table headers, etc. Same declaration legacy
+  // applied to `*, *::before, *::after`.
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  // Strip the dark app chrome — only the white page should print.
+  html,
+  body {
+    background: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    width: 210mm;
+    height: auto;
+  }
+
+  #root {
+    display: block !important;
+  }
 }

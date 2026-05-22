@@ -27,6 +27,7 @@ type fakeRepo struct {
 	updateFn        func(ctx context.Context, id uuid.UUID, p quotes.UpdateParams) (*quotes.WriteResult, error)
 	listFn          func(ctx context.Context, p quotes.ListParams) (*quotes.ListResult, error)
 	getFn           func(ctx context.Context, id uuid.UUID) (*quotes.Quote, error)
+	getByQuoteNoFn  func(ctx context.Context, quoteNo string) (*quotes.Quote, error)
 	softDeleteFn    func(ctx context.Context, id uuid.UUID) error
 	distinctSalesFn func(ctx context.Context) ([]string, error)
 }
@@ -45,6 +46,9 @@ func (f *fakeRepo) List(ctx context.Context, p quotes.ListParams) (*quotes.ListR
 }
 func (f *fakeRepo) Get(ctx context.Context, id uuid.UUID) (*quotes.Quote, error) {
 	return f.getFn(ctx, id)
+}
+func (f *fakeRepo) GetByQuoteNo(ctx context.Context, quoteNo string) (*quotes.Quote, error) {
+	return f.getByQuoteNoFn(ctx, quoteNo)
 }
 func (f *fakeRepo) SoftDelete(ctx context.Context, id uuid.UUID) error {
 	return f.softDeleteFn(ctx, id)
@@ -196,19 +200,44 @@ func TestCreate_InvalidStatus_400(t *testing.T) {
 	}
 }
 
-func TestCreate_MissingQuoteNo_400(t *testing.T) {
+// A new quote arrives with an empty quote_no — the serial is allocated here at
+// save time (not on every Builder mount), so refreshing an unsaved quote no
+// longer burns numbers. SPEC §3.2 + the save-time allocation change.
+func TestCreate_AllocatesQuoteNoWhenAbsent(t *testing.T) {
 	t.Parallel()
 
-	h := quotes.NewHandler(&fakeRepo{})
+	var createdWith string
+	h := quotes.NewHandler(&fakeRepo{
+		nextNumberFn: func(_ context.Context, _ time.Time) (string, error) {
+			return "AW-260516-007", nil
+		},
+		createFn: func(_ context.Context, p quotes.CreateParams) (*quotes.WriteResult, error) {
+			createdWith = p.QuoteNo
+			return &quotes.WriteResult{
+				ID:        uuid.New(),
+				QuoteNo:   p.QuoteNo,
+				CreatedAt: time.Date(2026, 5, 16, 12, 0, 0, 0, time.UTC),
+				UpdatedAt: time.Date(2026, 5, 16, 12, 0, 0, 0, time.UTC),
+			}, nil
+		},
+	})
 	srv := mountWithAuth(h)
 
-	payload := `{"status":"draft"}`
+	payload := `{"status":"draft","title":"T","groups":[]}` // no quote_no
 	req := httptest.NewRequest(http.MethodPost, "/quotes", strings.NewReader(payload))
 	w := httptest.NewRecorder()
 	srv.ServeHTTP(w, req)
 
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("status = %d, want 400", w.Code)
+	if w.Code != http.StatusCreated {
+		t.Fatalf("status = %d, want 201 (body=%s)", w.Code, w.Body.String())
+	}
+	if createdWith != "AW-260516-007" {
+		t.Errorf("Create got quote_no %q, want allocated AW-260516-007", createdWith)
+	}
+	var body map[string]any
+	_ = json.NewDecoder(w.Body).Decode(&body)
+	if body["quote_no"] != "AW-260516-007" {
+		t.Errorf("response quote_no = %v, want AW-260516-007", body["quote_no"])
 	}
 }
 
@@ -404,6 +433,70 @@ func TestGet_NotFound_404(t *testing.T) {
 	srv := mountWithAuth(h)
 
 	req := httptest.NewRequest(http.MethodGet, "/quotes/"+uuid.New().String(), nil)
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf("status = %d, want 404", w.Code)
+	}
+}
+
+// ─── GET /api/quotes/by-number/{quote_no} (deep-link reopen) ──────────────
+
+func TestGetByNumber_HappyPath_200(t *testing.T) {
+	t.Parallel()
+
+	var gotQuoteNo string
+	h := quotes.NewHandler(&fakeRepo{
+		getByQuoteNoFn: func(_ context.Context, quoteNo string) (*quotes.Quote, error) {
+			gotQuoteNo = quoteNo
+			return &quotes.Quote{
+				ID:            uuid.New(),
+				QuoteNo:       "AW-260516-001",
+				Status:        "sent",
+				Title:         "T",
+				TotalAmount:   500,
+				ClientCompany: "C",
+				SalesName:     "S",
+				Body:          json.RawMessage(`{"meta":{"x":1},"groups":[]}`),
+				CreatedAt:     time.Date(2026, 5, 16, 12, 0, 0, 0, time.UTC),
+				UpdatedAt:     time.Date(2026, 5, 16, 13, 0, 0, 0, time.UTC),
+			}, nil
+		},
+	})
+	srv := mountWithAuth(h)
+
+	req := httptest.NewRequest(http.MethodGet, "/quotes/by-number/AW-260516-001", nil)
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200 (body=%s)", w.Code, w.Body.String())
+	}
+	if gotQuoteNo != "AW-260516-001" {
+		t.Errorf("repo got quote_no = %q, want AW-260516-001", gotQuoteNo)
+	}
+	var body map[string]any
+	_ = json.NewDecoder(w.Body).Decode(&body)
+	if body["quote_no"] != "AW-260516-001" {
+		t.Errorf("quote_no = %v", body["quote_no"])
+	}
+	if _, ok := body["meta"]; !ok {
+		t.Error("merged body lost meta from JSONB")
+	}
+}
+
+func TestGetByNumber_NotFound_404(t *testing.T) {
+	t.Parallel()
+
+	h := quotes.NewHandler(&fakeRepo{
+		getByQuoteNoFn: func(_ context.Context, _ string) (*quotes.Quote, error) {
+			return nil, quotes.ErrNotFound
+		},
+	})
+	srv := mountWithAuth(h)
+
+	req := httptest.NewRequest(http.MethodGet, "/quotes/by-number/AW-NOPE-999", nil)
 	w := httptest.NewRecorder()
 	srv.ServeHTTP(w, req)
 

@@ -1,8 +1,9 @@
 // 基本資訊 — title / quoteNo / issueDate / validUntil.
 //
-// quoteNo is readonly: it's auto-generated when the Builder mounts (see
-// BuilderPanel.tsx) and immutable afterwards. PR 5 will replace the local
-// generator with a call to `POST /api/quotes/next-number`.
+// quoteNo is readonly and blank until the quote is first saved: the backend
+// allocates the AW-... serial at save time (POST /quotes), and the create
+// response stamps it into state (see useSaveQuote / SET_SAVED). So refreshing
+// or previewing an unsaved quote never burns a serial.
 
 import type { JSX } from 'react';
 
@@ -25,9 +26,9 @@ export function MetaSection(): JSX.Element {
       <BPField
         label="報價單編號"
         compact
-        placeholder="自動產生"
+        placeholder="（儲存後配發）"
         readOnly
-        title="報價單編號為永久 ID，建立後不可變更"
+        title="報價單編號為永久 ID，存到雲端時自動配發、之後不可變更"
         value={state.meta.quoteNo}
         onChange={() => {
           // readonly — never invoked, but onChange is required for controlled input

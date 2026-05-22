@@ -6,6 +6,11 @@
   min-height: 100vh;
 }
 
+.dragging {
+  cursor: col-resize;
+  user-select: none;
+}
+
 .divider {
   width: $builder-divider-width;
   flex-shrink: 0;
@@ -16,9 +21,14 @@
   top: 0;
   height: 100vh;
   z-index: $z-dropdown; // 10 (legacy exact)
+  cursor: col-resize;
   transition:
     background $transition-fast,
     border-color $transition-fast;
+
+  &:hover {
+    background: $overlay-gold-12;
+  }
 
   &::after {
     content: '';
@@ -31,5 +41,20 @@
     background: $overlay-gold-50;
     border-radius: $radius-xs;
     pointer-events: none;
+  }
+}
+
+// ─── Print (Session 3) ───────────────────────────────────────────────────
+// Hide the editor chrome — only the PreviewPlaceholder (.page) prints.
+// Legacy hid `.builder-panel` + `.builder-divider` the same way
+// (legacy.html line 1262-1263).
+@media print {
+  .root {
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  .divider {
+    display: none !important;
   }
 }

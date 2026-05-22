@@ -14,6 +14,7 @@ import {
   useContext,
   useMemo,
   useReducer,
+  useRef,
   useState,
   type Dispatch,
   type JSX,
@@ -24,11 +25,14 @@ import { createBlankQuote, quoteReducer } from './quoteReducer';
 import type {
   Quote,
   QuoteAction,
+  QuoteAdjustment,
   QuoteClient,
   QuoteGroup,
   QuoteItem,
   QuoteMeta,
+  QuotePayment,
   QuoteSales,
+  QuoteService,
   QuoteStatus,
 } from './quoteTypes';
 
@@ -51,18 +55,34 @@ interface QuoteContextValue {
   addItem: (gid: string, item: QuoteItem) => void;
   removeItem: (gid: string, itemId: string) => void;
   updateItem: (gid: string, itemId: string, patch: Partial<Omit<QuoteItem, 'id'>>) => void;
+  moveItem: (gid: string, fromIndex: number, toIndex: number) => void;
 
-  // ─── Quote-number allocation side-channel (Codex F10/F14) ──────────────
-  // BuilderPanel's allocation effect depends on `fetchToken`; bumping it
-  // forces React to re-run the effect even when state.meta.quoteNo is
-  // already `''` (e.g. after a fetch failure, or after `newQuote()` when
-  // the previous quote was also unnumbered). Without this side-channel,
-  // `'' === ''` causes the dep array to look identical and the effect
-  // never re-fires.
-  fetchToken: number;
-  /** Re-run the allocation effect without clearing state (Retry path). */
-  retry: () => void;
-  /** Reset state to a blank quote AND request a fresh allocation. */
+  // ─── Group discount / adjustment (Session 2.5) ─────────────────────────
+  setGroupDiscount: (gid: string, hasDiscount: boolean) => void;
+  setGroupAutoDiscount: (gid: string, autoDiscount: boolean) => void;
+  setGroupAdjustmentEnabled: (gid: string, hasAdjustment: boolean) => void;
+  setGroupAdjustment: (gid: string, field: keyof QuoteAdjustment, value: string) => void;
+
+  // ─── Services (02 服務說明摘要) ─────────────────────────────────────────
+  updateService: (
+    sub_group: string,
+    patch: Partial<Pick<QuoteService, 'summary' | 'includeAppendix'>>,
+  ) => void;
+
+  // ─── Deliverables / Notes / Payment (Session 3) ────────────────────────
+  addDeliverable: (value?: string) => void;
+  updateDeliverable: (index: number, value: string) => void;
+  removeDeliverable: (index: number) => void;
+  addNote: (value?: string) => void;
+  updateNote: (index: number, value: string) => void;
+  removeNote: (index: number) => void;
+  setPayment: (field: keyof QuotePayment, value: string) => void;
+
+  /**
+   * Reset state to a blank quote. The quote number is no longer fetched on
+   * mount — it's allocated by the backend at save time — so this just clears
+   * state and re-arms the one-time date refresh.
+   */
   newQuote: () => void;
 
   // ─── Date-init flag (Codex F11 / F13 / F15) ────────────────────────────
@@ -73,6 +93,13 @@ interface QuoteContextValue {
   // to false so a fresh quote always gets fresh dates.
   datesInitialised: boolean;
   markDatesInitialised: () => void;
+
+  /**
+   * Read the current quote-instance token (see `instanceRef` in the provider).
+   * useSaveQuote uses it to decide whether a resolved create still belongs to
+   * the on-screen quote before stamping the server id / quote_no.
+   */
+  getQuoteInstance: () => number;
 }
 
 const QuoteContext = createContext<QuoteContextValue | null>(null);
@@ -88,6 +115,16 @@ export function QuoteProvider({ children, initial }: QuoteProviderProps): JSX.El
     initial ?? null,
     (seed) => seed ?? createBlankQuote(),
   );
+
+  // Monotonic token identifying the current quote *instance*. Bumped only when
+  // the user switches to a different logical quote (newQuote / load / reset) —
+  // NOT on field edits. useSaveQuote captures it at save start and only stamps
+  // the created id / quote_no back if it's still unchanged on resolve. This
+  // lets an in-place edit during an in-flight create still stamp correctly
+  // (avoiding a duplicate create + double serial — Codex P2-1), while a
+  // 新報價 / load that happens mid-create correctly skips the stale stamp.
+  const instanceRef = useRef(0);
+  const getQuoteInstance = useCallback(() => instanceRef.current, []);
 
   const setStatus = useCallback(
     (status: QuoteStatus) => dispatch({ type: 'SET_STATUS', status }),
@@ -109,11 +146,14 @@ export function QuoteProvider({ children, initial }: QuoteProviderProps): JSX.El
     (field: keyof QuoteSales, value: string) => dispatch({ type: 'SET_SALES', field, value }),
     [],
   );
-  const reset = useCallback(
-    (quote?: Quote) => dispatch({ type: 'RESET', quote: quote ?? createBlankQuote() }),
-    [],
-  );
-  const load = useCallback((quote: Quote) => dispatch({ type: 'LOAD', quote }), []);
+  const reset = useCallback((quote?: Quote) => {
+    instanceRef.current += 1; // switching quotes → new instance
+    dispatch({ type: 'RESET', quote: quote ?? createBlankQuote() });
+  }, []);
+  const load = useCallback((quote: Quote) => {
+    instanceRef.current += 1; // switching quotes → new instance
+    dispatch({ type: 'LOAD', quote });
+  }, []);
 
   // ─── Groups (Session 2) ────────────────────────────────────────────────
   const addGroup = useCallback((group: QuoteGroup) => dispatch({ type: 'ADD_GROUP', group }), []);
@@ -135,18 +175,72 @@ export function QuoteProvider({ children, initial }: QuoteProviderProps): JSX.El
       dispatch({ type: 'UPDATE_ITEM', gid, itemId, patch }),
     [],
   );
+  const moveItem = useCallback(
+    (gid: string, fromIndex: number, toIndex: number) =>
+      dispatch({ type: 'MOVE_ITEM', gid, fromIndex, toIndex }),
+    [],
+  );
 
-  // ─── Allocation side-channel (Codex F10 / F14) ─────────────────────────
-  const [fetchToken, setFetchToken] = useState(0);
-  const retry = useCallback(() => setFetchToken((n) => n + 1), []);
+  // ─── Group discount / adjustment (Session 2.5) ─────────────────────────
+  const setGroupDiscount = useCallback(
+    (gid: string, hasDiscount: boolean) =>
+      dispatch({ type: 'SET_GROUP_DISCOUNT', gid, hasDiscount }),
+    [],
+  );
+  const setGroupAutoDiscount = useCallback(
+    (gid: string, autoDiscount: boolean) =>
+      dispatch({ type: 'SET_GROUP_AUTO_DISCOUNT', gid, autoDiscount }),
+    [],
+  );
+  const setGroupAdjustmentEnabled = useCallback(
+    (gid: string, hasAdjustment: boolean) =>
+      dispatch({ type: 'SET_GROUP_ADJUSTMENT_ENABLED', gid, hasAdjustment }),
+    [],
+  );
+  const setGroupAdjustment = useCallback(
+    (gid: string, field: keyof QuoteAdjustment, value: string) =>
+      dispatch({ type: 'SET_GROUP_ADJUSTMENT', gid, field, value }),
+    [],
+  );
+
+  // ─── Services (02 服務說明摘要) ─────────────────────────────────────────
+  const updateService = useCallback(
+    (sub_group: string, patch: Partial<Pick<QuoteService, 'summary' | 'includeAppendix'>>) =>
+      dispatch({ type: 'UPDATE_SERVICE', sub_group, patch }),
+    [],
+  );
+
+  // ─── Deliverables / Notes / Payment (Session 3) ────────────────────────
+  const addDeliverable = useCallback(
+    (value?: string) => dispatch({ type: 'ADD_DELIVERABLE', value }),
+    [],
+  );
+  const updateDeliverable = useCallback(
+    (index: number, value: string) => dispatch({ type: 'UPDATE_DELIVERABLE', index, value }),
+    [],
+  );
+  const removeDeliverable = useCallback(
+    (index: number) => dispatch({ type: 'REMOVE_DELIVERABLE', index }),
+    [],
+  );
+  const addNote = useCallback((value?: string) => dispatch({ type: 'ADD_NOTE', value }), []);
+  const updateNote = useCallback(
+    (index: number, value: string) => dispatch({ type: 'UPDATE_NOTE', index, value }),
+    [],
+  );
+  const removeNote = useCallback((index: number) => dispatch({ type: 'REMOVE_NOTE', index }), []);
+  const setPayment = useCallback(
+    (field: keyof QuotePayment, value: string) => dispatch({ type: 'SET_PAYMENT', field, value }),
+    [],
+  );
 
   // ─── Date-init flag (Codex F11 / F13 / F15) ────────────────────────────
   const [datesInitialised, setDatesInitialised] = useState(false);
   const markDatesInitialised = useCallback(() => setDatesInitialised(true), []);
 
   const newQuote = useCallback(() => {
+    instanceRef.current += 1; // switching quotes → new instance
     dispatch({ type: 'RESET', quote: createBlankQuote() });
-    setFetchToken((n) => n + 1);
     setDatesInitialised(false); // fresh quote → fresh dates allowed
   }, []);
 
@@ -167,11 +261,23 @@ export function QuoteProvider({ children, initial }: QuoteProviderProps): JSX.El
       addItem,
       removeItem,
       updateItem,
-      fetchToken,
-      retry,
+      moveItem,
+      setGroupDiscount,
+      setGroupAutoDiscount,
+      setGroupAdjustmentEnabled,
+      setGroupAdjustment,
+      updateService,
+      addDeliverable,
+      updateDeliverable,
+      removeDeliverable,
+      addNote,
+      updateNote,
+      removeNote,
+      setPayment,
       newQuote,
       datesInitialised,
       markDatesInitialised,
+      getQuoteInstance,
     }),
     [
       state,
@@ -188,11 +294,23 @@ export function QuoteProvider({ children, initial }: QuoteProviderProps): JSX.El
       addItem,
       removeItem,
       updateItem,
-      fetchToken,
-      retry,
+      moveItem,
+      setGroupDiscount,
+      setGroupAutoDiscount,
+      setGroupAdjustmentEnabled,
+      setGroupAdjustment,
+      updateService,
+      addDeliverable,
+      updateDeliverable,
+      removeDeliverable,
+      addNote,
+      updateNote,
+      removeNote,
+      setPayment,
       newQuote,
       datesInitialised,
       markDatesInitialised,
+      getQuoteInstance,
     ],
   );
 

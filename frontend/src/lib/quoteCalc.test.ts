@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import {
   calcGrandTotal,
+  calcGroupAdjustment,
   calcGroupSubtotal,
   calcGroupTax,
   calcGroupTotal,
   calcItemAmount,
   displaySubGroup,
   formatMoney,
+  stripUnitSlash,
 } from './quoteCalc';
 import type { QuoteGroup, QuoteItem } from '../state/quoteTypes';
 
@@ -26,6 +28,69 @@ function item(qty: number, unitPrice: number, overrides: Partial<QuoteItem> = {}
 function group(items: QuoteItem[]): QuoteGroup {
   return { id: 'g_' + Math.random().toString(36).slice(2), seq: 1, title: 'A-1', items };
 }
+
+describe('calcItemAmount — discount (Session 2.5)', () => {
+  it('ignores the discount when hasDiscount is false (default)', () => {
+    const it1 = item(2, 1000, { discount: 300 });
+    expect(calcItemAmount(it1)).toBe(2000);
+    expect(calcItemAmount(it1, false)).toBe(2000);
+  });
+
+  it('subtracts the discount when hasDiscount is true', () => {
+    expect(calcItemAmount(item(2, 1000, { discount: 300 }), true)).toBe(1700);
+  });
+
+  it('treats a missing discount as 0', () => {
+    expect(calcItemAmount(item(1, 5000), true)).toBe(5000);
+  });
+
+  it('subtotal applies the group hasDiscount flag to every item', () => {
+    const g = group([item(1, 1000, { discount: 100 }), item(1, 2000, { discount: 200 })]);
+    expect(calcGroupSubtotal({ ...g, hasDiscount: false })).toBe(3000);
+    expect(calcGroupSubtotal({ ...g, hasDiscount: true })).toBe(2700);
+  });
+});
+
+describe('calcGroupAdjustment + total (Session 2.5)', () => {
+  it('is 0 when adjustment is disabled', () => {
+    const g = group([item(1, 1000)]);
+    expect(
+      calcGroupAdjustment({ ...g, hasAdjustment: false, adjustment: { label: 'x', amount: 500 } }),
+    ).toBe(0);
+  });
+
+  it('returns the amount when enabled (positive 手續費)', () => {
+    const g = group([item(1, 1000)]);
+    expect(
+      calcGroupAdjustment({
+        ...g,
+        hasAdjustment: true,
+        adjustment: { label: '手續費', amount: 500 },
+      }),
+    ).toBe(500);
+  });
+
+  it('supports negative amounts (議價折讓)', () => {
+    const g = group([item(1, 1000)]);
+    expect(
+      calcGroupAdjustment({
+        ...g,
+        hasAdjustment: true,
+        adjustment: { label: '議價', amount: -300 },
+      }),
+    ).toBe(-300);
+  });
+
+  it('group total = subtotal + tax + adjustment', () => {
+    // subtotal 1000, tax 50, adjustment +500 → 1550
+    const g = group([item(1, 1000)]);
+    const withAdj = { ...g, hasAdjustment: true, adjustment: { label: '手續費', amount: 500 } };
+    expect(calcGroupTotal(withAdj)).toBe(1550);
+    // negative adjustment: 1000 + 50 − 300 = 750
+    const withNeg = { ...g, hasAdjustment: true, adjustment: { label: '議價', amount: -300 } };
+    expect(calcGroupTotal(withNeg)).toBe(750);
+  });
+});
 
 describe('calcItemAmount', () => {
   it('returns qty * unitPrice', () => {
@@ -114,5 +179,31 @@ describe('displaySubGroup', () => {
   it('leaves arbitrary text untouched when prefix does not match', () => {
     expect(displaySubGroup('客製化')).toBe('客製化');
     expect(displaySubGroup('Free-form')).toBe('Free-form');
+  });
+});
+
+describe('stripUnitSlash (2nd Codex P2)', () => {
+  it('strips a single leading slash from sheet-convention units', () => {
+    // Live catalog rows carry `/式`, `/場`, `/年`; the preview must show the
+    // bare unit, matching legacy renderGroups (legacy.html:2241).
+    expect(stripUnitSlash('/式')).toBe('式');
+    expect(stripUnitSlash('/場')).toBe('場');
+    expect(stripUnitSlash('/年')).toBe('年');
+  });
+
+  it('leaves units without a leading slash untouched', () => {
+    expect(stripUnitSlash('式')).toBe('式');
+    expect(stripUnitSlash('件')).toBe('件');
+  });
+
+  it('removes only the first slash, preserving an interior one', () => {
+    expect(stripUnitSlash('/場/天')).toBe('場/天');
+    expect(stripUnitSlash('場/天')).toBe('場/天');
+  });
+
+  it('returns empty string for empty / nullish input', () => {
+    expect(stripUnitSlash('')).toBe('');
+    expect(stripUnitSlash(undefined as unknown as string)).toBe('');
+    expect(stripUnitSlash(null as unknown as string)).toBe('');
   });
 });

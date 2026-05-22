@@ -74,6 +74,53 @@ describe('useQuoteState', () => {
     expect(result.current.state.meta.title).toBe('Loaded');
   });
 
+  // ─── Session 3 helper functions ──────────────────────────────────────
+
+  it('addDeliverable / updateDeliverable / removeDeliverable work end-to-end', () => {
+    const { result } = renderHook(() => useQuoteState(), { wrapper });
+    expect(result.current.state.deliverables).toEqual([]);
+
+    act(() => result.current.addDeliverable('AR 立體攝影檔'));
+    expect(result.current.state.deliverables).toEqual(['AR 立體攝影檔']);
+
+    act(() => result.current.addDeliverable());
+    expect(result.current.state.deliverables).toEqual(['AR 立體攝影檔', '']);
+
+    act(() => result.current.updateDeliverable(1, '空間導覽'));
+    expect(result.current.state.deliverables).toEqual(['AR 立體攝影檔', '空間導覽']);
+
+    act(() => result.current.removeDeliverable(0));
+    expect(result.current.state.deliverables).toEqual(['空間導覽']);
+  });
+
+  it('addNote / updateNote / removeNote work end-to-end (atop the 3 seeded notes)', () => {
+    const { result } = renderHook(() => useQuoteState(), { wrapper });
+    // Fresh quote already has 3 default disclaimer notes (legacy parity).
+    expect(result.current.state.notes).toHaveLength(3);
+
+    act(() => result.current.addNote('first'));
+    act(() => result.current.addNote('second'));
+    expect(result.current.state.notes).toHaveLength(5);
+    expect(result.current.state.notes[3]).toBe('first');
+    expect(result.current.state.notes[4]).toBe('second');
+
+    act(() => result.current.updateNote(3, 'updated'));
+    expect(result.current.state.notes[3]).toBe('updated');
+
+    act(() => result.current.removeNote(4));
+    expect(result.current.state.notes).toHaveLength(4);
+    expect(result.current.state.notes[3]).toBe('updated');
+  });
+
+  it('setPayment updates one field at a time without touching siblings', () => {
+    const { result } = renderHook(() => useQuoteState(), { wrapper });
+    act(() => result.current.setPayment('terms', '簽約 50% / 驗收 50%'));
+    expect(result.current.state.payment.terms).toBe('簽約 50% / 驗收 50%');
+    // legacy defaults still in place
+    expect(result.current.state.payment.currency).toBe('新台幣 NTD');
+    expect(result.current.state.payment.method).toBe('銀行轉帳');
+  });
+
   it('integrates with userEvent — typing into an input updates state', async () => {
     // user-event's internal scheduling fights with the fake timers our outer
     // beforeEach installs; restore real timers for this one integration test.

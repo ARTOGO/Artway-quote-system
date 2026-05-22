@@ -96,7 +96,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		writeError(w, r, http.StatusBadRequest, "invalid_json", err)
 		return
 	}
-	if err := validateIn(in, true /* requireQuoteNo */); err != nil {
+	if err := validateIn(in, false /* quote_no allocated here if absent */); err != nil {
 		writeError(w, r, http.StatusBadRequest, "invalid_input", err)
 		return
 	}
@@ -106,10 +106,24 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Allocate the serial only when the quote is actually saved (not on every
+	// Builder mount/refresh) — the frontend now sends an empty quote_no for a
+	// brand-new quote and the number is assigned here, so refreshing an unsaved
+	// quote no longer burns serials. A client-supplied quote_no (manual case) is
+	// honoured as-is.
+	quoteNo := in.QuoteNo
+	if quoteNo == "" {
+		quoteNo, err = h.repo.NextNumber(r.Context(), h.now())
+		if err != nil {
+			writeError(w, r, http.StatusInternalServerError, "next_number_failed", err)
+			return
+		}
+	}
+
 	user, _ := auth.UserFromContext(r.Context())
 
 	result, err := h.repo.Create(r.Context(), CreateParams{
-		QuoteNo:       in.QuoteNo,
+		QuoteNo:       quoteNo,
 		Status:        in.Status,
 		Title:         in.Title,
 		TotalAmount:   in.TotalAmount,
@@ -228,8 +242,37 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Merge external fields back onto the body (SPEC §4.3 stash-and-merge).
-	// body 是原始 JSON; 7 個外層欄位用 server canonical values 覆寫。
+	writeMergedQuote(w, r, q)
+}
+
+// GetByNumber handles GET /api/quotes/by-number/{quote_no}. Reopens a quote by
+// its 報價單號 so業務 deep-link bookmarks (#/quote/AW-...) keep working — the
+// frontend route carries the quote_no, not the internal UUID. Same merged shape
+// as Get (SPEC §3.5a).
+func (h *Handler) GetByNumber(w http.ResponseWriter, r *http.Request) {
+	quoteNo := chi.URLParam(r, "quote_no")
+	if quoteNo == "" {
+		writeError(w, r, http.StatusBadRequest, "invalid_quote_no", errors.New("empty quote_no"))
+		return
+	}
+
+	q, err := h.repo.GetByQuoteNo(r.Context(), quoteNo)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			writeError(w, r, http.StatusNotFound, "not_found", err)
+			return
+		}
+		writeError(w, r, http.StatusInternalServerError, "get_failed", err)
+		return
+	}
+
+	writeMergedQuote(w, r, q)
+}
+
+// writeMergedQuote merges the 7 canonical columns (+ id / audit fields) back
+// onto the stored body JSON and writes it (SPEC §4.3 stash-and-merge). Shared
+// by Get and GetByNumber so both deep-link paths return an identical shape.
+func writeMergedQuote(w http.ResponseWriter, r *http.Request, q *Quote) {
 	var merged map[string]json.RawMessage
 	if len(q.Body) > 0 {
 		if err := json.Unmarshal(q.Body, &merged); err != nil {

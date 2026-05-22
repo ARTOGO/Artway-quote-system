@@ -1,0 +1,517 @@
+// History page — 1:1 dark port of the legacy .hp-* page (legacy.html
+// 1463-1696): deep brown-black surface, gold accents, gold-on-dark table,
+// status pills, chip date filters, numbered pagination, styled delete-confirm
+// modal + toast. Tokens-only (no magic numbers) — colours map to the same
+// values legacy used ($color-surface-void #0D0804, $color-gold #BA9972, etc.).
+
+@use '../../styles/tokens.scss' as *;
+
+// Full-viewport dark surface (legacy .history-page bg #0D0804).
+.screen {
+  min-height: 100vh;
+  background: $color-surface-void;
+  color: $color-surface-stroke; // #E8E3DC body text on dark
+  font-family: $font-family-base;
+}
+
+.page {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: $space-7 $space-8 $space-16; // 28px 32px ~60px (legacy)
+}
+
+// ─── Header ─────────────────────────────────────────────────────────────
+.head {
+  display: flex;
+  align-items: center;
+  gap: $space-5;
+  padding-bottom: $space-5;
+  border-bottom: $border-width-thin solid $overlay-gold-25;
+  margin-bottom: $space-6;
+}
+
+.logo {
+  height: 38px;
+  width: auto;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-7xl; // 20px
+  font-weight: $font-weight-semibold;
+  color: $color-gold;
+  letter-spacing: $letter-spacing-widest;
+}
+
+.sub {
+  margin-top: 3px;
+  font-size: $font-size-lg; // 12px
+  color: $overlay-gold-70;
+}
+
+.nav {
+  margin-left: auto;
+  display: flex;
+  gap: $space-2;
+}
+
+// Legacy .bp-btn-ghost (回 Builder).
+.btnGhost {
+  background: $overlay-gold-06;
+  border: $border-width-thin solid $overlay-gold-35;
+  color: $color-gold;
+  padding: $space-1 $space-3;
+  border-radius: $radius-base;
+  cursor: pointer;
+  font-size: $font-size-lg;
+  font-family: inherit;
+  letter-spacing: $letter-spacing-wide;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+
+  &:hover {
+    background: $overlay-gold-18;
+    border-color: $color-gold;
+    color: $color-gold-warm;
+  }
+}
+
+// Legacy .bp-btn.bp-btn-primary (+ 新報價).
+.btnPrimary {
+  background: $color-gold;
+  border: $border-width-thin solid $color-gold;
+  color: $color-surface-deep;
+  padding: $space-1 $space-3;
+  border-radius: $radius-base;
+  cursor: pointer;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  font-family: inherit;
+  letter-spacing: $letter-spacing-wide;
+  white-space: nowrap;
+  transition: background 0.15s;
+
+  &:hover {
+    background: $color-gold-warm;
+  }
+}
+
+// ─── Filter bar ───────────────────────────────────────────────────────────
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto;
+  gap: $space-3;
+  background: $color-surface-deep;
+  border: $border-width-thin solid $overlay-gold-25;
+  border-radius: $radius-md;
+  padding: $space-3 $space-4;
+  margin-bottom: $space-5;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+
+  span {
+    font-size: $font-size-md; // 11px
+    color: $overlay-gold-70;
+    letter-spacing: $letter-spacing-wide;
+    text-transform: uppercase;
+  }
+
+  select {
+    background: $color-surface-void;
+    border: $border-width-thin solid $overlay-gold-30;
+    border-radius: $radius-base;
+    color: $color-surface-cream;
+    padding: $space-1 $space-3;
+    font-size: $font-size-xl; // 13px
+    font-family: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: $color-gold;
+    }
+  }
+}
+
+.dateField {
+  grid-column: span 2;
+}
+
+.rangeGroup {
+  display: flex;
+  gap: $space-1;
+  flex-wrap: wrap;
+}
+
+.rangeBtn {
+  background: $color-surface-void;
+  border: $border-width-thin solid $overlay-gold-30;
+  color: $overlay-gold-90;
+  padding: $space-1 $space-3;
+  border-radius: $radius-base;
+  font-family: inherit;
+  font-size: $font-size-lg; // 12px
+  cursor: pointer;
+  letter-spacing: $letter-spacing-wide;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+
+  &:hover {
+    background: $overlay-gold-12;
+    border-color: $overlay-gold-50;
+    color: $color-gold-warm;
+  }
+
+  &[aria-pressed='true'] {
+    background: $color-gold;
+    border-color: $color-gold;
+    color: $color-surface-deep;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.filterActions {
+  display: flex;
+  align-items: flex-end;
+}
+
+// Legacy .bp-btn (重設).
+.resetBtn {
+  background: transparent;
+  border: $border-width-thin solid $color-gold;
+  color: $color-gold;
+  padding: $space-2 $space-4;
+  border-radius: $radius-base;
+  cursor: pointer;
+  font-size: $font-size-xl;
+  font-family: inherit;
+  letter-spacing: $letter-spacing-wide;
+  transition:
+    background 0.15s,
+    color 0.15s;
+
+  &:hover {
+    background: $color-gold;
+    color: $color-surface-deep;
+  }
+}
+
+// ─── Summary line ───────────────────────────────────────────────────────
+.summary {
+  font-size: $font-size-lg;
+  color: $overlay-gold-70;
+  margin-bottom: $space-3;
+  padding: 0 $space-1;
+  min-height: $font-size-2xl;
+}
+
+// ─── Table ─────────────────────────────────────────────────────────────
+.tableWrap {
+  background: $color-surface-deep;
+  border: $border-width-thin solid $overlay-gold-25;
+  border-radius: $radius-md;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-xl; // 13px
+
+  thead th {
+    background: $overlay-gold-08;
+    color: $color-gold;
+    font-weight: $font-weight-semibold;
+    letter-spacing: $letter-spacing-wider;
+    text-transform: uppercase;
+    font-size: $font-size-md; // 11px
+    text-align: left;
+    padding: $space-2 $space-3;
+    border-bottom: $border-width-thin solid $overlay-gold-25;
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: $space-3;
+    border-bottom: $border-width-thin solid $overlay-gold-08;
+    color: $color-surface-stroke;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover {
+    background: $overlay-gold-05;
+  }
+}
+
+.quoteNo {
+  color: $color-gold;
+  font-weight: $font-weight-semibold;
+  font-family: $font-family-mono;
+  letter-spacing: $letter-spacing-wide;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover {
+    color: $color-gold-warm;
+    text-decoration: underline;
+  }
+}
+
+.right {
+  text-align: right;
+  font-family: $font-family-mono;
+}
+
+.untitled {
+  color: $overlay-gold-35;
+  font-style: italic;
+}
+
+.updated {
+  color: $overlay-gold-70;
+  font-size: $font-size-md;
+  white-space: nowrap;
+}
+
+.pill {
+  display: inline-block;
+  padding: 2px $space-2;
+  border-radius: $radius-2xl;
+  font-size: $font-size-md; // 11px
+  font-weight: $font-weight-medium;
+  letter-spacing: $letter-spacing-wide;
+  border: $border-width-thin solid;
+  background: $overlay-black-20;
+  // Per-status colour drives both text + border (legacy statusMeta).
+  color: $color-status-draft;
+  border-color: $color-status-draft;
+
+  &[data-status='sent'] {
+    color: $color-status-sent;
+    border-color: $color-status-sent;
+  }
+  &[data-status='signed'] {
+    color: $color-status-signed;
+    border-color: $color-status-signed;
+  }
+  &[data-status='executed'] {
+    color: $color-status-executed;
+    border-color: $color-status-executed;
+  }
+}
+
+.actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.iconBtn {
+  background: transparent;
+  border: $border-width-thin solid $overlay-gold-35;
+  color: $color-gold;
+  padding: $space-1 $space-2;
+  border-radius: $radius-base;
+  cursor: pointer;
+  font-size: $font-size-md;
+  font-family: inherit;
+  margin-left: $space-1;
+  text-decoration: none;
+  display: inline-block;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+
+  &:hover {
+    background: $overlay-gold-18;
+    border-color: $color-gold;
+    color: $color-gold-warm;
+  }
+}
+
+.danger {
+  color: $color-alert-warning;
+  border-color: $overlay-error-30;
+
+  &:hover {
+    background: $overlay-error-30;
+    border-color: $color-alert-error;
+    color: $color-surface-cream;
+  }
+}
+
+// ─── States ─────────────────────────────────────────────────────────────
+.state {
+  text-align: center;
+  padding: $space-10;
+  color: $overlay-gold-70;
+  font-size: $font-size-xl;
+}
+
+.error {
+  color: $color-alert-soft;
+  background: $overlay-error-20;
+  border: $border-width-thin solid $color-alert-error;
+  border-radius: $radius-base;
+  padding: $space-3;
+}
+
+.empty {
+  text-align: center;
+  padding: $space-16 $space-5;
+  color: $overlay-gold-50;
+  font-size: $font-size-2xl;
+
+  span {
+    font-size: $font-size-lg;
+    color: $overlay-gold-35;
+    margin-top: $space-2;
+    display: inline-block;
+  }
+}
+
+// ─── Pagination (numbered, legacy .hp-page-btn) ──────────────────────────
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-1;
+  margin-top: $space-5;
+  flex-wrap: wrap;
+}
+
+.pageBtn {
+  background: transparent;
+  border: $border-width-thin solid $overlay-gold-30;
+  color: $color-gold;
+  min-width: $space-8;
+  padding: $space-1 $space-3;
+  border-radius: $radius-base;
+  font-family: inherit;
+  font-size: $font-size-lg;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $overlay-gold-12;
+    border-color: $color-gold;
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  &[aria-current='page'] {
+    background: $color-gold;
+    color: $color-surface-deep;
+    border-color: $color-gold;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.ellipsis {
+  color: $color-gold;
+  padding: 0 $space-1;
+}
+
+// ─── Delete-confirm modal (legacy .hp-confirm) ───────────────────────────
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  background: $overlay-void-78;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: $z-modal;
+}
+
+.confirmBox {
+  background: $color-surface-deep;
+  border: $border-width-thin solid $color-gold;
+  border-radius: $radius-md;
+  padding: $space-6 $space-7;
+  max-width: 380px;
+  color: $color-surface-stroke;
+}
+
+.confirmTitle {
+  font-size: $font-size-3xl; // 15px
+  font-weight: $font-weight-semibold;
+  color: $color-gold;
+  margin-bottom: $space-3;
+  letter-spacing: $letter-spacing-wider;
+}
+
+.confirmMsg {
+  font-size: $font-size-xl;
+  line-height: 1.6;
+  margin-bottom: $space-5;
+
+  strong {
+    color: $color-gold;
+  }
+
+  span {
+    font-size: $font-size-md;
+    color: $overlay-gold-70;
+    margin-top: $space-2;
+    display: inline-block;
+  }
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-2;
+}
+
+.confirmOk {
+  background: $color-alert-error;
+  border: $border-width-thin solid $color-alert-error;
+  color: $color-surface-cream;
+  padding: $space-2 $space-4;
+  border-radius: $radius-base;
+  cursor: pointer;
+  font-size: $font-size-xl;
+  font-family: inherit;
+  letter-spacing: $letter-spacing-wide;
+}
+
+// ─── Toast (legacy .hp-toast) ─────────────────────────────────────────────
+.toast {
+  position: fixed;
+  bottom: $space-6;
+  left: 50%;
+  transform: translateX(-50%);
+  background: $color-surface-deep;
+  border: $border-width-thin solid $color-gold;
+  color: $color-surface-cream;
+  padding: $space-2 $space-4;
+  border-radius: $radius-md;
+  font-size: $font-size-xl;
+  z-index: $z-toast;
+  box-shadow: $shadow-modal;
+}
+
+.toastError {
+  border-color: $color-alert-error;
+  color: $color-alert-soft;
+}

@@ -21,6 +21,9 @@ type Querier interface {
 	DistinctSales(ctx context.Context) ([]string, error)
 	// 取單筆完整資料（含 body JSONB），軟刪除的視為不存在（pgx.ErrNoRows）。
 	GetQuote(ctx context.Context, id uuid.UUID) (Quote, error)
+	// 用報價單號取單筆完整資料，保留 #/quote/AW-... deep-link 書籤（業務 deep link）。
+	// quote_no 有 UNIQUE 約束，最多一筆；軟刪除的視為不存在（pgx.ErrNoRows）。
+	GetQuoteByNo(ctx context.Context, quoteNo string) (Quote, error)
 	// 列表（依 spec §3.4：updated_at DESC、軟刪除不返回、metadata only 不含 body）。
 	// Filter 用 nullable params：傳 NULL 表示不過濾該欄位。
 	ListQuotes(ctx context.Context, arg ListQuotesParams) ([]ListQuotesRow, error)
