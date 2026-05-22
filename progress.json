@@ -1,6 +1,6 @@
 {
  "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
- "updated_at": "2026-05-22T13:41:33+08:00",
+ "updated_at": "2026-05-22T13:46:27+08:00",
  "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
  "success_criteria": [
   "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -13,9 +13,15 @@
  "current_focus": {
   "feature_id": "F19",
   "task_id": "verified",
-  "summary": "Option B（含 P2-1 instance-epoch、P2-B saved-status dirty 檢查）+ 歷史紀錄頁 1:1 深色復刻 皆完成。2026-05-22 正式 /qa-only 已通過：frontend lint、276 tests、typecheck、build 全綠；backend go vet/go test 全綠；live smoke 證明重整不燒號、存檔才配號、History 深色頁載入且 0 console error。Option B 已 commit（f31ffe7）；History 與 dashboard 一起 commit。下一步：需使用者明確同意後才 git push 更新 PR #7；之後 PR6–8 部署 + PR9 cutover。"
+  "summary": "Option B（含 P2-1 instance-epoch、P2-B saved-status dirty 檢查）+ 歷史紀錄頁 1:1 深色復刻 皆完成。2026-05-22 正式 /qa-only 已通過：frontend lint、276 tests、typecheck、build 全綠；backend go vet/go test 全綠；live smoke 證明重整不燒號、存檔才配號、History 深色頁載入且 0 console error。PR #7 已 push 到 80c2a5d；merge into main 被 GitHub base branch policy 擋住，auto-merge 也未啟用。下一步：reviewer / admin 依 branch protection 完成 PR #7 merge；之後 PR6–8 部署 + PR9 cutover。"
  },
  "conversation_changes": [
+  {
+   "at": "2026-05-22T13:46:27+08:00",
+   "source": "codex",
+   "change": "使用者授權 push and merge；已 push PR #7，但 GitHub policy 擋 merge。",
+   "impact": "推送成功：origin/feature/session-3-preview 從 3ed7d4f 更新到 80c2a5d。PR #7 base 是 main（repo 沒有 master branch）。`gh pr merge 7 --merge` 失敗：base branch policy prohibits the merge；`gh pr merge 7 --merge --auto` 也失敗：Auto merge is not allowed for this repository。未使用 admin bypass。"
+  },
   {
    "at": "2026-05-22T13:41:33+08:00",
    "source": "codex",
@@ -2283,17 +2289,18 @@
  ],
  "blockers": [
   {
-   "title": "本機 2 commit（Option B + History parity）待授權 push",
-   "reason": "正式 /qa-only 已通過；依交接規則 commit / push 只在使用者明確要求時做。",
-   "blocked_by": "使用者明確同意 git push",
+   "title": "PR #7 已 push，但 merge 被 GitHub branch policy 擋住",
+   "reason": "PR #7 已更新到 80c2a5d；`gh pr merge 7 --merge` 回報 base branch policy prohibits the merge，auto-merge repository setting 也未啟用。",
+   "blocked_by": "GitHub branch protection / required reviewer or admin merge",
    "owner": "user",
-   "needed_by": "更新 PR #7",
-   "impact": "PR #7 仍停在 3ed7d4f；reviewer 看不到 Option B + History 修正",
+   "needed_by": "合併 PR #7 到 main",
+   "impact": "Option B + History 修正已在 PR #7，但尚未進 main",
    "unblock_checklist": [
     "localhost:5173 #/history 看深色頁（已由 Playwright smoke 驗證）",
     "localhost:5173 試存檔配號流程（已由 Playwright smoke 驗證）",
     "跑 /qa-only（已通過）",
-    "git push 更新 PR #7"
+    "git push 更新 PR #7（已完成）",
+    "reviewer / admin 依 branch protection 完成 merge"
    ],
    "status": "open"
   },
@@ -2331,10 +2338,10 @@
   }
  ],
  "next_actions": [
-  "使用者一起檢查 Session 4 首頁完整功能（localhost:5173 開瀏覽器：折扣/議價/02/附件/編輯模式 + Cmd+P 列印）",
-  "使用者確認 OK → 跑 /codex:review → findings 整理成表 → 拍板 → commit",
-  "commit 後依工作流程：/qa-only → push；/review + /qa-only → 開 PR",
-  "Session 4 剩餘（History 頁 + Radix Modals）與存雲端/PDF/真實 catalog 另開 session"
+  "請 reviewer / admin 合併 PR #7 到 main（目前 gh CLI 被 branch policy 擋下）",
+  "PR #7 merge 後開始 PR6：GCP WIF / Cloud SQL / Artifact Registry / Secret Manager / IAP",
+  "PR7：ci.yml + deploy-staging.yml",
+  "PR8：deploy-prod.yml + main 分支保護"
  ],
  "not_covered": [
   "IAP @artogo.co 登入流程（需 PR6 部署出 staging URL 後才能測）",

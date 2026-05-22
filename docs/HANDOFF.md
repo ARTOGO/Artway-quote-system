@@ -9,12 +9,12 @@
 ## 0. TL;DR（30 秒版）
 
 - **在做什麼**：把 ARTWAY 業務的舊版「單檔 HTML 報價系統」（GitHub Pages、4228 行）重構成 **React + TS 前端 + Go + Postgres 後端 + Cloud Run + GCP IAP 登入**。
-- **現在在哪**：前端 1:1 復刻 + 前後端 API 串接（PR5）**功能已完成**。最新兩件修正剛做完並驗證：①報價單號改「**存檔才配號**」、②**歷史紀錄頁 1:1 深色復刻**。
+- **現在在哪**：前端 1:1 復刻 + 前後端 API 串接（PR5）**功能已完成**。最新兩件修正已驗證並 push 到 PR #7：①報價單號改「**存檔才配號**」、②**歷史紀錄頁 1:1 深色復刻**。
 - **馬上要做的三件事**：
-  1. 在 `localhost:5173` review 這兩個修正（使用者正在做）。
-  2. 跑 `/qa-only` → `git push` 更新 PR #7 → reviewer merge。
+  1. PR #7 head 已更新到 `80c2a5d`，包含 Option B、History 深色復刻、handoff 與 QA status。
+  2. GitHub 分支保護目前擋 merge：`gh pr merge 7 --merge` 回 `base branch policy prohibits the merge`；auto-merge 也未啟用。
   3. 開始 **部署 infra（PR6–8）**：GCP WIF / Cloud SQL / Artifact Registry / Secret Manager / IAP + CI/CD。**這是目前最大的未完成區塊。**
-- **本機有 2 個尚未 push 的 commit**（`f31ffe7`、`22f330f`）。`origin` 停在 `3ed7d4f`。
+- **PR #7 已 push、尚未 merge**。下一步需要 GitHub reviewer / admin 依 repo policy 完成合併到 `main`。
 
 ---
 
@@ -168,9 +168,9 @@ frontend/src/
 ## 6. 待辦 / 下一步（明確順序）
 
 ### 立即（這個 PR 收尾）
-1. **本機 review**（使用者進行中）：`localhost:5173/#/history` 看深色頁；`localhost:5173/` 試「重整不加號 → 存檔才配號」。
-2. `/qa-only` 正式 QA gate（push 前必跑）。
-3. `git push` 更新 **PR #7** → reviewer review → merge `main`。
+1. **PR #7 已 push**：branch `feature/session-3-preview` 已更新到 `80c2a5d`。
+2. **/qa-only 正式 QA gate 已通過**：frontend lint / 276 tests / typecheck / build，backend `go vet` / `go test`，以及 Playwright live smoke。
+3. **等待 GitHub policy 放行 merge**：目前 `gh pr merge 7 --merge` 被 base branch policy 擋下；auto-merge repository setting 未開。需 reviewer / admin 完成 merge `main`。
 
 ### 中期（部署鏈，最大未完成區塊）
 4. **PR6 — GCP infra 一次性**：WIF（github-pool/provider）、Cloud SQL `quote-db`（database `quotes_prod` / `quotes_staging`）、Artifact Registry、Secret Manager（db 密碼）、**IAP**（限 `domain:artogo.co`）。腳本骨架在 `infra/`（目前只有 README）。
@@ -192,7 +192,7 @@ frontend/src/
 - **列印 PDF 在 staging/prod 的 1:1 視覺比對** — 本機已驗版面，prod 環境未驗。
 - **並發配號真實壓測** — 後端原子配號已實作 + 單機驗證，多業務同時存檔未壓測。
 - **存檔失敗 / 網路中斷 UX** — 有「儲存失敗」狀態，但未實地 dogfood 各種失敗情境。
-- **本機 2 commit 尚未跑正式 `/qa-only`** — 已做大量手動 runtime QA（見 §8）。
+- **PR #7 merge 被 branch policy 擋下** — 需 reviewer / admin 依 GitHub 設定完成合併。
 
 ---
 
