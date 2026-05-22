@@ -32,13 +32,14 @@ var validStatuses = map[string]bool{
 // Handler is the HTTP layer for quotes. It depends on the Repository
 // interface (not the concrete impl) so tests inject fakes.
 type Handler struct {
-	repo Repository
-	now  func() time.Time // testable clock (defaults to time.Now)
+	repo    Repository
+	service *Service
+	now     func() time.Time // testable clock (defaults to explicit Asia/Taipei)
 }
 
-// NewHandler wires Handler with a Repository and uses time.Now as clock.
+// NewHandler wires Handler with a Repository and an Asia/Taipei clock.
 func NewHandler(repo Repository) *Handler {
-	return &Handler{repo: repo, now: time.Now}
+	return &Handler{repo: repo, service: NewService(repo), now: nowInTaipei}
 }
 
 // ─── /api/me ───────────────────────────────────────────────────────────────
@@ -106,24 +107,10 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Allocate the serial only when the quote is actually saved (not on every
-	// Builder mount/refresh) — the frontend now sends an empty quote_no for a
-	// brand-new quote and the number is assigned here, so refreshing an unsaved
-	// quote no longer burns serials. A client-supplied quote_no (manual case) is
-	// honoured as-is.
-	quoteNo := in.QuoteNo
-	if quoteNo == "" {
-		quoteNo, err = h.repo.NextNumber(r.Context(), h.now())
-		if err != nil {
-			writeError(w, r, http.StatusInternalServerError, "next_number_failed", err)
-			return
-		}
-	}
-
 	user, _ := auth.UserFromContext(r.Context())
 
-	result, err := h.repo.Create(r.Context(), CreateParams{
-		QuoteNo:       quoteNo,
+	result, err := h.service.CreateQuote(r.Context(), CreateParams{
+		QuoteNo:       in.QuoteNo,
 		Status:        in.Status,
 		Title:         in.Title,
 		TotalAmount:   in.TotalAmount,

@@ -1,6 +1,6 @@
 {
   "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-25T12:20:14+08:00",
+  "updated_at": "2026-05-25T15:59:56+08:00",
   "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
   "success_criteria": [
     "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -11,11 +11,59 @@
     "CI/CD 雙環境（staging / prod）自動部署、main 受分支保護"
   ],
   "current_focus": {
-    "feature_id": "F11",
-    "task_id": "F11-T1",
-    "summary": "PR7 stacked PR #10 review messages 已處理：兩個 Gemini run-goose-cloudsql.sh findings 已修並通過 syntax / URL rewrite / unique mktemp log / live goose staging smoke / Codex review。下一步是 commit / push，等待 GitHub Actions，並回覆 review threads。"
+    "feature_id": "F20",
+    "task_id": "F20-T4",
+    "summary": "GitHub PR #8 已 rebase 到最新 main 並處理 Gemini timezone review comment；backend gate 與 Codex review 已 clean，接著 force-with-lease 更新 PR 分支並等待 GitHub checks。"
   },
   "conversation_changes": [
+    {
+      "at": "2026-05-25T15:59:56+08:00",
+      "source": "codex-review",
+      "change": "GitHub PR #8 timezone review fix 的 Codex review clean。",
+      "impact": "Codex review --base origin/main 未發現 correctness/security/regression issue，並確認 backend tests 與 go vet pass；可 amend 並 force-with-lease 更新 PR #8。"
+    },
+    {
+      "at": "2026-05-25T15:54:48+08:00",
+      "source": "review-fix",
+      "change": "修正 GitHub PR #8 Gemini timezone review comment。",
+      "impact": "handler/service 預設 clock 改為明確 Asia/Taipei，新增 handler 與 service 測試確認傳入 repository 的 now.Location() 是 Asia/Taipei；targeted red/green 與 backend golangci-lint/go vet/go test 全綠。"
+    },
+    {
+      "at": "2026-05-25T15:47:59+08:00",
+      "source": "git-push",
+      "change": "GitHub PR #8 branch 已 force-with-lease 更新。",
+      "impact": "origin/codex/clean-architecture-backend 已更新到 rebase 後的 Clean Architecture commit；接著檢查 PR mergeable 狀態與 GitHub checks。"
+    },
+    {
+      "at": "2026-05-25T15:46:38+08:00",
+      "source": "codex-review",
+      "change": "GitHub PR #8 rebase 後 Codex review clean。",
+      "impact": "Codex review --base origin/main 未發現 correctness/security/regression issue；review 額外跑 backend/internal/quotes package tests 並通過。PR #8 可進入 force-with-lease 更新分支與 GitHub checks。"
+    },
+    {
+      "at": "2026-05-25T15:39:58+08:00",
+      "source": "verification",
+      "change": "GitHub PR #8 rebase conflicts 已解並完成本機 gate。",
+      "impact": "backend/internal/health/handler_test.go 保留 main 的 Body.Close errcheck；progress.json 以 main 為基底合入 F20 feature，progress.html 由 render_progress.py 重產。驗證：git diff --check、backend golangci-lint/go vet/go test、frontend typecheck/lint/Vitest 277 tests/build 全部通過。"
+    },
+    {
+      "at": "2026-05-25T15:35:36+08:00",
+      "source": "rebase",
+      "change": "開始解 GitHub PR #8 rebase conflicts。",
+      "impact": "以最新 main 的 progress.json 作基底，合入 PR #8 的 F20 Clean Architecture feature/evidence；progress.html 將由 render_progress.py 重產，避免手解自動產物 conflict。"
+    },
+    {
+      "at": "2026-05-22T15:28:30+08:00",
+      "source": "codex",
+      "change": "Commit gate review 發現 1 個 P3 架構收斂點並已修正。",
+      "impact": "Service 原本依賴完整 Repository 介面，超出 CreateQuote use case 所需面積；已改成 narrow port `CreateQuoteRepository`，service test fake 只保留 Create / CreateWithAllocatedNumber，docs/ARCHITECTURE.md 同步補充。重跑 targeted Go test、go vet、go test ./...、golangci-lint、frontend 68 contract tests 全綠。"
+    },
+    {
+      "at": "2026-05-22T14:58:12+08:00",
+      "source": "user",
+      "change": "使用者確認 PR #7 已 merge，並授權開始 Clean Architecture 收斂。",
+      "impact": "已切分支 codex/clean-architecture-backend。本輪先修最高風險架構點：把 HTTP handler 中的『缺 quote_no → 配號 → 建立報價』搬到 application service，並讓配號與 INSERT 進同一個 transaction；補 docs/ARCHITECTURE.md 描述目前/目標分層。"
+    },
     {
       "at": "2026-05-25T12:20:14+08:00",
       "source": "codex-review",
@@ -3012,6 +3060,183 @@
           ]
         }
       ]
+    },
+    {
+      "id": "F20",
+      "title": "Clean Architecture 收斂：後端 CreateQuote use case",
+      "summary": "先把最高風險的存檔配號流程從 HTTP handler 搬進 application service，並用 transaction 保證 quote_serials 與 quotes 建立一致；同步補架構文件。",
+      "weight": 2,
+      "goal_contributions": [
+        {
+          "outcome_id": "O3",
+          "why": "成功條件要求報價單號由後端原子性配發且不撞號；use case 應在 application 層統一管理配號與建立報價的交易邊界",
+          "completion_signal": "CreateQuote application service 有單元測試；Repository.CreateWithAllocatedNumber 在同一 transaction 配號與 INSERT；HTTP handler 不再協調配號流程"
+        }
+      ],
+      "status": "verified",
+      "tasks": [
+        {
+          "id": "F20-T1",
+          "title": "TDD：新增 CreateQuote service 測試，證明缺 quote_no 由 use case 走 transactional repository path",
+          "status": "verified",
+          "workstream": "Backend",
+          "priority": "P1",
+          "progress_percent": 100,
+          "files": [
+            "backend/internal/quotes/service_test.go"
+          ],
+          "evidence": [
+            {
+              "type": "tdd-red",
+              "ref": "go test ./internal/quotes -run 'TestServiceCreateQuote'",
+              "result": "實作前失敗：undefined: quotes.NewService，先建立失敗測試"
+            },
+            {
+              "type": "go-test",
+              "ref": "go test ./internal/quotes -run 'TestServiceCreateQuote|TestCreate_AllocatesQuoteNoWhenAbsent'",
+              "result": "通過：service 測到空 quote_no 走 CreateWithAllocatedNumber，手動 quote_no 走 Create，錯誤會往上拋"
+            }
+          ]
+        },
+        {
+          "id": "F20-T2",
+          "title": "實作 application service + transaction repository method",
+          "status": "verified",
+          "workstream": "Backend",
+          "priority": "P1",
+          "progress_percent": 100,
+          "files": [
+            "backend/internal/quotes/service.go",
+            "backend/internal/quotes/service_test.go",
+            "backend/internal/quotes/repo.go",
+            "backend/internal/quotes/handler.go"
+          ],
+          "evidence": [
+            {
+              "type": "code",
+              "ref": "quotes.Service.CreateQuote + Repository.CreateWithAllocatedNumber",
+              "result": "HTTP handler 只組 CreateParams；service 決定空 quote_no 走 transactional allocation；repo 在 tx 中 NextNumber + CreateQuote + Commit"
+            },
+            {
+              "type": "review-fix",
+              "ref": "CreateQuoteRepository narrow port",
+              "result": "Commit gate review P3：service 不再依賴完整 Repository，改依賴 use-case 專用 narrow port；測試 fake 面積同步縮小"
+            },
+            {
+              "type": "runtime-curl",
+              "ref": "PORT=8081 go run ./cmd/server；POST /api/quotes 無 quote_no",
+              "result": "201 Created，回傳 id=dc193f85-903a-4680-a829-284db929a955、quote_no=AW-260522-004"
+            },
+            {
+              "type": "cleanup",
+              "ref": "DELETE /api/quotes/dc193f85-903a-4680-a829-284db929a955 + DB query",
+              "result": "DELETE 204；quotes 查詢 AW-260522-004 deleted_at is not null = true"
+            }
+          ]
+        },
+        {
+          "id": "F20-T3",
+          "title": "補 docs/ARCHITECTURE.md，說明目前分層與後續 frontend/application ports 收斂方向",
+          "status": "verified",
+          "workstream": "Docs",
+          "priority": "P2",
+          "progress_percent": 100,
+          "files": [
+            "docs/ARCHITECTURE.md"
+          ],
+          "evidence": [
+            {
+              "type": "docs",
+              "ref": "docs/ARCHITECTURE.md",
+              "result": "新增 runtime shape、backend layers、Quote Creation use case、frontend boundaries、data rules、verification expectations；明確標註目前不是嚴格 multi-package Clean Architecture"
+            }
+          ]
+        },
+        {
+          "id": "F20-T4",
+          "title": "驗證：go test/go vet + 相關 frontend contract 測試",
+          "status": "verified",
+          "workstream": "QA",
+          "priority": "P1",
+          "progress_percent": 100,
+          "files": [
+            "backend/internal/db/pool.go",
+            "backend/internal/health/handler_test.go"
+          ],
+          "evidence": [
+            {
+              "type": "go-vet",
+              "ref": "backend: go vet ./...",
+              "result": "通過"
+            },
+            {
+              "type": "go-test",
+              "ref": "backend: go test ./...",
+              "result": "通過：cmd/server no test；auth/config/db/health/quotes 全綠"
+            },
+            {
+              "type": "golangci-lint",
+              "ref": "backend: go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest run",
+              "result": "0 issues；順手修掉既有 lint gate：health test Body.Close errcheck ×2、db Pool embedded selector staticcheck ×1"
+            },
+            {
+              "type": "frontend-test",
+              "ref": "frontend: npm test -- --run src/api/quotes.test.ts src/lib/useSaveQuote.test.tsx src/state/quoteReducer.test.ts",
+              "result": "3 files / 68 tests passed，Option B 前端 save/API contract 未破壞"
+            },
+            {
+              "type": "rebase",
+              "ref": "git rebase origin/main for PR #8",
+              "result": "完成；health handler test conflict 保留 main 的 t.Cleanup + Body.Close errcheck；progress.json 合入 F20 feature，progress.html 重產。"
+            },
+            {
+              "type": "static-gate",
+              "ref": "git diff --check",
+              "result": "通過，rebase 後無 whitespace / conflict marker 問題。"
+            },
+            {
+              "type": "backend-gate",
+              "ref": "backend: golangci-lint run && go vet ./... && go test ./...",
+              "result": "通過；golangci-lint 0 issues，quotes/health/auth/config/db/static 等 packages 全綠。"
+            },
+            {
+              "type": "frontend-gate",
+              "ref": "frontend: pnpm run typecheck && pnpm run lint && pnpm test -- --runInBand && pnpm run build",
+              "result": "通過；Vitest 26 files / 277 tests passed；production build 產出 dist assets。"
+            },
+            {
+              "type": "codex-review",
+              "ref": "codex review --base origin/main",
+              "result": "clean；未發現 correctness/security/regression issue，且 review 額外跑 go test ./internal/quotes -count=1 -run . 通過。"
+            },
+            {
+              "type": "git-push",
+              "ref": "git push --force-with-lease origin codex/clean-architecture-backend",
+              "result": "成功；PR #8 branch 已更新到 rebase 後的 Clean Architecture commit，下一步等待 GitHub checks / reviewer。"
+            },
+            {
+              "type": "tdd-red",
+              "ref": "go test ./internal/quotes -run 'TestServiceCreateQuote_AllocatesMissingQuoteNoInCreateUseCase|TestNextNumber_ReturnsQuoteNo' -count=1",
+              "result": "實作前失敗：service/handler 傳入 repository 的 now location 為 Local，不符合 Gemini review 要求的明確 Asia/Taipei。"
+            },
+            {
+              "type": "review-fix",
+              "ref": "nowInTaipei + NewService/NewHandler",
+              "result": "handler/service 預設 clock 改為 time.Now().In(Asia/Taipei)，避免 Cloud Run UTC default 或本機 Local 泄漏到配號邊界。"
+            },
+            {
+              "type": "backend-gate",
+              "ref": "backend: golangci-lint run && go vet ./... && go test ./...",
+              "result": "通過；golangci-lint 0 issues，backend packages 全綠。"
+            },
+            {
+              "type": "codex-review",
+              "ref": "codex review --base origin/main",
+              "result": "clean；未發現 correctness/security/regression issue，review 同時確認 backend tests 與 go vet pass。"
+            }
+          ]
+        }
+      ]
     }
   ],
   "blockers": [
@@ -3069,6 +3294,7 @@
     }
   ],
   "next_actions": [
+    "GitHub PR #8 Clean Architecture：等待 GitHub checks / reviewer；若有 review comments，依 findings 修正並重新驗證。",
     "PR6：等待 GitHub PR #9 reviewer / branch protection 流程；若有 review comments，依 findings 修正並重新驗證",
     "PR7：等待 GitHub PR #10 review comments",
     "PR7：PR6 merge 後 rebase 或改 PR base 回 main，再用 staging branch 真正觸發 deploy-staging workflow",

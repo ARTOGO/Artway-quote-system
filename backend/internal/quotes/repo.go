@@ -25,6 +25,7 @@ var ErrNotFound = errors.New("quotes: not found")
 type Repository interface {
 	NextNumber(ctx context.Context, now time.Time) (string, error)
 	Create(ctx context.Context, p CreateParams) (*WriteResult, error)
+	CreateWithAllocatedNumber(ctx context.Context, now time.Time, p CreateParams) (*WriteResult, error)
 	Update(ctx context.Context, id uuid.UUID, p UpdateParams) (*WriteResult, error)
 	List(ctx context.Context, p ListParams) (*ListResult, error)
 	Get(ctx context.Context, id uuid.UUID) (*Quote, error)
@@ -38,12 +39,13 @@ type Repository interface {
 // pgtype.Timestamptz to Go-native *time.Time / time.Time — handlers
 // never see pgtype types.
 type repo struct {
-	q sqlcgen.Querier
+	pool *db.Pool
+	q    sqlcgen.Querier
 }
 
 // NewRepository wires the production Repository with a pool from internal/db.
 func NewRepository(pool *db.Pool) Repository {
-	return &repo{q: sqlcgen.New(pool)}
+	return &repo{pool: pool, q: sqlcgen.New(pool)}
 }
 
 // ─── Input / Output types ─────────────────────────────────────────────────
@@ -145,7 +147,50 @@ func (r *repo) NextNumber(ctx context.Context, now time.Time) (string, error) {
 }
 
 func (r *repo) Create(ctx context.Context, p CreateParams) (*WriteResult, error) {
-	row, err := r.q.CreateQuote(ctx, sqlcgen.CreateQuoteParams{
+	return createQuote(ctx, r.q, p)
+}
+
+func (r *repo) CreateWithAllocatedNumber(
+	ctx context.Context,
+	now time.Time,
+	p CreateParams,
+) (*WriteResult, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin create quote transaction: %w", err)
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback(ctx)
+		}
+	}()
+
+	qtx := sqlcgen.New(tx)
+	key := dateKey(now)
+	seq, err := qtx.NextNumber(ctx, key)
+	if err != nil {
+		return nil, fmt.Errorf("allocate quote number in transaction: %w", err)
+	}
+	p.QuoteNo = quoteNo(key, seq)
+
+	result, err := createQuote(ctx, qtx, p)
+	if err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit create quote transaction: %w", err)
+	}
+	committed = true
+	return result, nil
+}
+
+func createQuote(
+	ctx context.Context,
+	q sqlcgen.Querier,
+	p CreateParams,
+) (*WriteResult, error) {
+	row, err := q.CreateQuote(ctx, sqlcgen.CreateQuoteParams{
 		QuoteNo:       p.QuoteNo,
 		Status:        p.Status,
 		Title:         p.Title,
