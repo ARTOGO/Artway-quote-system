@@ -1,6 +1,6 @@
 {
   "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-24T00:46:30+08:00",
+  "updated_at": "2026-05-24T20:32:00+08:00",
   "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
   "success_criteria": [
     "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -13,9 +13,15 @@
   "current_focus": {
     "feature_id": "F11",
     "task_id": "F11-T1",
-    "summary": "PR6 Phase A working-tree gate 已過：最後一輪 Codex review clean，targeted verification / Docker build / frontend 277 tests / backend go test 皆通過。下一階段可進 PR7 CI/CD + deploy-staging；PR6 尚待使用者明確授權 commit / push。"
+    "summary": "PR6 Phase A 已 commit / push 並開 GitHub PR #9（head codex/pr6-infra-foundation → main）。下一階段可進 PR7 CI/CD + deploy-staging；PR6 等 reviewer / branch protection 流程。"
   },
   "conversation_changes": [
+    {
+      "at": "2026-05-24T20:32:00+08:00",
+      "source": "codex",
+      "change": "使用者授權 Go ahead；PR6 已 commit、push 並建立 GitHub PR #9。",
+      "impact": "建立 commit d8362a2 infra: add phase a cloud run foundation，推送 origin/codex/pr6-infra-foundation，並開 PR https://github.com/ARTOGO/Artway-quote-system/pull/9（base main）。PR body 已附 final Codex review clean、staging IAP smoke、MutationObserver guard、Phase A verify / DB privilege / ingress / IAP HTTP evidence。"
+    },
     {
       "at": "2026-05-24T00:46:30+08:00",
       "source": "codex-review",
@@ -2685,7 +2691,7 @@
     {
       "title": "Phase A infra / DB / staging 登入後 smoke 已完成",
       "reason": "Cloud Run / Cloud SQL DB / Secret Manager / LB host rule / IAP / DNS / managed cert / DB migration 都已完成；quote-staging.artogo.co 已完成 IAP 登入後 Builder / save / History smoke。",
-      "blocked_by": "無；commit gate / Codex review 已 clean。下一步是使用者授權 commit / push，以及 PR7 CI/CD 自動化。",
+      "blocked_by": "無；commit gate / Codex review 已 clean，GitHub PR #9 已建立。下一步是 reviewer / branch protection 流程，以及 PR7 CI/CD 自動化。",
       "owner": "user + 工程師",
       "needed_by": "業務 cutover（PR9）",
       "impact": "staging 已可作為工程驗收入口；業務 cutover 前仍需補 CI/CD、prod deploy 自動化、prod 登入後 smoke 與正式切換公告。",
@@ -2693,7 +2699,8 @@
         "PR6：使用者完成 @artogo.co Google IAP 登入（已完成）",
         "PR6：用真實 https://quote-staging.artogo.co 驗 Builder 載入、儲存配號、History 查詢（已完成）",
         "PR6：測試資料 AW-260523-001 軟刪除清理（已完成）",
-        "PR6：commit 前 Codex review clean（已完成；等待使用者授權 commit / push）",
+        "PR6：commit 前 Codex review clean（已完成）",
+        "PR6：commit / push / GitHub PR #9（已完成）",
         "PR7：ci.yml + deploy-staging.yml",
         "PR8：deploy-prod.yml + main 分支保護"
       ],
@@ -2719,8 +2726,8 @@
     }
   ],
   "next_actions": [
-    "PR6：等待使用者明確授權 commit / push，將 Phase A infra foundation + MutationObserver guard patch 推上遠端並開 PR / 進 review",
-    "PR6：PR 說明納入 final Codex review clean、staging IAP smoke、MutationObserver guard、Phase A verify / DB privilege / ingress / IAP HTTP evidence",
+    "PR6：等待 GitHub PR #9 reviewer / branch protection 流程；若有 review comments，依 findings 修正並重新驗證",
+    "PR7：開始 ci.yml + deploy-staging.yml，包含 WIF build/push、Cloud Run staging deploy、goose migration 自動化與 post-deploy smoke",
     "PR7：ci.yml + deploy-staging.yml，包含 goose migration 自動化",
     "PR8：deploy-prod.yml + main 分支保護",
     "PR9：業務 cutover（換網址 + IAP 登入引導 + 舊 GitHub Pages 退場）"
