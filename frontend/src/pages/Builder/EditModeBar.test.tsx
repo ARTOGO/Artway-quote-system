@@ -112,8 +112,39 @@ describe('EditModeBar — 儲存 / 輸出 PDF gating + save-before-print', () =>
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 beforeEach(() => {
   document.title = 'ARTWAY 報價單系統';
+});
+
+describe('EditModeBar — 編輯預覽 MutationObserver guard', () => {
+  it('does not observe when the preview root is missing', async () => {
+    const observe = vi.fn();
+    const disconnect = vi.fn();
+    const MutationObserverMock = vi.fn(() => ({
+      observe,
+      disconnect,
+      takeRecords: () => [],
+    }));
+    vi.stubGlobal('MutationObserver', MutationObserverMock);
+
+    render(
+      <QuoteProvider initial={seedWithQuoteNo('AW-260521-001')}>
+        <EditModeBar />
+      </QuoteProvider>,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: '編輯預覽' }));
+    await userEvent.click(
+      within(screen.getByRole('dialog', { name: '編輯預覽提醒' })).getByRole('button', {
+        name: '我了解了',
+      }),
+    );
+
+    expect(screen.getByRole('button', { name: '✕ 結束編輯' })).toBeInTheDocument();
+    expect(MutationObserverMock).not.toHaveBeenCalled();
+    expect(observe).not.toHaveBeenCalled();
+  });
 });

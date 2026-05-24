@@ -385,7 +385,7 @@ function SignatureBlock({
           </div>
         </div>
         <div className={`${styles.sigStamp} ${styles.sigStampFilled}`}>
-          <img src="/logo/藝途發票章＿新.png" alt="ARTWAY 公司章" />
+          <img src="/logo/artway-invoice-stamp-new.png" alt="ARTWAY 公司章" />
         </div>
       </div>
     </section>

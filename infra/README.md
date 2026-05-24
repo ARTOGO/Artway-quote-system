@@ -1,10 +1,11 @@
 # Infra — Artway Quote System
 
-> Terraform-managed infrastructure for quote-app deployment on GCP Cloud Run.
+> Phase A infrastructure for quote-app deployment on GCP Cloud Run.
 
-## 目前狀態：佔位
+## 目前狀態：Phase A 腳本化建置
 
-實作會在後續 PR 補上。Quote-app 走「**加進既有 ARTOGO 內部平台**」策略，不另起爐灶。
+Quote-app 走「**加進既有 ARTOGO 內部平台**」策略，不另起爐灶。Phase A
+先使用可審核的 gcloud 腳本；Terraform module 化留到 Phase B。
 
 ## 部署策略（對齊 plan v2）
 
@@ -12,14 +13,19 @@
 直接加進既有 `artogo-v2` GCP project + 既有 LB（`35.241.57.95`）：
 
 - 新 Cloud Run service：`quote-app-prod` + `quote-app-staging`
-- 共用既有 Postgres instance `artogo-auth-db`、加新 database `quotes`
+- 共用既有 Postgres instance `artogo-auth-db`、加新 database `quotes_prod` / `quotes_staging`
 - 用既有 Artifact Registry `internal` repo
 - 在既有 LB url-map `https` 加 host rule `quote.artogo.co` → quote-app NEG
 - Managed cert 加 SAN `quote.artogo.co`
 - GCP IAP（限 `@artogo.co` Workspace）
 - Cloudflare 加 A record `quote.artogo.co` → `35.241.57.95`
 
-本資料夾的 Terraform 在 Phase A **hardcode 寫資源定義、用 local state**。
+Phase A 的可執行入口：
+
+- `infra/PHASE_A.md`：資源表、順序、手動步驟、rollback。
+- `infra/scripts/phase-a-preflight.sh`：read-only 檢查既有 `artogo-v2` 資源。
+- `infra/scripts/phase-a-setup.sh`：必須帶 `--apply` 才會建立/更新 GCP 資源。
+- `infra/scripts/phase-a-verify.sh`：apply 後的 read-only 驗證，可用 `--allow-missing` 做部署前差距盤點。
 
 ### Phase B（1-3 週）：引用 `artogo-infra` module
 [ARTOGO/artogo-infra](https://github.com/ARTOGO/artogo-infra) 補完 `modules/internal-service` 之後，本資料夾重構成：
@@ -60,8 +66,9 @@ State 改用 `gs://artogo-tf-state/Artway-quote-system` backend。
 ## 先決條件（執行 Phase A 前）
 
 - gcloud CLI 已裝、登入 `peter_ting@artogo.co`（或具同等權限的 ARTOGO 帳號）
+- `psql` CLI（`phase-a-setup.sh --apply` 會透過 `gcloud sql connect` 設定 DB/schema 權限）
 - terraform CLI ≥ 1.15
 - GCP project `artogo-v2` 寫權限（roles/editor + roles/iap.admin）
 - Cloudflare API token（管 `artogo.co` zone）
 
-詳細執行步驟見後續 PR 內的 `infra/PHASE_A.md`。
+詳細執行步驟見 `infra/PHASE_A.md`。
