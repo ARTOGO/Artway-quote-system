@@ -1,6 +1,6 @@
 {
   "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-25T16:27:16+08:00",
+  "updated_at": "2026-05-25T17:24:04+08:00",
   "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
   "success_criteria": [
     "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -11,11 +11,23 @@
     "CI/CD 雙環境（staging / prod）自動部署、main 受分支保護"
   ],
   "current_focus": {
-    "feature_id": "F11",
-    "task_id": "F11-T2",
-    "summary": "PR #11 已 rebase 到 PR #8 merge 後的最新 main；本機 gate 全綠，progress renderer 已改成 deterministic 無 trailing whitespace，接著重跑 Codex review、push 更新 PR 並等待 GitHub checks。"
+    "feature_id": "F21",
+    "task_id": "F21-T3",
+    "summary": "非工程人員 self-serve flow 文件與 repo-local AI skill 已新增；ARTOGO-PM/UIX/AI 已授予 repo write；required CI ruleset 已擴到 main + staging；組織層 branch-protection 仍保留 PR、禁止刪除/force-push、resolved threads。"
   },
   "conversation_changes": [
+    {
+      "at": "2026-05-25T17:20:31+08:00",
+      "source": "user",
+      "change": "使用者要求非工程人員可自行開發並 merge 到 staging/prod，且要有 skill 教非工程人員的 AI 如何在此 repo 開發。",
+      "impact": "本輪新增 self-serve release flow 文件與 repo-local AI skill；檢查/調整 GitHub ruleset，使 staging/main 透過 PR 自助 merge 並以 CI 作為部署前 gate。"
+    },
+    {
+      "at": "2026-05-25T16:46:13+08:00",
+      "source": "ship",
+      "change": "PR #11 merge 後 production deploy 已自動執行並成功。",
+      "impact": "Deploy Prod run 26391588506 成功完成 verify source、image build/push、goose migration、Cloud Run prod deploy 與 workflow 內建 DNS/IAP smoke；本機 Phase A verification 也全綠。剩登入後 Builder/save/History/load/delete browser smoke。"
+    },
     {
       "at": "2026-05-25T16:27:16+08:00",
       "source": "codex-review-fix",
@@ -2038,7 +2050,7 @@
     {
       "id": "F11",
       "title": "CI/CD prod + 業務 cutover",
-      "summary": "PR7 CI + deploy-staging workflow 已 merge 到 main 並完成 staging branch 真實部署；PR #8 Clean Architecture 已 merge。PR #11 production deploy 已 rebase 到最新 main，本機 gate 全綠，progress renderer 可重現性修正中，等待第二輪 review、push 與 GitHub checks。",
+      "summary": "PR7/PR11 CI/CD 已 merge；production deploy workflow 已在 main merge 後成功部署 quote-app-prod，Cloud Run/DNS/IAP/Phase A verification 全綠；剩登入後 browser smoke。",
       "weight": 2,
       "goal_contributions": [
         {
@@ -2270,7 +2282,7 @@
           "status": "done",
           "workstream": "Infra",
           "priority": "P1",
-          "progress_percent": 90,
+          "progress_percent": 95,
           "files": [
             ".github/workflows/deploy-prod.yml",
             "infra/scripts/phase-a-setup.sh",
@@ -2400,6 +2412,31 @@
               "type": "codex-review-fix",
               "ref": "render_progress.py trailing whitespace normalization",
               "result": "Codex review rerender check 暴露 progress.html 與 render_progress.py 輸出在 trailing whitespace 上不一致；已讓 renderer 寫檔前 rstrip 每行，使產物可重現且保持 git diff --check clean。"
+            },
+            {
+              "type": "github-actions",
+              "ref": "Deploy Prod run 26391588506",
+              "result": "main push merge commit b3f2519 觸發 Deploy Prod；Verify source 成功，Build/migrate/deploy 成功，包含 Build and push image、Run goose migrations、Deploy Cloud Run prod、Smoke prod ingress and IAP。"
+            },
+            {
+              "type": "github-actions",
+              "ref": "CI run 26391588507",
+              "result": "main push CI 成功：Backend、Frontend、Docker package 全部 success。"
+            },
+            {
+              "type": "cloud-run",
+              "ref": "gcloud run services describe quote-app-prod",
+              "result": "quote-app-prod Ready=True；latestReadyRevision=quote-app-prod-00003-d7d；100% traffic；image=asia-east1-docker.pkg.dev/artogo-v2/internal/quote-app:b3f2519fe24e80473eac940638967fcb2e8b1fe1；ingress=internal-and-cloud-load-balancing；minScale=1；runtime SA=quote-app-prod-runner。"
+            },
+            {
+              "type": "http-smoke",
+              "ref": "curl -I quote.artogo.co / readyz",
+              "result": "quote.artogo.co A record 35.241.57.95；/ 與 /readyz 均回 HTTP/2 302 且含 x-goog-iap-generated-response: true。"
+            },
+            {
+              "type": "not-covered",
+              "ref": "production browser smoke",
+              "result": "Playwright 開 https://quote.artogo.co/ 被導到 Google 帳戶登入頁；等待使用者完成 IAP 登入後才能驗 Builder/save/History/load/delete。"
             }
           ]
         },
@@ -3472,6 +3509,93 @@
           ]
         }
       ]
+    },
+    {
+      "id": "F21",
+      "title": "非工程人員自助開發與 AI skill",
+      "summary": "已建立非工程人員 self-serve 開發/merge 文件與 AI skill，並調整 GitHub 權限/required checks 讓 PM/UIX/AI 可在 checks 綠後自助 merge 到 staging/main。",
+      "weight": 1,
+      "goal_contributions": [
+        {
+          "outcome_id": "O4",
+          "why": "讓業務/PM/UIX 可自行安全推進報價系統修改，不必每次等工程師手動部署。",
+          "completion_signal": "文件/skill 清楚描述 coding convention、架構、CI/CD、分支流程；GitHub ruleset 允許具 write 權限者在 checks 綠後自助 merge。"
+        }
+      ],
+      "status": "verified",
+      "tasks": [
+        {
+          "id": "F21-T1",
+          "title": "補 self-serve workflow 文件與 CLAUDE.md 流程",
+          "status": "verified",
+          "workstream": "Docs",
+          "priority": "P1",
+          "progress_percent": 100,
+          "files": [
+            "CLAUDE.md",
+            "docs/SELF_SERVE_DEVELOPMENT.md"
+          ],
+          "evidence": [
+            {
+              "type": "discovery",
+              "ref": "GitHub rulesets + team permissions",
+              "result": "現有 branch-protection ruleset 套用 main/master/staging；main-required-ci 只套 main；repo team 目前多為 pull，需明確授權 write 才能 merge。"
+            },
+            {
+              "type": "docs",
+              "ref": "CLAUDE.md + docs/SELF_SERVE_DEVELOPMENT.md + PR template",
+              "result": "PM/業務流程改為 feature branch -> PR staging -> staging smoke -> PR main -> prod smoke；新增 self-serve 文件與 PR checklist。"
+            }
+          ]
+        },
+        {
+          "id": "F21-T2",
+          "title": "新增 repo-local AI development skill",
+          "status": "verified",
+          "workstream": "Docs",
+          "priority": "P1",
+          "progress_percent": 100,
+          "files": [
+            ".claude/skills/artway-quote-self-serve/SKILL.md",
+            "docs/AI_DEVELOPMENT_SKILL.md"
+          ],
+          "evidence": [
+            {
+              "type": "skill",
+              "ref": ".claude/skills/artway-quote-self-serve/SKILL.md + docs/AI_DEVELOPMENT_SKILL.md",
+              "result": "新增 repo-local skill 入口，涵蓋 first files、架構、coding rules、CI/CD、驗證與回報格式。"
+            }
+          ]
+        },
+        {
+          "id": "F21-T3",
+          "title": "調整 GitHub ruleset 支援 self-serve merge 並保留 CI gate",
+          "status": "verified",
+          "workstream": "Infra",
+          "priority": "P1",
+          "progress_percent": 100,
+          "files": [
+            "GitHub rulesets"
+          ],
+          "evidence": [
+            {
+              "type": "github-access",
+              "ref": "repos/ARTOGO/Artway-quote-system/teams",
+              "result": "ARTOGO-PM、ARTOGO-UIX、ARTOGO-AI 皆為 push/write；ARTOGO-member / part-time / engineer 未被本輪開放。"
+            },
+            {
+              "type": "github-ruleset",
+              "ref": "protected-branches-required-ci id 16822222",
+              "result": "required status checks 已套用 refs/heads/main 與 refs/heads/staging，要求 Frontend、Backend、Docker package、GitGuardian Security Checks 且 strict=true。"
+            },
+            {
+              "type": "github-ruleset",
+              "ref": "organization branch-protection id 5967789",
+              "result": "組織層 ruleset 仍套用 main/master/staging：PR required、禁止 branch deletion、禁止 non-fast-forward、required review thread resolution；required approving review count 為 0。"
+            }
+          ]
+        }
+      ]
     }
   ],
   "blockers": [
@@ -3529,23 +3653,18 @@
     }
   ],
   "next_actions": [
-    "PR #11 rebase 後第二輪 Codex review；若 clean，force-with-lease push 更新 PR。",
-    "PR #11 push 後等待 GitHub checks；確認 mergeable 回到 MERGEABLE。",
-    "逐條回覆並 resolve PR #11 的 4 個 Gemini inline threads（--condition=None false positive）。",
-    "PR #11 checks 全綠且 threads 處理完後，可 merge production deploy workflow。",
-    "PR #11 merge 後：確認 Deploy Prod GitHub Actions 在 main 真實執行並成功部署 quote-app-prod。",
-    "prod deploy 後：quote.artogo.co 登入後 Builder / save / History / load / delete smoke。",
-    "PR9：業務 cutover（換網址 + IAP 登入引導 + 舊 GitHub Pages 退場）"
+    "將本輪 self-serve docs/skill changes 開 PR；merge 後非工程人員可照 docs 使用。",
+    "若要移除組織層 branch-protection 的 code-owner/last-push flags，需要用具 admin:org scope 的帳號調整 ARTOGO org ruleset；目前 approval count=0，不是日常 merge 的主要 blocker。",
+    "production browser smoke 仍需使用者完成 IAP 登入後驗 Builder/save/History/load/delete。"
   ],
   "not_covered": [
     "deploy-prod.yml 尚未 merge 到 main，因此 Deploy Prod GitHub Actions 尚未真實執行。",
-    "quote.artogo.co prod 登入後 Builder / save / History smoke 尚未跑；需等 deploy-prod workflow 實際部署 production revision 後驗證。",
     "本機 gcloud default project 仍是 excellent-tide-496207-r6，尚未切到 artogo-v2；後續所有 gcloud 指令需避免打錯 project",
     "本機 Terraform 1.5.7 低於 infra/README.md 要求的 >= 1.15，尚未升級",
     "Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗",
     "列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）",
     "並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）",
     "存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）",
-    "quote.artogo.co prod 登入後 Builder / save / History smoke 尚未跑；目前 prod 只驗到 IAP redirect 與 Cloud Run 靜態資源 200 log。"
+    "quote.artogo.co 登入後 Builder / save / History / load / delete browser smoke 尚未完成；目前被 Google/IAP 登入頁擋住，等待使用者完成登入。"
   ]
 }
