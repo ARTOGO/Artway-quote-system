@@ -2053,7 +2053,7 @@ body.route-history .save-hint { display: none !important; }
           </div>
         </div>
         <div class="sig-stamp sig-stamp-filled">
-          <img src="./public/logo/藝途發票章＿新.png" alt="ARTWAY 公司章">
+          <img src="./public/logo/artway-invoice-stamp-new.png" alt="ARTWAY 公司章">
         </div>
       </div>
     </div>
@@ -4155,8 +4155,11 @@ init();
   }
 
   // 監聽 preview 變化（每次 render 後重新套用 editable 狀態）
-  const obs = new MutationObserver(() => applyToPreview());
-  obs.observe(document.querySelector('.preview-area'), { childList: true, subtree: true });
+  const previewArea = document.querySelector('.preview-area');
+  if (previewArea) {
+    const obs = new MutationObserver(() => applyToPreview());
+    obs.observe(previewArea, { childList: true, subtree: true });
+  }
   setTimeout(applyToPreview, 600);
 
   // Edit mode toggle + modal

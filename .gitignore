@@ -7,6 +7,7 @@
 *-credentials.json
 service-account*.json
 gcp-key*.json
+infra/phase-a.env
 
 # ─── Node / Frontend ───────────────────────────────────────
 node_modules/

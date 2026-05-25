@@ -1,15 +1,18 @@
 // Command server is the Cloud Run entrypoint for the quote-app backend.
 //
 // Pipeline (M5):
-//   request → chi middleware (RequestID/RealIP/Recoverer/Timeout)
-//          → /healthz, /readyz       (no auth — Cloud Run probes)
-//          → /api/*                  → auth.Middleware (IAP)
-//                                    → /me + /quotes/* (7 endpoints)
+//
+//	request → chi middleware (RequestID/RealIP/Recoverer/Timeout)
+//	       → /healthz, /readyz       (no auth — Cloud Run probes)
+//	       → /api/*                  → auth.Middleware (IAP)
+//	                                 → /me + /quotes/* (7 endpoints)
+//	       → /*                       → embedded React SPA
 //
 // Wiring order in main:
-//   config.Load() → db.New(pool) → quotes.NewRepository(pool)
-//                                → quotes.NewHandler(repo)
-//                                → newRouter(authCfg, handler)
+//
+//	config.Load() → db.New(pool) → quotes.NewRepository(pool)
+//	                             → quotes.NewHandler(repo)
+//	                             → newRouter(authCfg, handler)
 package main
 
 import (
@@ -27,6 +30,7 @@ import (
 	"github.com/ARTOGO/Artway-quote-system/backend/internal/db"
 	"github.com/ARTOGO/Artway-quote-system/backend/internal/health"
 	"github.com/ARTOGO/Artway-quote-system/backend/internal/quotes"
+	"github.com/ARTOGO/Artway-quote-system/backend/internal/static"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -101,7 +105,8 @@ func main() {
 }
 
 // newRouter wires HTTP routes. Probes sit on the root outside auth;
-// application routes live under /api/* behind IAP middleware.
+// application routes live under /api/* behind IAP middleware. The SPA fallback
+// is last so direct browser loads still reach React.
 func newRouter(authCfg auth.Config, h *quotes.Handler) *chi.Mux {
 	r := chi.NewRouter()
 
@@ -119,6 +124,8 @@ func newRouter(authCfg auth.Config, h *quotes.Handler) *chi.Mux {
 		r.Use(auth.Middleware(authCfg))
 		quotes.Mount(r, h)
 	})
+
+	r.NotFound(static.Handler().ServeHTTP)
 
 	return r
 }
