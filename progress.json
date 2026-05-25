@@ -1,6 +1,6 @@
 {
   "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-25T11:36:36+08:00",
+  "updated_at": "2026-05-25T11:41:28+08:00",
   "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
   "success_criteria": [
     "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -13,9 +13,21 @@
   "current_focus": {
     "feature_id": "F11",
     "task_id": "F11-T1",
-    "summary": "PR7 ci.yml + deploy-staging.yml 已 commit / push，並建立 stacked PR #10（base codex/pr6-infra-foundation）。下一步是看 GitHub Actions 與 PR review；PR6 #9 merge 後再 rebase 或 retarget PR #10 到 main，之後進 PR8 deploy-prod + main 分支保護。"
+    "summary": "PR7 stacked PR #10 已建立；CI pull_request trigger 已調整為所有 PR 都跑，push trigger 仍限 main/staging，且 trigger fix 已通過 actionlint / git diff --check / Codex review。下一步是看 PR #10 的 GitHub Actions 結果與 review comments。"
   },
   "conversation_changes": [
+    {
+      "at": "2026-05-25T11:41:28+08:00",
+      "source": "codex-review",
+      "change": "PR7 CI trigger fix review clean。",
+      "impact": "ci.yml 改為所有 pull_request 都跑 CI、push 仍限 main/staging；go run actionlint 通過、git diff --check 通過、codex review --uncommitted 回報 No prioritized correctness issues。下一步是推上 PR #10 並觀察 GitHub-hosted runner 是否開始跑 CI。"
+    },
+    {
+      "at": "2026-05-25T11:38:14+08:00",
+      "source": "codex",
+      "change": "PR #10 建立後發現新增 CI 沒有在 stacked PR 上觸發。",
+      "impact": "gh pr checks 10 只有 GitGuardian，沒有我們的 CI；原因是 ci.yml 原本限制 pull_request base 只能 main/staging，而 PR #10 的 base 是 codex/pr6-infra-foundation。已將 pull_request trigger 改為所有 PR 都跑，push 仍只限 main/staging，讓 stacked PR 也能取得 GitHub runner 證據。"
+    },
     {
       "at": "2026-05-25T11:36:36+08:00",
       "source": "codex",
