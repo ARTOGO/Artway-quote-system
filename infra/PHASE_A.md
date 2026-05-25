@@ -33,13 +33,19 @@ Because the local default project is not `artogo-v2`, every script passes
 | Cloud SQL user | `quote_app_staging` | `quote_app_prod` |
 | Database URL secret | `quote-app-staging-database-url` | `quote-app-prod-database-url` |
 | DB password secret | `quote-app-staging-db-password` | `quote-app-prod-db-password` |
+| Runtime service account | `quote-app-staging-runner` | `quote-app-prod-runner` |
 | Serverless NEG | `quote-app-staging-neg` | `quote-app-prod-neg` |
 | Backend service | `quote-app-staging-backend` | `quote-app-prod-backend` |
 | Hostname | `quote-staging.artogo.co` | `quote.artogo.co` |
 
 Shared resources:
 
-- Runtime service account: `quote-app-runner@artogo-v2.iam.gserviceaccount.com`
+- GitHub Actions staging deployer service account:
+  `quote-app-staging-deployer@artogo-v2.iam.gserviceaccount.com`
+  (`phase-a-setup.sh` and `phase-a-verify.sh` reject stale local
+  `DEPLOYER_SA` overrides that do not match this workflow deployer.)
+- Legacy shared runtime service account kept only for cleanup checks:
+  `quote-app-runner@artogo-v2.iam.gserviceaccount.com`
 - Artifact image: `asia-east1-docker.pkg.dev/artogo-v2/internal/quote-app:<tag>`
 - Managed certificate: `quote-app-cert`
 - URL map: `https`
@@ -132,6 +138,55 @@ service-968864738717@gcp-sa-iap.iam.gserviceaccount.com
 The script grants that principal `roles/run.invoker` on both quote-app Cloud Run
 services.
 
+## PR7 CI/CD
+
+PR7 adds two GitHub Actions workflows:
+
+- `.github/workflows/ci.yml`
+  - runs on pull requests to `main` / `staging`
+  - runs frontend typecheck, lint, tests, build
+  - runs backend `go vet`, `golangci-lint run`, and `go test`
+  - builds the production Docker image without pushing it
+- `.github/workflows/deploy-staging.yml`
+  - runs on push to `staging` or manual dispatch
+  - authenticates to GCP through WIF
+  - builds and pushes `quote-app:${GITHUB_SHA}` to Artifact Registry
+  - runs `goose up` against `quotes_staging` through Cloud SQL Proxy
+  - deploys `quote-app-staging`
+  - smoke-checks Cloud Run ingress, DNS, and IAP-generated responses
+
+The staging deployer service account is intentionally staging-scoped. It needs
+these permissions:
+
+- `roles/artifactregistry.writer` on Artifact Registry repo `internal`
+- `roles/run.developer` on Cloud Run service `quote-app-staging`
+- `roles/cloudsql.client`
+- `roles/serviceusage.serviceUsageConsumer`
+- `roles/iam.serviceAccountUser` on
+  `quote-app-staging-runner@artogo-v2.iam.gserviceaccount.com`
+- `roles/secretmanager.secretAccessor` on `quote-app-staging-database-url`
+
+`phase-a-verify.sh` also checks that the staging deployer does not have project
+`roles/run.admin`, project `roles/run.developer`, or project
+`roles/iam.serviceAccountUser`, does not have Cloud Run deploy permissions on
+`quote-app-prod`, cannot act as `quote-app-prod-runner` or the legacy
+`quote-app-runner`, and cannot read `quote-app-prod-database-url`. The setup
+script also removes those broad project-level grants from the staging deployer
+when applying. The setup script also decommissions the legacy shared runtime by
+removing its Cloud SQL client grant and database URL secret access. The runtime
+identity checks assert that `quote-app-staging` runs as
+`quote-app-staging-runner`, `quote-app-prod` runs as `quote-app-prod-runner`,
+each active runtime service account can read only its own environment's
+database URL secret, and the legacy `quote-app-runner` can read neither
+database URL secret. WIF impersonation is scoped with a mapped
+`attribute.workflow_ref` principalSet for
+`ARTOGO/Artway-quote-system/.github/workflows/deploy-staging.yml@refs/heads/staging`;
+the broad `attribute.repository` principalSet must be absent. The same verify
+step checks that the old generic `github-actions-deployer` has neither binding.
+The Cloud SQL and Service Usage grants are required because the PR7 migration
+step connects through Cloud SQL Proxy and charges Cloud SQL Admin API quota to
+`artogo-v2`.
+
 Sources:
 
 - https://docs.cloud.google.com/iap/docs/managed-oauth-client
@@ -142,8 +197,6 @@ Sources:
 
 These are intentionally not fully automated yet:
 
-- PR7 should automate goose migrations in CI/CD so future deploys do not need a
-  manual Cloud SQL Auth Proxy session.
 - Before business cutover, run the same browser smoke on
   `https://quote.artogo.co` after the deploy flow is automated.
 
