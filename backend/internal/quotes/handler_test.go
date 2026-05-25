@@ -22,14 +22,15 @@ import (
 // ─── fakeRepo: in-memory Repository for handler tests ─────────────────────
 
 type fakeRepo struct {
-	nextNumberFn    func(ctx context.Context, now time.Time) (string, error)
-	createFn        func(ctx context.Context, p quotes.CreateParams) (*quotes.WriteResult, error)
-	updateFn        func(ctx context.Context, id uuid.UUID, p quotes.UpdateParams) (*quotes.WriteResult, error)
-	listFn          func(ctx context.Context, p quotes.ListParams) (*quotes.ListResult, error)
-	getFn           func(ctx context.Context, id uuid.UUID) (*quotes.Quote, error)
-	getByQuoteNoFn  func(ctx context.Context, quoteNo string) (*quotes.Quote, error)
-	softDeleteFn    func(ctx context.Context, id uuid.UUID) error
-	distinctSalesFn func(ctx context.Context) ([]string, error)
+	nextNumberFn                func(ctx context.Context, now time.Time) (string, error)
+	createFn                    func(ctx context.Context, p quotes.CreateParams) (*quotes.WriteResult, error)
+	createWithAllocatedNumberFn func(ctx context.Context, now time.Time, p quotes.CreateParams) (*quotes.WriteResult, error)
+	updateFn                    func(ctx context.Context, id uuid.UUID, p quotes.UpdateParams) (*quotes.WriteResult, error)
+	listFn                      func(ctx context.Context, p quotes.ListParams) (*quotes.ListResult, error)
+	getFn                       func(ctx context.Context, id uuid.UUID) (*quotes.Quote, error)
+	getByQuoteNoFn              func(ctx context.Context, quoteNo string) (*quotes.Quote, error)
+	softDeleteFn                func(ctx context.Context, id uuid.UUID) error
+	distinctSalesFn             func(ctx context.Context) ([]string, error)
 }
 
 func (f *fakeRepo) NextNumber(ctx context.Context, now time.Time) (string, error) {
@@ -37,6 +38,13 @@ func (f *fakeRepo) NextNumber(ctx context.Context, now time.Time) (string, error
 }
 func (f *fakeRepo) Create(ctx context.Context, p quotes.CreateParams) (*quotes.WriteResult, error) {
 	return f.createFn(ctx, p)
+}
+func (f *fakeRepo) CreateWithAllocatedNumber(
+	ctx context.Context,
+	now time.Time,
+	p quotes.CreateParams,
+) (*quotes.WriteResult, error) {
+	return f.createWithAllocatedNumberFn(ctx, now, p)
 }
 func (f *fakeRepo) Update(ctx context.Context, id uuid.UUID, p quotes.UpdateParams) (*quotes.WriteResult, error) {
 	return f.updateFn(ctx, id, p)
@@ -95,7 +103,10 @@ func TestNextNumber_ReturnsQuoteNo(t *testing.T) {
 	t.Parallel()
 
 	h := quotes.NewHandler(&fakeRepo{
-		nextNumberFn: func(_ context.Context, _ time.Time) (string, error) {
+		nextNumberFn: func(_ context.Context, now time.Time) (string, error) {
+			if got := now.Location().String(); got != "Asia/Taipei" {
+				t.Fatalf("now location = %q, want Asia/Taipei", got)
+			}
 			return "AW-260516-007", nil
 		},
 	})
@@ -209,13 +220,21 @@ func TestCreate_AllocatesQuoteNoWhenAbsent(t *testing.T) {
 	var createdWith string
 	h := quotes.NewHandler(&fakeRepo{
 		nextNumberFn: func(_ context.Context, _ time.Time) (string, error) {
-			return "AW-260516-007", nil
+			t.Fatal("handler should not allocate directly; service/repository transaction owns it")
+			return "", nil
 		},
-		createFn: func(_ context.Context, p quotes.CreateParams) (*quotes.WriteResult, error) {
+		createFn: func(_ context.Context, _ quotes.CreateParams) (*quotes.WriteResult, error) {
+			t.Fatal("handler should not call bare Create when quote_no is empty")
+			return nil, nil
+		},
+		createWithAllocatedNumberFn: func(_ context.Context, _ time.Time, p quotes.CreateParams) (*quotes.WriteResult, error) {
+			if p.QuoteNo != "" {
+				t.Fatalf("service should pass empty QuoteNo to transactional allocation path, got %q", p.QuoteNo)
+			}
 			createdWith = p.QuoteNo
 			return &quotes.WriteResult{
 				ID:        uuid.New(),
-				QuoteNo:   p.QuoteNo,
+				QuoteNo:   "AW-260516-007",
 				CreatedAt: time.Date(2026, 5, 16, 12, 0, 0, 0, time.UTC),
 				UpdatedAt: time.Date(2026, 5, 16, 12, 0, 0, 0, time.UTC),
 			}, nil
@@ -231,8 +250,8 @@ func TestCreate_AllocatesQuoteNoWhenAbsent(t *testing.T) {
 	if w.Code != http.StatusCreated {
 		t.Fatalf("status = %d, want 201 (body=%s)", w.Code, w.Body.String())
 	}
-	if createdWith != "AW-260516-007" {
-		t.Errorf("Create got quote_no %q, want allocated AW-260516-007", createdWith)
+	if createdWith != "" {
+		t.Errorf("CreateWithAllocatedNumber got pre-filled quote_no %q, want empty before allocation", createdWith)
 	}
 	var body map[string]any
 	_ = json.NewDecoder(w.Body).Decode(&body)

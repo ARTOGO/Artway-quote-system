@@ -26,6 +26,13 @@ func mustTaipei() *time.Location {
 	return loc
 }
 
+// nowInTaipei returns the current instant with an explicit Asia/Taipei
+// location, so callers do not leak Cloud Run's UTC default into serial-date
+// allocation boundaries.
+func nowInTaipei() time.Time {
+	return time.Now().In(taipei)
+}
+
 // dateKey returns the YYMMDD string for `now` in Asia/Taipei timezone,
 // per SPEC §3.1 (流水號每日歸零 = 台北日界線).
 //
