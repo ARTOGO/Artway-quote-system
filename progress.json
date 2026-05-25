@@ -1,6 +1,6 @@
 {
   "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-25T00:24:30+08:00",
+  "updated_at": "2026-05-25T11:36:36+08:00",
   "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
   "success_criteria": [
     "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -13,9 +13,15 @@
   "current_focus": {
     "feature_id": "F11",
     "task_id": "F11-T1",
-    "summary": "PR7 ci.yml + deploy-staging.yml commit gate 已過：final Codex review clean，frontend/backend/local infra/live GCP checks 皆已完成；下一步是使用者授權 commit / push / 建立 stacked PR，之後進 PR8 deploy-prod + main 分支保護。"
+    "summary": "PR7 ci.yml + deploy-staging.yml 已 commit / push，並建立 stacked PR #10（base codex/pr6-infra-foundation）。下一步是看 GitHub Actions 與 PR review；PR6 #9 merge 後再 rebase 或 retarget PR #10 到 main，之後進 PR8 deploy-prod + main 分支保護。"
   },
   "conversation_changes": [
+    {
+      "at": "2026-05-25T11:36:36+08:00",
+      "source": "codex",
+      "change": "使用者授權後，PR7 已 commit / push 並建立 stacked PR #10。",
+      "impact": "commit 86a9bbc ci: add staging deployment workflow 已推到 origin/codex/pr7-ci-staging；GitHub PR https://github.com/ARTOGO/Artway-quote-system/pull/10 已建立，base 為 codex/pr6-infra-foundation。PR6 #9 仍 open，因此 PR #10 目前維持 stacked；#9 merge 後需 rebase 或 retarget 回 main，再由 staging branch 驗證真正 deploy-staging workflow。"
+    },
     {
       "at": "2026-05-25T00:24:30+08:00",
       "source": "codex-review",
@@ -1870,7 +1876,7 @@
     {
       "id": "F11",
       "title": "CI/CD prod + 業務 cutover",
-      "summary": "PR7 CI + deploy-staging workflow commit gate 已過；final Codex review clean，等待使用者授權 commit / push / stacked PR。PR8 deploy-prod 與 PR9 cutover 尚未開始。",
+      "summary": "PR7 CI + deploy-staging workflow 已推上 stacked PR #10；final Codex review clean。等待 GitHub Actions / PR review，PR6 #9 merge 後需 rebase 或 retarget 回 main。PR8 deploy-prod 與 PR9 cutover 尚未開始。",
       "weight": 2,
       "goal_contributions": [
         {
@@ -2058,6 +2064,11 @@
               "type": "codex-review",
               "ref": "codex review --uncommitted final pass",
               "result": "No prioritized correctness issues；review 過程重跑 actionlint、frontend 277 tests、backend go test、git diff --check、cloud-sql-proxy install smoke、phase-a-verify.sh --check-http 與 setup dry-run 順序檢查。"
+            },
+            {
+              "type": "pull-request",
+              "ref": "https://github.com/ARTOGO/Artway-quote-system/pull/10",
+              "result": "PR7 stacked PR 已建立，base 為 codex/pr6-infra-foundation；PR6 #9 merge 後需 rebase 或 retarget 回 main。"
             }
           ]
         },
@@ -2992,7 +3003,7 @@
         "PR6：測試資料 AW-260523-001 軟刪除清理（已完成）",
         "PR6：commit 前 Codex review clean（已完成）",
         "PR6：commit / push / GitHub PR #9（已完成）",
-        "PR7：ci.yml + deploy-staging.yml（repo-side commit gate 已完成，等待授權 commit / push / stacked PR）",
+        "PR7：ci.yml + deploy-staging.yml（commit / push / stacked PR #10 已完成，等待 GitHub Actions 與 review）",
         "PR8：deploy-prod.yml + main 分支保護"
       ],
       "status": "resolved"
@@ -3018,14 +3029,14 @@
   ],
   "next_actions": [
     "PR6：等待 GitHub PR #9 reviewer / branch protection 流程；若有 review comments，依 findings 修正並重新驗證",
-    "PR7：等待使用者授權 commit / push / stacked PR",
+    "PR7：監看 GitHub PR #10 Actions 與 review comments",
     "PR7：PR6 merge 後 rebase 或改 PR base 回 main，再用 staging branch 真正觸發 deploy-staging workflow",
     "PR8：deploy-prod.yml + main 分支保護",
     "PR9：業務 cutover（換網址 + IAP 登入引導 + 舊 GitHub Pages 退場）"
   ],
   "not_covered": [
-    "PR7 GitHub Actions 尚未在 GitHub runner 實際執行；目前已完成本機 YAML/actionlint 與 migration path 驗證，仍需 push/PR 後看 Actions 結果。",
-    "PR7 本輪 Docker build 卡在 Docker Hub metadata 並被中止；PR7 未改 Dockerfile，PR6 final review 曾驗過同一 Dockerfile，仍需 GitHub Actions package job 補實際 Docker build 證據。",
+    "PR7 GitHub Actions 尚未確認結果；PR #10 已建立，目前需看 GitHub-hosted runner 的 CI / package job。",
+    "PR7 本輪 Docker build 卡在 Docker Hub metadata 並被中止；PR7 未改 Dockerfile，PR6 final review 曾驗過同一 Dockerfile，仍需 PR #10 的 GitHub Actions package job 補實際 Docker build 證據。",
     "quote.artogo.co prod 登入後 Builder / save / History smoke 尚未跑；目前 prod 只驗到 IAP redirect 與 Cloud Run 靜態資源 200 log。",
     "MutationObserver guard fix 尚未部署到 Cloud Run；local tests/build 已通過，需 PR6 merge/deploy 後再驗正式 bundle console。",
     "本機 gcloud default project 仍是 excellent-tide-496207-r6，尚未切到 artogo-v2；後續所有 gcloud 指令需避免打錯 project",
