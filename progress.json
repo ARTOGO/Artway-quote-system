@@ -1,6 +1,6 @@
 {
   "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-24T20:32:00+08:00",
+  "updated_at": "2026-05-25T12:20:14+08:00",
   "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
   "success_criteria": [
     "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -13,9 +13,141 @@
   "current_focus": {
     "feature_id": "F11",
     "task_id": "F11-T1",
-    "summary": "PR6 Phase A 已 commit / push 並開 GitHub PR #9（head codex/pr6-infra-foundation → main）。下一階段可進 PR7 CI/CD + deploy-staging；PR6 等 reviewer / branch protection 流程。"
+    "summary": "PR7 stacked PR #10 review messages 已處理：兩個 Gemini run-goose-cloudsql.sh findings 已修並通過 syntax / URL rewrite / unique mktemp log / live goose staging smoke / Codex review。下一步是 commit / push，等待 GitHub Actions，並回覆 review threads。"
   },
   "conversation_changes": [
+    {
+      "at": "2026-05-25T12:20:14+08:00",
+      "source": "codex-review",
+      "change": "PR #10 Gemini fixes 的 commit 前 Codex review clean。",
+      "impact": "codex review --uncommitted 回報：未發現 migration script 與 progress artifacts 變更導入的 correctness / security / regression issues。"
+    },
+    {
+      "at": "2026-05-25T12:14:48+08:00",
+      "source": "implementation",
+      "change": "修正 PR #10 兩個 Gemini review findings。",
+      "impact": "run-goose-cloudsql.sh 的 Cloud SQL Proxy log 改用 mktemp 唯一檔名，且 database_url_for_socket_dir 一律把 host 覆蓋成 Cloud SQL Proxy unix socket path。驗證：bash -n + git diff --check 通過；mktemp 行為測試確認產生唯一檔；URL rewrite 測試確認原本 localhost URL 也會加 host=/cloudsql/artogo-v2:asia-east1:artogo-auth-db；live run-goose-cloudsql.sh 回 goose no migrations to run/current version 1。"
+    },
+    {
+      "at": "2026-05-25T12:13:20+08:00",
+      "source": "pr-review",
+      "change": "讀取 PR #10 review messages。",
+      "impact": "目前有 3 個 unresolved threads：Gemini 兩個 medium（cloud-sql-proxy log 應使用唯一 temp file；run-goose-cloudsql.sh 應一律把 database URL host 指向 proxy unix socket）會修。Codex P1 指稱 Vitest 不支援 --runInBand，但 PR #10 最新 Frontend CI 已以同一指令 pass，判定為 false positive，將以 GitHub runner 證據回覆。"
+    },
+    {
+      "at": "2026-05-25T11:44:36+08:00",
+      "source": "github-actions",
+      "change": "PR #10 GitHub Actions 全綠。",
+      "impact": "Frontend pass 37s、Backend pass 1m27s、Docker package pass 46s、GitGuardian pass 1s。先前本機 Docker build 卡 registry metadata 的缺口已由 GitHub-hosted runner package job 補上；PR7 repo-side CI/CD commit gate 與 PR runner evidence 都已完成。"
+    },
+    {
+      "at": "2026-05-25T11:41:28+08:00",
+      "source": "codex-review",
+      "change": "PR7 CI trigger fix review clean。",
+      "impact": "ci.yml 改為所有 pull_request 都跑 CI、push 仍限 main/staging；go run actionlint 通過、git diff --check 通過、codex review --uncommitted 回報 No prioritized correctness issues。下一步是推上 PR #10 並觀察 GitHub-hosted runner 是否開始跑 CI。"
+    },
+    {
+      "at": "2026-05-25T11:38:14+08:00",
+      "source": "codex",
+      "change": "PR #10 建立後發現新增 CI 沒有在 stacked PR 上觸發。",
+      "impact": "gh pr checks 10 只有 GitGuardian，沒有我們的 CI；原因是 ci.yml 原本限制 pull_request base 只能 main/staging，而 PR #10 的 base 是 codex/pr6-infra-foundation。已將 pull_request trigger 改為所有 PR 都跑，push 仍只限 main/staging，讓 stacked PR 也能取得 GitHub runner 證據。"
+    },
+    {
+      "at": "2026-05-25T11:36:36+08:00",
+      "source": "codex",
+      "change": "使用者授權後，PR7 已 commit / push 並建立 stacked PR #10。",
+      "impact": "commit 86a9bbc ci: add staging deployment workflow 已推到 origin/codex/pr7-ci-staging；GitHub PR https://github.com/ARTOGO/Artway-quote-system/pull/10 已建立，base 為 codex/pr6-infra-foundation。PR6 #9 仍 open，因此 PR #10 目前維持 stacked；#9 merge 後需 rebase 或 retarget 回 main，再由 staging branch 驗證真正 deploy-staging workflow。"
+    },
+    {
+      "at": "2026-05-25T00:24:30+08:00",
+      "source": "codex-review",
+      "change": "PR7 final Codex review clean。",
+      "impact": "codex review --uncommitted 回報 No prioritized correctness issues。review 過程重跑 actionlint、frontend 277 tests、backend go test、git diff --check、go install cloud-sql-proxy、phase-a-verify.sh --check-http，並檢查 setup dry-run 順序；PR7 repo-side commit gate 已過，可請使用者授權 commit / push / stacked PR。"
+    },
+    {
+      "at": "2026-05-24T23:59:57+08:00",
+      "source": "codex",
+      "change": "修正 PR7 final Codex review 第三輪 P2：decommission legacy runtime DB access。",
+      "impact": "phase-a-setup.sh 會移除 quote-app-runner 的 roles/cloudsql.client 與 quote-app-staging-database-url / quote-app-prod-database-url secretAccessor；phase-a-verify.sh 會 assert absent。已在 artogo-v2 實際撤掉三個 IAM binding；phase-a-verify.sh --check-http 全綠，確認 quote-app-runner 不能讀 staging/prod DB URL secrets，也沒有 project roles/cloudsql.client。"
+    },
+    {
+      "at": "2026-05-24T23:56:35+08:00",
+      "source": "codex-review",
+      "change": "PR7 final Codex review 第三輪回報 1 個 P2：需撤掉舊共用 runtime 的 DB URL secret access。",
+      "impact": "升級到 split runtime 後 Cloud Run 已改用 quote-app-staging-runner / quote-app-prod-runner，但舊 quote-app-runner 可能仍保留先前腳本授予的 staging/prod database-url secretAccessor，形成退場 identity 仍可讀兩環境 DB credentials 的風險。需在 setup 撤權、verify assert absent，並實際套用到 artogo-v2。"
+    },
+    {
+      "at": "2026-05-24T23:51:20+08:00",
+      "source": "codex",
+      "change": "修正 PR7 final Codex review 第二輪 P2：拒絕 legacy deployer override。",
+      "impact": "phase-a-setup.sh 與 phase-a-verify.sh 現在會要求 DEPLOYER_SA 與 EXPECTED_DEPLOYER_SA=quote-app-staging-deployer 一致；若本機 env 還留 DEPLOYER_SA=github-actions-deployer，兩個腳本都會 exit 1 並提示移除 stale override。負向測試已確認 setup/verify 皆拒絕舊值；正常 dry-run 與 phase-a-verify.sh --check-http 仍通過。"
+    },
+    {
+      "at": "2026-05-24T23:46:37+08:00",
+      "source": "codex-review",
+      "change": "PR7 final Codex review 第二輪回報 1 個 P2：phase-a-setup/verify 需拒絕 legacy deployer override。",
+      "impact": "若既有 infra/phase-a.env 還保留 DEPLOYER_SA=github-actions-deployer，setup/verify 會對舊帳號通過，但 .github/workflows/deploy-staging.yml 實際 impersonate quote-app-staging-deployer，導致 staging deploy workflow Google auth 失敗。需在 setup/verify 對 DEPLOYER_SA 與 workflow 固定 deployer 做一致性防護。"
+    },
+    {
+      "at": "2026-05-24T23:36:29+08:00",
+      "source": "codex-review",
+      "change": "PR7 final Codex review 回報 1 個 P2：verify 需阻擋 project-level inherited IAM。",
+      "impact": "若 staging deployer 擁有 project roles/run.developer 或 roles/iam.serviceAccountUser，即使 service-level prod 權限 absent，仍可能部署 prod 或 actAs prod runner。已補 phase-a-setup.sh cleanup 與 phase-a-verify.sh absent checks，並實際移除 artogo-v2 上 staging deployer 的 project-level run.admin/run.developer/iam.serviceAccountUser。"
+    },
+    {
+      "at": "2026-05-24T23:26:19+08:00",
+      "source": "codex",
+      "change": "完成 PR7 第四輪 P1 security boundary 回修：拆 staging/prod runtime service account。",
+      "impact": "workflow 改用 quote-app-staging-runner；phase-a-setup/verify 會建立 quote-app-staging-runner / quote-app-prod-runner、只授權 staging deployer actAs staging runner、撤掉 prod/legacy runner actAs 與 prod DB URL secret access。已套用到 artogo-v2，phase-a-verify.sh --check-http 全綠，frontend/backend gates 與 run-goose-cloudsql.sh 也通過；剩 final Codex review。"
+    },
+    {
+      "at": "2026-05-24T23:15:24+08:00",
+      "source": "codex-review",
+      "change": "PR7 Codex review 回報 1 個 P1 security boundary finding。",
+      "impact": "staging deployer 雖不能直接讀 quote-app-prod-database-url，但目前可 actAs 共用 quote-app-runner，而該 runtime SA 具有 staging/prod DB URL secretAccessor；若 workflow 改指 prod DB secret，仍可能讓 staging service 用 prod credentials。需拆 quote-app-staging-runner / quote-app-prod-runner，讓 staging deployer 只能 actAs staging runner，且 staging runner 只能讀 staging DB URL。"
+    },
+    {
+      "at": "2026-05-24T23:04:34+08:00",
+      "source": "codex",
+      "change": "PR7 第三輪 findings 回修後完成主要驗證。",
+      "impact": "Phase A verify --check-http 通過，且新增檢查確認 staging deployer 只有 workflow_ref WIF binding、無 repository-wide binding；backend golangci-lint 0 issues、go vet/test 通過；frontend typecheck/lint/277 tests/build 通過；run-goose-cloudsql.sh 連 quotes_staging 回 no migrations to run/current version 1；actionlint、bash -n、git diff --check 通過。Docker build 仍卡在 Docker Hub metadata，需 GitHub Actions package job 補證據。"
+    },
+    {
+      "at": "2026-05-24T22:59:29+08:00",
+      "source": "codex",
+      "change": "PR7 backend golangci-lint gate 首跑揭出既有 lint 問題。",
+      "impact": "新增 gate 會擋住目前 backend：health handler tests 有 2 個 res.Body.Close() 未檢查錯誤；db.Pool.PingWithTimeout 有 1 個 staticcheck QF1008。需修掉後重跑 golangci-lint / go vet / go test。"
+    },
+    {
+      "at": "2026-05-24T22:54:47+08:00",
+      "source": "codex",
+      "change": "PR7 WIF 限縮策略修正。",
+      "impact": "實測 GCP service-account IAM condition 不接受 attribute.ref / attribute.workflow_ref，回 `undeclared reference to 'attribute'`；改為在 WIF provider attributeMapping 保留 attribute.workflow_ref，並把 WorkloadIdentityUser member 改成精確的 attribute.workflow_ref principalSet：ARTOGO/Artway-quote-system/.github/workflows/deploy-staging.yml@refs/heads/staging。verify 也要檢查 broad repository principal 不存在。"
+    },
+    {
+      "at": "2026-05-24T22:19:34+08:00",
+      "source": "codex",
+      "change": "完成 PR7 Codex review findings 回修與第一輪複驗。",
+      "impact": "ci.yml 與 deploy-staging.yml 改用 pnpm/action-setup@v4 在 setup-node cache 前安裝 pnpm@10.33.0；phase-a-setup.sh 補 grant deployer Artifact Registry writer、Cloud Run admin、Cloud SQL client、Service Usage consumer、runtime SA iam.serviceAccountUser，以及 staging/prod DB URL secretAccessor；phase-a-verify.sh 補相同檢查。已實際補齊 artogo-v2 目前缺的 runtime actAs 與 DB URL secretAccessor，phase-a-verify.sh --check-http 通過。"
+    },
+    {
+      "at": "2026-05-24T22:15:27+08:00",
+      "source": "codex-review",
+      "change": "PR7 Codex review 回報 2 個 deploy/CI correctness findings。",
+      "impact": "P1：ci.yml 與 deploy-staging.yml 需在 actions/setup-node cache: pnpm 前安裝 pnpm，否則 GitHub-hosted runner 會在 Setup Node 失敗。P2：phase-a-setup/verify 需完整 grant/check github-actions-deployer 推 Artifact Registry、部署 Cloud Run、actAs runtime service account、讀 Secret Manager、連 Cloud SQL 與 quota project 所需權限。"
+    },
+    {
+      "at": "2026-05-24T22:08:00+08:00",
+      "source": "codex",
+      "change": "完成 PR7 CI/CD + deploy-staging repo-side 實作與驗證。",
+      "impact": "新增 ci.yml、deploy-staging.yml 與 run-goose-cloudsql.sh；補 deployer roles/cloudsql.client 與 roles/serviceusage.serviceUsageConsumer，並在 phase-a-setup/verify 記錄與檢查。驗證：YAML parse、actionlint、bash -n、go vet/test、frontend typecheck/lint/277 tests/build、phase-a-setup dry-run、run-goose-cloudsql.sh 對 quotes_staging 回 no migrations to run、phase-a-verify.sh --check-http 全綠。Docker build 本輪卡在 Docker Hub metadata 並被中止；PR7 未改 Dockerfile，PR6 final review 已驗過同一 Dockerfile。"
+    },
+    {
+      "at": "2026-05-24T21:50:30+08:00",
+      "source": "codex",
+      "change": "使用者要求繼續；進入 PR7 CI/CD + deploy-staging。",
+      "impact": "從 PR6 head 切出 stacked branch codex/pr7-ci-staging，避免直接修改已開的 PR #9。PR7 scope：新增 CI workflow、staging deploy workflow、goose migration 自動化與 post-deploy smoke；PR6 merge 後可 rebase 或改 base 回 main。"
+    },
     {
       "at": "2026-05-24T20:32:00+08:00",
       "source": "codex",
@@ -357,6 +489,34 @@
       "source": "assistant",
       "change": "修正第三輪 Codex review 的 Phase A script P2。",
       "impact": "phase-a-setup.sh 新增 apply preflight，--apply 在缺 psql 或 DB admin password 時會停在 service agents/SQL/database/secret 等寫入之前；phase-a-verify.sh 的 Cloud Run 檢查升級為 service URL + run.googleapis.com/ingress=internal-and-cloud-load-balancing。"
+    },
+    {
+      "at": "2026-05-24T22:30:49+08:00",
+      "source": "codex-review",
+      "summary": "第二輪 Codex review 發現 P1：PR7 staging workflow 使用 repo-scoped WIF 的 deployer，但該 deployer 具 production-capable IAM 與 prod DB URL secret access，會繞過 prod release boundary。",
+      "impact": "需改成 staging-scoped deployer：workflow 使用 staging 專用 service account，只保留 staging deploy、staging DB migration、Artifact Registry push 與 staging DB URL secret access；同時移除通用 github-actions-deployer 的 prod-capable WIF/IAM 殘留。"
+    },
+    {
+      "at": "2026-05-24T22:37:35+08:00",
+      "source": "implementation",
+      "summary": "修正 PR7 deploy-staging 的 production boundary：workflow 改用 quote-app-staging-deployer；phase-a-setup/verify 改為 staging-scoped deployer 權限與反向檢查；GCP 實際建立 staging deployer 並移除舊 github-actions-deployer 的本 repo WIF、runtime actAs、staging/prod DB URL secret access。",
+      "impact": "staging workflow 只具 staging deploy / staging migration 所需權限，不可部署 quote-app-prod 或讀 quote-app-prod-database-url；Phase A verify --check-http 已通過。"
+    },
+    {
+      "at": "2026-05-24T22:49:46+08:00",
+      "source": "codex-review",
+      "summary": "第三輪 Codex review 發現 P1：staging deployer WIF binding 仍是 repository-wide；P2：CI/backend release gate 缺 CLAUDE.md 要求的 golangci-lint run。",
+      "impact": "需補 WIF provider attribute mapping（ref/workflow_ref）並以 workflow_ref principalSet 限縮 deploy-staging.yml@refs/heads/staging；ci.yml / deploy-staging.yml 也需加 golangci-lint。"
+    },
+    {
+      "at": "2026-05-25T00:08:27+08:00",
+      "change": "PR7 final Codex review 第四輪新增 P1。",
+      "impact": "phase-a-setup.sh 目前在 Cloud Run 仍可能使用 quote-app-runner 時先撤 legacy runtime 的 roles/cloudsql.client 與 DB URL secretAccessor；若後續 build/deploy 失敗會造成 outage window。需把 legacy runtime DB cleanup 移到 Cloud Run deploy 成功後，並重跑 script/dry-run/live verify/review。"
+    },
+    {
+      "at": "2026-05-25T00:11:07+08:00",
+      "change": "修正 PR7 final review 第四輪 P1。",
+      "impact": "phase-a-setup.sh 現在保留 quote-app-runner 的 DB/Cloud SQL 權限直到兩個 Cloud Run service deploy 成功後，才執行 legacy runtime database access cleanup；避免 build/push/deploy 失敗時先切斷既有服務 DB access。dry-run 顯示 cleanup 位於 deploy loop 後，live phase-a-verify.sh --check-http 全綠。"
     }
   ],
   "goal_groups": [
@@ -1752,7 +1912,7 @@
     {
       "id": "F11",
       "title": "CI/CD prod + 業務 cutover",
-      "summary": "GitHub Actions deploy-staging + deploy-prod workflow；main 分支保護；舊 GitHub Pages 退場。",
+      "summary": "PR7 CI + deploy-staging workflow 已推上 stacked PR #10；final Codex review clean。等待 GitHub Actions / PR review，PR6 #9 merge 後需 rebase 或 retarget 回 main。PR8 deploy-prod 與 PR9 cutover 尚未開始。",
       "weight": 2,
       "goal_contributions": [
         {
@@ -1761,14 +1921,197 @@
           "completion_signal": "push staging branch → 自動上 staging；merge main → 自動上 prod；舊 URL 顯示退場公告"
         }
       ],
-      "status": "todo",
+      "status": "in_progress",
       "tasks": [
         {
           "id": "F11-T1",
           "title": "WIF + GitHub Actions deploy-staging.yml",
-          "status": "todo",
+          "status": "verified",
           "workstream": "Infra",
-          "priority": "P1"
+          "priority": "P1",
+          "progress_percent": 100,
+          "files": [
+            ".github/workflows/ci.yml",
+            ".github/workflows/deploy-staging.yml",
+            "infra/scripts/run-goose-cloudsql.sh",
+            "infra/scripts/phase-a-setup.sh",
+            "infra/scripts/phase-a-verify.sh",
+            "infra/PHASE_A.md",
+            "infra/README.md",
+            "infra/phase-a.env.example"
+          ],
+          "evidence": [
+            {
+              "type": "workflow-lint",
+              "ref": "ruby YAML parse + actionlint",
+              "result": "ci.yml / deploy-staging.yml 皆通過 YAML parse 與 actionlint。"
+            },
+            {
+              "type": "script-check",
+              "ref": "bash -n",
+              "result": "phase-a-setup.sh、phase-a-verify.sh、run-goose-cloudsql.sh syntax 通過。"
+            },
+            {
+              "type": "gcp-iam",
+              "ref": "gcloud projects add-iam-policy-binding + phase-a-verify.sh --check-http",
+              "result": "github-actions-deployer 已具 roles/cloudsql.client 與 roles/serviceusage.serviceUsageConsumer；Phase A verify 全綠。"
+            },
+            {
+              "type": "migration-smoke",
+              "ref": "run-goose-cloudsql.sh",
+              "result": "透過 Cloud SQL Proxy 連 quotes_staging，goose 回 no migrations to run / current version 1。"
+            },
+            {
+              "type": "gate",
+              "ref": "frontend/backend gates",
+              "result": "frontend typecheck/lint/277 tests/build 全綠；backend go vet/go test 全綠。"
+            },
+            {
+              "type": "not-covered",
+              "ref": "Docker build",
+              "result": "本輪 Docker build 卡在 registry metadata 並中止；PR7 未改 Dockerfile，PR6 final review 曾驗過同一 Dockerfile。"
+            },
+            {
+              "type": "codex-review",
+              "ref": "codex review --uncommitted",
+              "result": "回報 P1 pnpm/setup-node cache ordering 與 P2 deployer IAM role set 不完整；本任務退回回修中。"
+            },
+            {
+              "type": "fix",
+              "ref": "Codex review findings P1/P2",
+              "result": "P1 以 pnpm/action-setup@v4 修正 pnpm cache setup order；P2 以 phase-a-setup/verify 完整 grant/check deployer deploy-staging 所需 IAM 與 secret access。"
+            },
+            {
+              "type": "fix",
+              "ref": "WIF attribute.workflow_ref principalSet",
+              "result": "GCP 不接受 service-account IAM condition 內使用 attribute.*；改用 attribute.workflow_ref principalSet 精準綁定 deploy-staging.yml@refs/heads/staging，並要求 broad repository principal absent。"
+            },
+            {
+              "type": "gcp-verify",
+              "ref": "infra/scripts/phase-a-verify.sh --check-http",
+              "result": "Phase A verify 全綠；staging deployer 只有 workflow_ref deploy-staging.yml@refs/heads/staging WIF binding，無 repository-wide binding；legacy github-actions-deployer 無 repository-wide / workflow_ref WIF binding。"
+            },
+            {
+              "type": "gate",
+              "ref": "golangci-lint run / go vet ./... / go test ./...",
+              "result": "golangci-lint 0 issues；backend go vet 通過；backend go test 全 package 通過。"
+            },
+            {
+              "type": "gate",
+              "ref": "frontend typecheck / lint / test / build",
+              "result": "pnpm run typecheck 通過；pnpm run lint 通過；Vitest 26 files / 277 tests passed；Vite production build 通過。"
+            },
+            {
+              "type": "tooling-smoke",
+              "ref": "go install goose / cloud-sql-proxy + run-goose-cloudsql.sh",
+              "result": "goose v3.27.0 與 cloud-sql-proxy 2.18.3 可用 go install 安裝；run-goose-cloudsql.sh 透過 Cloud SQL Proxy 連 quotes_staging，回 no migrations to run/current version 1。"
+            },
+            {
+              "type": "codex-review",
+              "ref": "codex review --uncommitted",
+              "result": "回報 P1：staging deployer 可 actAs 共用 quote-app-runner，而該 runner 能讀 prod DB URL secret；需要拆 staging/prod runtime service account。"
+            },
+            {
+              "type": "fix",
+              "ref": "Codex review P1 runtime service account split",
+              "result": "deploy-staging.yml 改用 quote-app-staging-runner；phase-a-setup/verify 拆 quote-app-staging-runner / quote-app-prod-runner，staging deployer 只能 actAs staging runner，staging runner 只能讀 staging DB URL。"
+            },
+            {
+              "type": "gcp-verify",
+              "ref": "infra/scripts/phase-a-verify.sh --check-http after runtime split",
+              "result": "Phase A verify 全綠；quote-app-staging 使用 quote-app-staging-runner、quote-app-prod 使用 quote-app-prod-runner；staging deployer 無 prod/legacy runner actAs、無 prod DB URL secretAccessor；staging/prod 網域與 /readyz 皆回 IAP challenge。"
+            },
+            {
+              "type": "gate",
+              "ref": "final local gate after runtime split",
+              "result": "bash -n、actionlint、git diff --check 通過；frontend typecheck/lint/277 tests/build 通過；backend golangci-lint 0 issues、go vet、go test 通過。"
+            },
+            {
+              "type": "migration-smoke",
+              "ref": "PATH=\"$(go env GOPATH)/bin:$PATH\" infra/scripts/run-goose-cloudsql.sh",
+              "result": "透過 Cloud SQL Proxy 連 quotes_staging，goose 回 no migrations to run / current version 1。"
+            },
+            {
+              "type": "codex-review",
+              "ref": "codex review --uncommitted final review P2",
+              "result": "回報 P2：phase-a-verify 需擋 project-level roles/run.developer 與 roles/iam.serviceAccountUser，避免 inherited IAM 讓 staging deployer 仍可碰 prod。"
+            },
+            {
+              "type": "fix",
+              "ref": "project-level inherited IAM cleanup",
+              "result": "phase-a-setup.sh 會移除 staging deployer 的 project roles/run.admin、roles/run.developer、roles/iam.serviceAccountUser；phase-a-verify.sh 會 assert absent。"
+            },
+            {
+              "type": "gcp-verify",
+              "ref": "phase-a-verify.sh --check-http after inherited IAM fix",
+              "result": "Phase A verify 全綠；staging deployer project roles/run.admin / run.developer / iam.serviceAccountUser 皆 absent，service-level quote-app-staging run.developer 保留，quote-app-prod run.developer absent。"
+            },
+            {
+              "type": "fix",
+              "ref": "Codex review P2 legacy deployer override",
+              "result": "phase-a-setup.sh 與 phase-a-verify.sh 會拒絕 DEPLOYER_SA 不等於 EXPECTED_DEPLOYER_SA=quote-app-staging-deployer，避免本機舊 infra/phase-a.env 讓 setup/verify 檢查 github-actions-deployer 但 workflow 使用 quote-app-staging-deployer。"
+            },
+            {
+              "type": "script-check",
+              "ref": "legacy DEPLOYER_SA negative tests",
+              "result": "以暫存 ENV_FILE 設 DEPLOYER_SA=github-actions-deployer 時，phase-a-setup.sh 與 phase-a-verify.sh --allow-missing 皆 exit 1 並提示移除 stale override。"
+            },
+            {
+              "type": "gcp-verify",
+              "ref": "phase-a-setup.sh dry-run + phase-a-verify.sh --check-http after legacy override guard",
+              "result": "正常設定下 setup dry-run 仍列出 quote-app-staging-deployer 權限與 WIF 操作；Phase A live verify 全綠，IAP/DNS/cert/Cloud Run/runtime/WIF/secret boundary 皆通過。"
+            },
+            {
+              "type": "codex-review",
+              "ref": "codex review --uncommitted final review third pass P2",
+              "result": "回報 P2：split runtime 後舊 quote-app-runner 仍可能保留 staging/prod database-url secretAccessor 與 Cloud SQL client；需 decommission legacy runtime DB access。"
+            },
+            {
+              "type": "fix",
+              "ref": "legacy runtime database access cleanup",
+              "result": "phase-a-setup.sh 會移除 quote-app-runner 的 roles/cloudsql.client 與兩個 DB URL secretAccessor；phase-a-verify.sh 會 assert absent。revoke_project_role 同步補 --condition=None，避免 project IAM policy 有 condition 時 cleanup 被 gcloud 拒絕。"
+            },
+            {
+              "type": "gcp-verify",
+              "ref": "phase-a-verify.sh --check-http after legacy runtime cleanup",
+              "result": "Phase A verify 全綠；quote-app-runner 沒有 project roles/cloudsql.client，也無 quote-app-staging-database-url / quote-app-prod-database-url secretAccessor。"
+            },
+            {
+              "type": "codex-review",
+              "ref": "codex review --uncommitted final review fourth pass P1",
+              "result": "回報 P1：phase-a-setup.sh 在 Cloud Run 還沒切到 split runtime 前先撤 quote-app-runner DB/Cloud SQL 權限；若後續 build/deploy 失敗會造成既有服務中斷。"
+            },
+            {
+              "type": "fix",
+              "ref": "legacy runtime DB cleanup reorder",
+              "result": "phase-a-setup.sh 將 quote-app-runner 的 roles/cloudsql.client 與 staging/prod DB URL secretAccessor 回收移到兩個 gcloud run deploy 成功後，避免 deploy 失敗時造成既有服務 outage window。"
+            },
+            {
+              "type": "dry-run",
+              "ref": "infra/scripts/phase-a-setup.sh",
+              "result": "dry-run 顯示 build/push 後先 deploy quote-app-staging 與 quote-app-prod，再進入 legacy runtime database access cleanup；cleanup 順序已在部署後。"
+            },
+            {
+              "type": "gcp-verify",
+              "ref": "infra/scripts/phase-a-verify.sh --check-http after cleanup reorder",
+              "result": "Phase A verification passed；split runtime、deployer IAM、legacy quote-app-runner absent Cloud SQL/secret access、cert/DNS/IAP HTTP smoke 皆通過。"
+            },
+            {
+              "type": "codex-review",
+              "ref": "codex review --uncommitted final pass",
+              "result": "No prioritized correctness issues；review 過程重跑 actionlint、frontend 277 tests、backend go test、git diff --check、cloud-sql-proxy install smoke、phase-a-verify.sh --check-http 與 setup dry-run 順序檢查。"
+            },
+            {
+              "type": "pull-request",
+              "ref": "https://github.com/ARTOGO/Artway-quote-system/pull/10",
+              "result": "PR7 stacked PR 已建立，base 為 codex/pr6-infra-foundation；PR6 #9 merge 後需 rebase 或 retarget 回 main。"
+            },
+            {
+              "type": "github-actions",
+              "ref": "PR #10 checks",
+              "result": "Frontend pass 37s；Backend pass 1m27s；Docker package pass 46s；GitGuardian pass 1s。"
+            }
+          ]
         },
         {
           "id": "F11-T2",
@@ -2701,7 +3044,7 @@
         "PR6：測試資料 AW-260523-001 軟刪除清理（已完成）",
         "PR6：commit 前 Codex review clean（已完成）",
         "PR6：commit / push / GitHub PR #9（已完成）",
-        "PR7：ci.yml + deploy-staging.yml",
+        "PR7：ci.yml + deploy-staging.yml（commit / push / stacked PR #10 已完成，等待 GitHub Actions 與 review）",
         "PR8：deploy-prod.yml + main 分支保護"
       ],
       "status": "resolved"
@@ -2727,12 +3070,13 @@
   ],
   "next_actions": [
     "PR6：等待 GitHub PR #9 reviewer / branch protection 流程；若有 review comments，依 findings 修正並重新驗證",
-    "PR7：開始 ci.yml + deploy-staging.yml，包含 WIF build/push、Cloud Run staging deploy、goose migration 自動化與 post-deploy smoke",
-    "PR7：ci.yml + deploy-staging.yml，包含 goose migration 自動化",
+    "PR7：等待 GitHub PR #10 review comments",
+    "PR7：PR6 merge 後 rebase 或改 PR base 回 main，再用 staging branch 真正觸發 deploy-staging workflow",
     "PR8：deploy-prod.yml + main 分支保護",
     "PR9：業務 cutover（換網址 + IAP 登入引導 + 舊 GitHub Pages 退場）"
   ],
   "not_covered": [
+    "PR7 deploy-staging workflow 尚未真正部署 staging；PR #10 目前只驗到 CI / Docker package，實際 deploy 需 PR6/PR7 merge 後由 staging branch push 觸發。",
     "quote.artogo.co prod 登入後 Builder / save / History smoke 尚未跑；目前 prod 只驗到 IAP redirect 與 Cloud Run 靜態資源 200 log。",
     "MutationObserver guard fix 尚未部署到 Cloud Run；local tests/build 已通過，需 PR6 merge/deploy 後再驗正式 bundle console。",
     "本機 gcloud default project 仍是 excellent-tide-496207-r6，尚未切到 artogo-v2；後續所有 gcloud 指令需避免打錯 project",

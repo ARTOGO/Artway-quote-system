@@ -65,5 +65,5 @@ func New(ctx context.Context, databaseURL string) (*Pool, error) {
 func (p *Pool) PingWithTimeout(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, pingTimeout)
 	defer cancel()
-	return p.Pool.Ping(ctx)
+	return p.Ping(ctx)
 }

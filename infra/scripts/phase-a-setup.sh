@@ -38,10 +38,16 @@ DB_ADMIN_USER="${DB_ADMIN_USER:-postgres}"
 DB_ADMIN_PASSWORD_SECRET="${DB_ADMIN_PASSWORD_SECRET:-}"
 
 RUN_SA="${RUN_SA:-quote-app-runner}"
-DEPLOYER_SA="${DEPLOYER_SA:-github-actions-deployer}"
+RUN_SA_STAGING="${RUN_SA_STAGING:-quote-app-staging-runner}"
+RUN_SA_PROD="${RUN_SA_PROD:-quote-app-prod-runner}"
+EXPECTED_DEPLOYER_SA="${EXPECTED_DEPLOYER_SA:-quote-app-staging-deployer}"
+DEPLOYER_SA="${DEPLOYER_SA:-${EXPECTED_DEPLOYER_SA}}"
+LEGACY_DEPLOYER_SA="${LEGACY_DEPLOYER_SA:-github-actions-deployer}"
 WIF_POOL="${WIF_POOL:-github-actions}"
 WIF_PROVIDER="${WIF_PROVIDER:-github}"
 GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-ARTOGO/Artway-quote-system}"
+WIF_DEPLOY_REF="${WIF_DEPLOY_REF:-refs/heads/staging}"
+WIF_DEPLOY_WORKFLOW_REF="${WIF_DEPLOY_WORKFLOW_REF:-${GITHUB_REPOSITORY}/.github/workflows/deploy-staging.yml@${WIF_DEPLOY_REF}}"
 
 URL_MAP="${URL_MAP:-https}"
 HTTPS_TARGET_PROXY="${HTTPS_TARGET_PROXY:-https-target-proxy-2}"
@@ -54,7 +60,18 @@ SERVICE_PROD="${SERVICE_PROD:-quote-app-prod}"
 
 IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}"
 RUN_SA_EMAIL="${RUN_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
+RUN_SA_STAGING_EMAIL="${RUN_SA_STAGING}@${PROJECT_ID}.iam.gserviceaccount.com"
+RUN_SA_PROD_EMAIL="${RUN_SA_PROD}@${PROJECT_ID}.iam.gserviceaccount.com"
 DEPLOYER_SA_EMAIL="${DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
+LEGACY_DEPLOYER_SA_EMAIL="${LEGACY_DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
+
+if [[ "${DEPLOYER_SA}" != "${EXPECTED_DEPLOYER_SA}" ]]; then
+  cat >&2 <<EOF
+DEPLOYER_SA=${DEPLOYER_SA} does not match the staging workflow deployer (${EXPECTED_DEPLOYER_SA}).
+Remove the stale DEPLOYER_SA override from ${ENV_FILE}, or update EXPECTED_DEPLOYER_SA and .github/workflows/deploy-staging.yml together.
+EOF
+  exit 1
+fi
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -164,11 +181,85 @@ create_or_update_secret() {
 
 grant_secret_accessor() {
   local secret_name="$1"
+  local member_email="$2"
   run gcloud secrets add-iam-policy-binding "${secret_name}" \
     --project="${PROJECT_ID}" \
-    --member="serviceAccount:${RUN_SA_EMAIL}" \
+    --member="serviceAccount:${member_email}" \
     --role=roles/secretmanager.secretAccessor \
     --condition=None
+}
+
+revoke_secret_accessor() {
+  local secret_name="$1"
+  local member_email="$2"
+  run gcloud secrets remove-iam-policy-binding "${secret_name}" \
+    --project="${PROJECT_ID}" \
+    --member="serviceAccount:${member_email}" \
+    --role=roles/secretmanager.secretAccessor || true
+}
+
+grant_artifact_repository_role() {
+  local member_email="$1"
+  local role="$2"
+  run gcloud artifacts repositories add-iam-policy-binding "${AR_REPOSITORY}" \
+    --project="${PROJECT_ID}" \
+    --location="${REGION}" \
+    --member="serviceAccount:${member_email}" \
+    --role="${role}" \
+    --condition=None
+}
+
+grant_cloud_run_service_role() {
+  local service="$1"
+  local member_email="$2"
+  local role="$3"
+  run gcloud run services add-iam-policy-binding "${service}" \
+    --project="${PROJECT_ID}" \
+    --region="${REGION}" \
+    --member="serviceAccount:${member_email}" \
+    --role="${role}" \
+    --condition=None
+}
+
+grant_project_role() {
+  local member_email="$1"
+  local role="$2"
+  run gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+    --member="serviceAccount:${member_email}" \
+    --role="${role}" \
+    --condition=None
+}
+
+revoke_project_role() {
+  local member_email="$1"
+  local role="$2"
+  run gcloud projects remove-iam-policy-binding "${PROJECT_ID}" \
+    --member="serviceAccount:${member_email}" \
+    --role="${role}" \
+    --condition=None || true
+}
+
+ensure_github_provider_attribute_mapping() {
+  run gcloud iam workload-identity-pools providers update-oidc "${WIF_PROVIDER}" \
+    --project="${PROJECT_ID}" \
+    --location=global \
+    --workload-identity-pool="${WIF_POOL}" \
+    --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository,attribute.ref=assertion.ref,attribute.workflow_ref=assertion.workflow_ref" \
+    --attribute-condition="assertion.repository_owner == 'ARTOGO'"
+}
+
+wif_repository_principal() {
+  printf "principalSet://iam.googleapis.com/projects/%s/locations/global/workloadIdentityPools/%s/attribute.repository/%s" \
+    "${project_number}" \
+    "${WIF_POOL}" \
+    "${GITHUB_REPOSITORY}"
+}
+
+wif_deploy_workflow_principal() {
+  printf "principalSet://iam.googleapis.com/projects/%s/locations/global/workloadIdentityPools/%s/attribute.workflow_ref/%s" \
+    "${project_number}" \
+    "${WIF_POOL}" \
+    "${WIF_DEPLOY_WORKFLOW_REF}"
 }
 
 sql_user_exists() {
@@ -490,11 +581,38 @@ run gcloud beta services identity create \
   --service=iap.googleapis.com || true
 
 section "service accounts"
-ensure_service_account "${RUN_SA}" "Quote App Cloud Run runtime"
-run gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-  --member="serviceAccount:${RUN_SA_EMAIL}" \
-  --role=roles/cloudsql.client \
+ensure_service_account "${RUN_SA_STAGING}" "Quote App Cloud Run staging runtime"
+ensure_service_account "${RUN_SA_PROD}" "Quote App Cloud Run prod runtime"
+ensure_service_account "${DEPLOYER_SA}" "Quote App GitHub Actions staging deployer"
+for runtime_sa_email in "${RUN_SA_STAGING_EMAIL}" "${RUN_SA_PROD_EMAIL}"; do
+  grant_project_role "${runtime_sa_email}" roles/cloudsql.client
+done
+for role in \
+  roles/cloudsql.client \
+  roles/serviceusage.serviceUsageConsumer; do
+  grant_project_role "${DEPLOYER_SA_EMAIL}" "${role}"
+done
+for role in \
+  roles/run.admin \
+  roles/run.developer \
+  roles/iam.serviceAccountUser; do
+  revoke_project_role "${DEPLOYER_SA_EMAIL}" "${role}"
+done
+run gcloud iam service-accounts add-iam-policy-binding "${RUN_SA_STAGING_EMAIL}" \
+  --project="${PROJECT_ID}" \
+  --member="serviceAccount:${DEPLOYER_SA_EMAIL}" \
+  --role=roles/iam.serviceAccountUser \
   --condition=None
+run gcloud iam service-accounts remove-iam-policy-binding "${RUN_SA_PROD_EMAIL}" \
+  --project="${PROJECT_ID}" \
+  --member="serviceAccount:${DEPLOYER_SA_EMAIL}" \
+  --role=roles/iam.serviceAccountUser || true
+if gcloud iam service-accounts describe "${RUN_SA_EMAIL}" --project="${PROJECT_ID}" >/dev/null 2>&1; then
+  run gcloud iam service-accounts remove-iam-policy-binding "${RUN_SA_EMAIL}" \
+    --project="${PROJECT_ID}" \
+    --member="serviceAccount:${DEPLOYER_SA_EMAIL}" \
+    --role=roles/iam.serviceAccountUser || true
+fi
 
 section "cloud sql databases and secrets"
 ensure_database "${DB_STAGING}"
@@ -507,8 +625,12 @@ ensure_database_privileges "${DB_STAGING}" "${DB_USER_STAGING}"
 ensure_database_privileges "${DB_PROD}" "${DB_USER_PROD}"
 create_or_update_secret "quote-app-staging-database-url" "$(database_url "${DB_USER_STAGING}" "${staging_password}" "${DB_STAGING}" "${instance_connection}")"
 create_or_update_secret "quote-app-prod-database-url" "$(database_url "${DB_USER_PROD}" "${prod_password}" "${DB_PROD}" "${instance_connection}")"
-grant_secret_accessor "quote-app-staging-database-url"
-grant_secret_accessor "quote-app-prod-database-url"
+grant_secret_accessor "quote-app-staging-database-url" "${RUN_SA_STAGING_EMAIL}"
+grant_secret_accessor "quote-app-prod-database-url" "${RUN_SA_PROD_EMAIL}"
+grant_secret_accessor "quote-app-staging-database-url" "${DEPLOYER_SA_EMAIL}"
+revoke_secret_accessor "quote-app-prod-database-url" "${RUN_SA_STAGING_EMAIL}"
+revoke_secret_accessor "quote-app-staging-database-url" "${RUN_SA_PROD_EMAIL}"
+revoke_secret_accessor "quote-app-prod-database-url" "${DEPLOYER_SA_EMAIL}"
 
 section "build and push image"
 run gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
@@ -524,10 +646,12 @@ for env_name in staging prod; do
   if [[ "${env_name}" == "staging" ]]; then
     service="${SERVICE_STAGING}"
     db_secret="quote-app-staging-database-url"
+    service_account="${RUN_SA_STAGING_EMAIL}"
     min_instances=0
   else
     service="${SERVICE_PROD}"
     db_secret="quote-app-prod-database-url"
+    service_account="${RUN_SA_PROD_EMAIL}"
     min_instances=1
   fi
 
@@ -535,7 +659,7 @@ for env_name in staging prod; do
     --project="${PROJECT_ID}" \
     --region="${REGION}" \
     --image="${IMAGE_URI}" \
-    --service-account="${RUN_SA_EMAIL}" \
+    --service-account="${service_account}" \
     --add-cloudsql-instances="${instance_connection}" \
     --ingress=internal-and-cloud-load-balancing \
     --no-allow-unauthenticated \
@@ -549,6 +673,19 @@ for env_name in staging prod; do
     --member="serviceAccount:${iap_sa}" \
     --role=roles/run.invoker
 done
+
+section "legacy runtime database access cleanup"
+if gcloud iam service-accounts describe "${RUN_SA_EMAIL}" --project="${PROJECT_ID}" >/dev/null 2>&1; then
+  revoke_project_role "${RUN_SA_EMAIL}" roles/cloudsql.client
+  revoke_secret_accessor "quote-app-staging-database-url" "${RUN_SA_EMAIL}"
+  revoke_secret_accessor "quote-app-prod-database-url" "${RUN_SA_EMAIL}"
+else
+  echo "legacy runtime service account absent: ${RUN_SA_EMAIL}"
+fi
+
+section "staging deployer access"
+grant_artifact_repository_role "${DEPLOYER_SA_EMAIL}" roles/artifactregistry.writer
+grant_cloud_run_service_role "${SERVICE_STAGING}" "${DEPLOYER_SA_EMAIL}" roles/run.developer
 
 section "load balancer backends"
 ensure_neg_and_backend "${SERVICE_STAGING}" "quote-app-staging-neg" "quote-app-staging-backend"
@@ -600,12 +737,52 @@ for backend in quote-app-staging-backend quote-app-prod-backend; do
     --role=roles/iap.httpsResourceAccessor
 done
 
-section "WIF binding for future GitHub Actions"
-principal="principalSet://iam.googleapis.com/projects/${project_number}/locations/global/workloadIdentityPools/${WIF_POOL}/attribute.repository/${GITHUB_REPOSITORY}"
+section "WIF binding for staging GitHub Actions"
+repository_principal="$(wif_repository_principal)"
+workflow_principal="$(wif_deploy_workflow_principal)"
+ensure_github_provider_attribute_mapping
+run gcloud iam service-accounts remove-iam-policy-binding "${DEPLOYER_SA_EMAIL}" \
+  --project="${PROJECT_ID}" \
+  --role=roles/iam.workloadIdentityUser \
+  --member="${repository_principal}" \
+  --condition=None || true
+run gcloud iam service-accounts remove-iam-policy-binding "${DEPLOYER_SA_EMAIL}" \
+  --project="${PROJECT_ID}" \
+  --role=roles/iam.workloadIdentityUser \
+  --member="${workflow_principal}" \
+  --condition=None || true
 run gcloud iam service-accounts add-iam-policy-binding "${DEPLOYER_SA_EMAIL}" \
   --project="${PROJECT_ID}" \
   --role=roles/iam.workloadIdentityUser \
-  --member="${principal}"
+  --member="${workflow_principal}" \
+  --condition=None
+
+if [[ "${LEGACY_DEPLOYER_SA}" != "${DEPLOYER_SA}" ]] && gcloud iam service-accounts describe "${LEGACY_DEPLOYER_SA_EMAIL}" --project="${PROJECT_ID}" >/dev/null 2>&1; then
+  section "legacy deployer cleanup"
+  for legacy_principal in "${repository_principal}" "${workflow_principal}"; do
+    run gcloud iam service-accounts remove-iam-policy-binding "${LEGACY_DEPLOYER_SA_EMAIL}" \
+      --project="${PROJECT_ID}" \
+      --role=roles/iam.workloadIdentityUser \
+      --member="${legacy_principal}" \
+      --condition=None || true
+  done
+  for runtime_sa_email in "${RUN_SA_STAGING_EMAIL}" "${RUN_SA_PROD_EMAIL}" "${RUN_SA_EMAIL}"; do
+    if gcloud iam service-accounts describe "${runtime_sa_email}" --project="${PROJECT_ID}" >/dev/null 2>&1; then
+      run gcloud iam service-accounts remove-iam-policy-binding "${runtime_sa_email}" \
+        --project="${PROJECT_ID}" \
+        --member="serviceAccount:${LEGACY_DEPLOYER_SA_EMAIL}" \
+        --role=roles/iam.serviceAccountUser || true
+    fi
+  done
+  run gcloud secrets remove-iam-policy-binding "quote-app-staging-database-url" \
+    --project="${PROJECT_ID}" \
+    --member="serviceAccount:${LEGACY_DEPLOYER_SA_EMAIL}" \
+    --role=roles/secretmanager.secretAccessor || true
+  run gcloud secrets remove-iam-policy-binding "quote-app-prod-database-url" \
+    --project="${PROJECT_ID}" \
+    --member="serviceAccount:${LEGACY_DEPLOYER_SA_EMAIL}" \
+    --role=roles/secretmanager.secretAccessor || true
+fi
 
 section "done"
 echo "Phase A setup script completed"

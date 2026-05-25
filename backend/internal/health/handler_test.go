@@ -18,7 +18,11 @@ func TestHealthz_Returns200WithOkStatus(t *testing.T) {
 	health.Healthz(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	t.Cleanup(func() {
+		if err := res.Body.Close(); err != nil {
+			t.Errorf("close response body: %v", err)
+		}
+	})
 
 	if res.StatusCode != http.StatusOK {
 		t.Fatalf("StatusCode = %d, want %d", res.StatusCode, http.StatusOK)
@@ -47,7 +51,11 @@ func TestReadyz_Returns200WithReadyStatus(t *testing.T) {
 	health.Readyz(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	t.Cleanup(func() {
+		if err := res.Body.Close(); err != nil {
+			t.Errorf("close response body: %v", err)
+		}
+	})
 
 	if res.StatusCode != http.StatusOK {
 		t.Fatalf("StatusCode = %d, want %d", res.StatusCode, http.StatusOK)

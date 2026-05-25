@@ -26,6 +26,9 @@ Phase A 的可執行入口：
 - `infra/scripts/phase-a-preflight.sh`：read-only 檢查既有 `artogo-v2` 資源。
 - `infra/scripts/phase-a-setup.sh`：必須帶 `--apply` 才會建立/更新 GCP 資源。
 - `infra/scripts/phase-a-verify.sh`：apply 後的 read-only 驗證，可用 `--allow-missing` 做部署前差距盤點。
+- `.github/workflows/ci.yml`：PR / main / staging 的 frontend + backend + Docker package gate。
+- `.github/workflows/deploy-staging.yml`：push `staging` 或手動 dispatch 時 build/push image、跑 goose migration、部署 `quote-app-staging`、跑 staging smoke。
+- `infra/scripts/run-goose-cloudsql.sh`：GitHub Actions 透過 Cloud SQL Proxy 執行 `goose up`。
 
 ### Phase B（1-3 週）：引用 `artogo-infra` module
 [ARTOGO/artogo-infra](https://github.com/ARTOGO/artogo-infra) 補完 `modules/internal-service` 之後，本資料夾重構成：
