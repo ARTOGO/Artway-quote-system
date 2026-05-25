@@ -1,6 +1,6 @@
 {
   "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-25T15:59:56+08:00",
+  "updated_at": "2026-05-25T16:27:16+08:00",
   "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
   "success_criteria": [
     "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -11,58 +11,88 @@
     "CI/CD 雙環境（staging / prod）自動部署、main 受分支保護"
   ],
   "current_focus": {
-    "feature_id": "F20",
-    "task_id": "F20-T4",
-    "summary": "GitHub PR #8 已 rebase 到最新 main 並處理 Gemini timezone review comment；backend gate 與 Codex review 已 clean，接著 force-with-lease 更新 PR 分支並等待 GitHub checks。"
+    "feature_id": "F11",
+    "task_id": "F11-T2",
+    "summary": "PR #11 已 rebase 到 PR #8 merge 後的最新 main；本機 gate 全綠，progress renderer 已改成 deterministic 無 trailing whitespace，接著重跑 Codex review、push 更新 PR 並等待 GitHub checks。"
   },
   "conversation_changes": [
     {
-      "at": "2026-05-25T15:59:56+08:00",
-      "source": "codex-review",
-      "change": "GitHub PR #8 timezone review fix 的 Codex review clean。",
-      "impact": "Codex review --base origin/main 未發現 correctness/security/regression issue，並確認 backend tests 與 go vet pass；可 amend 並 force-with-lease 更新 PR #8。"
+      "at": "2026-05-25T16:27:16+08:00",
+      "source": "codex-review-fix",
+      "change": "修正 PR #11 rebase 後 Codex review 暴露的 generated artifact 可重現性問題。",
+      "impact": "render_progress.py 現在輸出時會移除每行 trailing whitespace；progress.html 不再需要額外 perl 後處理，重跑 renderer 只會因 HTML 產生時間變化，不會因 whitespace 與 source 不一致。"
     },
     {
-      "at": "2026-05-25T15:54:48+08:00",
-      "source": "review-fix",
-      "change": "修正 GitHub PR #8 Gemini timezone review comment。",
-      "impact": "handler/service 預設 clock 改為明確 Asia/Taipei，新增 handler 與 service 測試確認傳入 repository 的 now.Location() 是 Asia/Taipei；targeted red/green 與 backend golangci-lint/go vet/go test 全綠。"
+      "at": "2026-05-25T16:19:30+08:00",
+      "source": "codex-review-fix",
+      "change": "修正 PR #11 rebase 後 Codex review P2。",
+      "impact": "Codex review 指出 progress.html 的 HTML 產生時間早於 progress.json updated_at；已改用系統時間寫入 updated_at 並重新 render，避免 dashboard source/generated timestamp 自相矛盾。"
     },
     {
-      "at": "2026-05-25T15:47:59+08:00",
-      "source": "git-push",
-      "change": "GitHub PR #8 branch 已 force-with-lease 更新。",
-      "impact": "origin/codex/clean-architecture-backend 已更新到 rebase 後的 Clean Architecture commit；接著檢查 PR mergeable 狀態與 GitHub checks。"
-    },
-    {
-      "at": "2026-05-25T15:46:38+08:00",
-      "source": "codex-review",
-      "change": "GitHub PR #8 rebase 後 Codex review clean。",
-      "impact": "Codex review --base origin/main 未發現 correctness/security/regression issue；review 額外跑 backend/internal/quotes package tests 並通過。PR #8 可進入 force-with-lease 更新分支與 GitHub checks。"
-    },
-    {
-      "at": "2026-05-25T15:39:58+08:00",
+      "at": "2026-05-25T16:18:40+08:00",
       "source": "verification",
-      "change": "GitHub PR #8 rebase conflicts 已解並完成本機 gate。",
-      "impact": "backend/internal/health/handler_test.go 保留 main 的 Body.Close errcheck；progress.json 以 main 為基底合入 F20 feature，progress.html 由 render_progress.py 重產。驗證：git diff --check、backend golangci-lint/go vet/go test、frontend typecheck/lint/Vitest 277 tests/build 全部通過。"
+      "change": "PR #11 rebase 後完成本機 gate。",
+      "impact": "progress.json JSON parse 與 render_progress.py 通過；bash -n、Ruby YAML parse、actionlint、git diff --check 通過；backend golangci-lint/go vet/go test 全綠；frontend typecheck/lint/Vitest 277 tests/build 全綠。下一步是 Codex review 與 force-with-lease push。"
+    },
+    {
+      "at": "2026-05-25T16:15:30+08:00",
+      "source": "rebase",
+      "change": "PR #8 merge 後，開始 rebase GitHub PR #11 到最新 main。",
+      "impact": "GitHub 回報 PR #11 mergeable=CONFLICTING；本機 rebase 只衝突 progress.json/progress.html，實作檔與 deploy-prod workflow 無衝突。合併後需重新跑 syntax/static gate、Codex review、force-with-lease push，並等待 GitHub checks 後才能 merge。"
+    },
+    {
+      "at": "2026-05-25T16:05:19+08:00",
+      "source": "codex-review",
+      "change": "PR #11 --condition=None false-positive triage 的 Codex review clean。",
+      "impact": "codex review --uncommitted 確認本次只新增 IAM condition 說明與 dashboard evidence，未發現 introduced bug；可 amend/push 並回覆 Gemini review comment。"
+    },
+    {
+      "at": "2026-05-25T16:02:34+08:00",
+      "source": "review-triage",
+      "change": "查證 GitHub PR #11 Gemini --condition=None review comment。",
+      "impact": "本機 Cloud SDK help 明確說 add/remove IAM policy binding 的 --condition=None 是加入/移除無條件 binding 的合法用法；移除反而可能在已有 conditional bindings 的 policy 上造成互動歧義。已在 phase-a-setup.sh 補註解，後續會在 PR 回覆此 finding 為 false positive。"
     },
     {
       "at": "2026-05-25T15:35:36+08:00",
-      "source": "rebase",
-      "change": "開始解 GitHub PR #8 rebase conflicts。",
-      "impact": "以最新 main 的 progress.json 作基底，合入 PR #8 的 F20 Clean Architecture feature/evidence；progress.html 將由 render_progress.py 重產，避免手解自動產物 conflict。"
+      "source": "codex-review",
+      "change": "prod deploy branch 第二輪 Codex review clean。",
+      "impact": "修正 EXPECTED_PROD_DEPLOYER_SA guard 後重跑 codex review --uncommitted，未發現 actionable bugs；review 期間額外查核 deploy-prod.yml、phase-a setup/verify、Cloud Run prod annotations、Cloud Run IAM policy、actionlint、Vitest 與 infra/scripts/phase-a-verify.sh --check-http，結論為 workflow 與 infra script 更新和既有 staging 模型一致。"
     },
     {
-      "at": "2026-05-22T15:28:30+08:00",
-      "source": "codex",
-      "change": "Commit gate review 發現 1 個 P3 架構收斂點並已修正。",
-      "impact": "Service 原本依賴完整 Repository 介面，超出 CreateQuote use case 所需面積；已改成 narrow port `CreateQuoteRepository`，service test fake 只保留 Create / CreateWithAllocatedNumber，docs/ARCHITECTURE.md 同步補充。重跑 targeted Go test、go vet、go test ./...、golangci-lint、frontend 68 contract tests 全綠。"
+      "at": "2026-05-25T15:27:27+08:00",
+      "source": "codex-review",
+      "change": "prod deploy branch commit 前 Codex review 找到 1 個 P2，已修正並驗證。",
+      "impact": "P2：PROD_DEPLOYER_SA 可被 stale local override 影響，導致 scripts 配錯 production 權限而 workflow 仍用 quote-app-prod-deployer。已新增 EXPECTED_PROD_DEPLOYER_SA guard；負向測試確認 phase-a-setup.sh 與 phase-a-verify.sh 在 PROD_DEPLOYER_SA=stale-prod-deployer 時皆 exit 1；bash/YAML/actionlint/git diff --check 與 phase-a-verify.sh --check-http 仍通過。"
     },
     {
-      "at": "2026-05-22T14:58:12+08:00",
+      "at": "2026-05-25T15:19:14+08:00",
+      "source": "verification",
+      "change": "完成 prod deploy branch 的本機完整 gate。",
+      "impact": "bash -n、workflow YAML parse、actionlint、git diff --check 通過；frontend typecheck/lint/277 tests/build 通過；backend golangci-lint/go vet/go test 通過；docker buildx package build 成功產生 quote-app-ci:codex-pr8-prod-deploy。"
+    },
+    {
+      "at": "2026-05-25T15:12:35+08:00",
+      "source": "implementation",
+      "change": "完成路線圖 PR8 的 prod deploy 工作流與 main 分支保護第一版。",
+      "impact": "新增 deploy-prod.yml；建立 quote-app-prod-deployer 並實際套用 prod-scoped Cloud SQL/Service Usage/Artifact Registry/Cloud Run/Secret/WIF 權限；infra/scripts/phase-a-verify.sh --check-http 回 Phase A verification passed；prod goose migration smoke 回 no migrations/current version 1；GitHub ruleset main-required-ci 已 active，只套用 refs/heads/main 並要求 Frontend、Backend、Docker package、GitGuardian Security Checks。prod workflow 尚需 merge 到 main 後由 GitHub Actions 實際執行。"
+    },
+    {
+      "at": "2026-05-25T15:02:00+08:00",
+      "source": "browser-smoke",
+      "change": "完成 staging 最新 Actions-deployed revision 的登入後寫入流程 smoke。",
+      "impact": "在 https://quote-staging.artogo.co 建立 QA 報價，後端配號 AW-260525-001；History 列表可查到單號與專案名；#/quote/AW-260525-001 可載回 Builder 並顯示單號、專案、客戶；最後以 UI 確定刪除做軟刪除清理，列表回到 0 筆，全程 browser console error 為空。"
+    },
+    {
+      "at": "2026-05-25T14:45:00+08:00",
       "source": "user",
-      "change": "使用者確認 PR #7 已 merge，並授權開始 Clean Architecture 收斂。",
-      "impact": "已切分支 codex/clean-architecture-backend。本輪先修最高風險架構點：把 HTTP handler 中的『缺 quote_no → 配號 → 建立報價』搬到 application service，並讓配號與 INSERT 進同一個 transaction；補 docs/ARCHITECTURE.md 描述目前/目標分層。"
+      "change": "使用者要求把剩下的做好，並明確補充 GitHub PR #8 需要 rebase 和解 conflict。",
+      "impact": "本輪 scope 擴大為：1) staging 最新 deployed revision 寫入流程 smoke；2) deploy-prod.yml + main 分支保護；3) PR #8 Clean Architecture rebase 最新 main、解 conflict、跑測試/review。PR #8 是既有 GitHub PR，不等於路線圖 PR8 prod deploy。"
+    },
+    {
+      "at": "2026-05-25T14:32:00+08:00",
+      "source": "github-actions",
+      "change": "PR #9/#10 merge 後，使用者授權 push staging；已建立 origin/staging 指向 main e43df68 並完成 Deploy Staging。",
+      "impact": "Deploy Staging run 26386712934 成功：Verify source 1m15s；Build, migrate, deploy 3m10s；image asia-east1-docker.pkg.dev/artogo-v2/internal/quote-app:e43df680af37094f66108dd3936bcbd832e0295f 已部署到 quote-app-staging-00005-dmg。infra/scripts/phase-a-verify.sh --check-http 回 Phase A verification passed；DNS、cert ACTIVE、WIF、Secret 權限切分、Cloud Run ingress/runtime SA、staging/prod IAP challenge 全綠。登入後 read-only browser smoke 顯示 Builder / History 可載入且 console error 為空；本輪未建立測試報價單。"
     },
     {
       "at": "2026-05-25T12:20:14+08:00",
@@ -565,6 +595,54 @@
       "at": "2026-05-25T00:11:07+08:00",
       "change": "修正 PR7 final review 第四輪 P1。",
       "impact": "phase-a-setup.sh 現在保留 quote-app-runner 的 DB/Cloud SQL 權限直到兩個 Cloud Run service deploy 成功後，才執行 legacy runtime database access cleanup；避免 build/push/deploy 失敗時先切斷既有服務 DB access。dry-run 顯示 cleanup 位於 deploy loop 後，live phase-a-verify.sh --check-http 全綠。"
+    },
+    {
+      "at": "2026-05-25T15:59:56+08:00",
+      "source": "codex-review",
+      "change": "GitHub PR #8 timezone review fix 的 Codex review clean。",
+      "impact": "Codex review --base origin/main 未發現 correctness/security/regression issue，並確認 backend tests 與 go vet pass；可 amend 並 force-with-lease 更新 PR #8。"
+    },
+    {
+      "at": "2026-05-25T15:54:48+08:00",
+      "source": "review-fix",
+      "change": "修正 GitHub PR #8 Gemini timezone review comment。",
+      "impact": "handler/service 預設 clock 改為明確 Asia/Taipei，新增 handler 與 service 測試確認傳入 repository 的 now.Location() 是 Asia/Taipei；targeted red/green 與 backend golangci-lint/go vet/go test 全綠。"
+    },
+    {
+      "at": "2026-05-25T15:47:59+08:00",
+      "source": "git-push",
+      "change": "GitHub PR #8 branch 已 force-with-lease 更新。",
+      "impact": "origin/codex/clean-architecture-backend 已更新到 rebase 後的 Clean Architecture commit；接著檢查 PR mergeable 狀態與 GitHub checks。"
+    },
+    {
+      "at": "2026-05-25T15:46:38+08:00",
+      "source": "codex-review",
+      "change": "GitHub PR #8 rebase 後 Codex review clean。",
+      "impact": "Codex review --base origin/main 未發現 correctness/security/regression issue；review 額外跑 backend/internal/quotes package tests 並通過。PR #8 可進入 force-with-lease 更新分支與 GitHub checks。"
+    },
+    {
+      "at": "2026-05-25T15:39:58+08:00",
+      "source": "verification",
+      "change": "GitHub PR #8 rebase conflicts 已解並完成本機 gate。",
+      "impact": "backend/internal/health/handler_test.go 保留 main 的 Body.Close errcheck；progress.json 以 main 為基底合入 F20 feature，progress.html 由 render_progress.py 重產。驗證：git diff --check、backend golangci-lint/go vet/go test、frontend typecheck/lint/Vitest 277 tests/build 全部通過。"
+    },
+    {
+      "at": "2026-05-25T15:35:36+08:00",
+      "source": "rebase",
+      "change": "開始解 GitHub PR #8 rebase conflicts。",
+      "impact": "以最新 main 的 progress.json 作基底，合入 PR #8 的 F20 Clean Architecture feature/evidence；progress.html 將由 render_progress.py 重產，避免手解自動產物 conflict。"
+    },
+    {
+      "at": "2026-05-22T15:28:30+08:00",
+      "source": "codex",
+      "change": "Commit gate review 發現 1 個 P3 架構收斂點並已修正。",
+      "impact": "Service 原本依賴完整 Repository 介面，超出 CreateQuote use case 所需面積；已改成 narrow port `CreateQuoteRepository`，service test fake 只保留 Create / CreateWithAllocatedNumber，docs/ARCHITECTURE.md 同步補充。重跑 targeted Go test、go vet、go test ./...、golangci-lint、frontend 68 contract tests 全綠。"
+    },
+    {
+      "at": "2026-05-22T14:58:12+08:00",
+      "source": "user",
+      "change": "使用者確認 PR #7 已 merge，並授權開始 Clean Architecture 收斂。",
+      "impact": "已切分支 codex/clean-architecture-backend。本輪先修最高風險架構點：把 HTTP handler 中的『缺 quote_no → 配號 → 建立報價』搬到 application service，並讓配號與 INSERT 進同一個 transaction；補 docs/ARCHITECTURE.md 描述目前/目標分層。"
     }
   ],
   "goal_groups": [
@@ -1960,7 +2038,7 @@
     {
       "id": "F11",
       "title": "CI/CD prod + 業務 cutover",
-      "summary": "PR7 CI + deploy-staging workflow 已推上 stacked PR #10；final Codex review clean。等待 GitHub Actions / PR review，PR6 #9 merge 後需 rebase 或 retarget 回 main。PR8 deploy-prod 與 PR9 cutover 尚未開始。",
+      "summary": "PR7 CI + deploy-staging workflow 已 merge 到 main 並完成 staging branch 真實部署；PR #8 Clean Architecture 已 merge。PR #11 production deploy 已 rebase 到最新 main，本機 gate 全綠，progress renderer 可重現性修正中，等待第二輪 review、push 與 GitHub checks。",
       "weight": 2,
       "goal_contributions": [
         {
@@ -2158,15 +2236,172 @@
               "type": "github-actions",
               "ref": "PR #10 checks",
               "result": "Frontend pass 37s；Backend pass 1m27s；Docker package pass 46s；GitGuardian pass 1s。"
+            },
+            {
+              "type": "github-actions",
+              "ref": "Deploy Staging run 26386712934",
+              "result": "staging branch push 到 e43df68 後成功觸發；Verify source 1m15s，Build, migrate, deploy 3m10s。image build/push、goose migrations、Cloud Run staging deploy、quote-staging.artogo.co / 與 /readyz IAP smoke 皆成功。"
+            },
+            {
+              "type": "gcp-verify",
+              "ref": "infra/scripts/phase-a-verify.sh --check-http after staging deploy",
+              "result": "Phase A verification passed；quote-app-cert ACTIVE；quote-staging.artogo.co 與 quote.artogo.co A record 皆為 35.241.57.95；WIF workflow_ref 精準綁定、無 repository-wide binding；staging/prod runtime service account、Secret 權限切分、Cloud Run ingress/runtime SA、HTTP IAP challenge 全綠。"
+            },
+            {
+              "type": "cloud-run",
+              "ref": "gcloud run services describe quote-app-staging",
+              "result": "latestReadyRevisionName=quote-app-staging-00005-dmg；image=asia-east1-docker.pkg.dev/artogo-v2/internal/quote-app:e43df680af37094f66108dd3936bcbd832e0295f；serviceAccount=quote-app-staging-runner@artogo-v2.iam.gserviceaccount.com；ingress=internal-and-cloud-load-balancing。"
+            },
+            {
+              "type": "browser-smoke",
+              "ref": "https://quote-staging.artogo.co/ 與 #/history",
+              "result": "IAP 登入 session 可直接進入 ARTWAY 報價單系統；Builder 顯示「報價單 Builder」、歷史紀錄 link 與「儲存後配發」placeholder；History 頁可載入且有回 Builder / 篩選文字；browser console error logs 為空。未建立測試報價單。"
+            },
+            {
+              "type": "browser-smoke",
+              "ref": "staging latest deployed revision Builder / save / History / load / cleanup",
+              "result": "建立 QA 報價並由後端配號 AW-260525-001；History 顯示該單號與專案 QA staging deploy smoke 2026-05-25T06:57:08Z；#/quote/AW-260525-001 載回 Builder 後單號、專案、客戶皆存在；最後以 History UI 確定刪除軟刪除清理，列表顯示 0 筆；console error logs 為空。"
             }
           ]
         },
         {
           "id": "F11-T2",
           "title": "deploy-prod.yml + 分支保護",
-          "status": "todo",
+          "status": "done",
           "workstream": "Infra",
-          "priority": "P1"
+          "priority": "P1",
+          "progress_percent": 90,
+          "files": [
+            ".github/workflows/deploy-prod.yml",
+            "infra/scripts/phase-a-setup.sh",
+            "infra/scripts/phase-a-verify.sh",
+            "infra/PHASE_A.md",
+            "infra/README.md",
+            "progress.json",
+            "progress.html"
+          ],
+          "evidence": [
+            {
+              "type": "scope",
+              "ref": "2026-05-25 kickoff",
+              "result": "deploy-staging 已 verified；本任務開始做 production deploy workflow、prod deployer WIF/IAM、main branch protection 與 production smoke。"
+            },
+            {
+              "type": "workflow",
+              "ref": ".github/workflows/deploy-prod.yml",
+              "result": "新增 main push / workflow_dispatch production deploy：verify source、build/push image、goose migration、Cloud Run prod deploy、DNS/IAP smoke；Cloud Run prod 使用 quote-app-prod-runner、quote-app-prod-database-url、ingress internal-and-cloud-load-balancing、minScale=1。"
+            },
+            {
+              "type": "gcp-iam",
+              "ref": "quote-app-prod-deployer",
+              "result": "實際建立 quote-app-prod-deployer；只授予 prod 所需 Cloud SQL client、Service Usage、Artifact Registry writer、quote-app-prod service-level run.developer、quote-app-prod-runner actAs、quote-app-prod-database-url secretAccessor；移除 staging/legacy runtime actAs、staging DB secret access、project-level run.admin/run.developer/iam.serviceAccountUser。"
+            },
+            {
+              "type": "wif",
+              "ref": "deploy-prod workflow_ref principalSet",
+              "result": "prod deployer WIF 綁定限縮為 ARTOGO/Artway-quote-system/.github/workflows/deploy-prod.yml@refs/heads/main；沒有 repository-wide 或 deploy-staging workflow_ref binding；staging/legacy deployer 也沒有 deploy-prod workflow_ref binding。"
+            },
+            {
+              "type": "gcp-verify",
+              "ref": "infra/scripts/phase-a-verify.sh --check-http",
+              "result": "Phase A verification passed；prod deployer boundary、staging deployer boundary、runtime service account、Secret 權限、DNS/cert/IAP/Cloud Run ingress 全部通過。"
+            },
+            {
+              "type": "migration-smoke",
+              "ref": "DATABASE_SECRET=quote-app-prod-database-url infra/scripts/run-goose-cloudsql.sh",
+              "result": "透過 Cloud SQL Proxy 連 quotes_prod，goose 回 no migrations to run / current version 1。"
+            },
+            {
+              "type": "branch-protection",
+              "ref": "GitHub ruleset main-required-ci id 16822222",
+              "result": "ruleset active 且只 include refs/heads/main；required status checks 為 Frontend、Backend、Docker package、GitGuardian Security Checks，strict_required_status_checks_policy=true。"
+            },
+            {
+              "type": "static-gate",
+              "ref": "bash -n + YAML parse + actionlint + git diff --check",
+              "result": "phase-a-setup.sh / phase-a-verify.sh / run-goose-cloudsql.sh syntax 通過；ci.yml / deploy-staging.yml / deploy-prod.yml YAML parse 與 actionlint 通過；git diff --check 通過。"
+            },
+            {
+              "type": "source-gate",
+              "ref": "frontend + backend full gate",
+              "result": "frontend pnpm run typecheck、pnpm run lint、Vitest 26 files / 277 tests、pnpm run build 全綠；backend golangci-lint 0 issues、go vet ./...、go test ./... 全綠。"
+            },
+            {
+              "type": "docker-package",
+              "ref": "docker buildx build --platform=linux/amd64 --load",
+              "result": "Docker production image build 成功，tag=quote-app-ci:codex-pr8-prod-deploy。"
+            },
+            {
+              "type": "codex-review",
+              "ref": "codex review --uncommitted",
+              "result": "回報 P2：PROD_DEPLOYER_SA local override 沒有 guard，可能讓 setup/verify 配錯 prod deployer；已回修。"
+            },
+            {
+              "type": "fix",
+              "ref": "EXPECTED_PROD_DEPLOYER_SA guard",
+              "result": "phase-a-setup.sh 與 phase-a-verify.sh 新增 EXPECTED_PROD_DEPLOYER_SA=quote-app-prod-deployer guard；PROD_DEPLOYER_SA=stale-prod-deployer 負向測試兩支 script 都 exit 1 並提示移除 stale override。"
+            },
+            {
+              "type": "gcp-verify",
+              "ref": "phase-a-verify.sh --check-http after prod deployer guard",
+              "result": "Phase A verification passed；prod/staging deployer WIF/IAM/runtime/Secret 邊界與 DNS/cert/IAP HTTP smoke 仍全綠。"
+            },
+            {
+              "type": "codex-review",
+              "ref": "codex review --uncommitted after EXPECTED_PROD_DEPLOYER_SA guard",
+              "result": "第二輪 review clean，未發現 actionable bugs；review 額外查核 deploy-prod.yml、phase-a setup/verify、Cloud Run prod annotations、Cloud Run IAM policy、actionlint、Vitest 與 phase-a-verify.sh --check-http。"
+            },
+            {
+              "type": "review-triage",
+              "ref": "Gemini PR #11 --condition=None comment",
+              "result": "查證為 false positive；gcloud secrets/projects/run/artifacts/iam service-accounts add-iam-policy-binding help 均明確列出 --condition=None 是合法的 unconditioned binding 表示法。"
+            },
+            {
+              "type": "docs-code-comment",
+              "ref": "infra/scripts/phase-a-setup.sh IAM helper note",
+              "result": "補註解說明保留 --condition=None 的原因：明確 targeting unconditioned binding，避免 policy 內已有 conditional binding 時出現互動歧義。"
+            },
+            {
+              "type": "codex-review",
+              "ref": "codex review --uncommitted",
+              "result": "clean；確認本次只新增 IAM condition 說明與 progress dashboard evidence，未發現 introduced bug。"
+            },
+            {
+              "type": "not-covered",
+              "ref": "deploy-prod workflow live run",
+              "result": "deploy-prod.yml 尚未在 main 執行，需本 PR merge 後由 GitHub Actions 真實部署 quote-app-prod，再跑 quote.artogo.co 登入後 Builder / save / History smoke。"
+            },
+            {
+              "type": "rebase",
+              "ref": "PR #11 after PR #8 merge",
+              "result": "PR #8 merge 後 PR #11 與 latest main 發生 progress.json/progress.html conflict；production deploy 實作檔、workflow、infra scripts 無 conflict。本次合併保留 main 的 F20 Clean Architecture evidence，並保留 PR #11 的 F11-T2 prod deploy evidence，progress.html 由 render_progress.py 重產。"
+            },
+            {
+              "type": "static-gate",
+              "ref": "PR #11 rebase local gate",
+              "result": "progress.json JSON parse、render_progress.py、bash -n、Ruby YAML parse、go run actionlint、git diff --check 全部通過。"
+            },
+            {
+              "type": "backend-gate",
+              "ref": "backend: golangci-lint run && go vet ./... && go test ./...",
+              "result": "PR #11 rebase 到 PR #8 merge 後 main 後通過；golangci-lint 0 issues，backend packages 全綠。"
+            },
+            {
+              "type": "frontend-gate",
+              "ref": "frontend: pnpm run typecheck && pnpm run lint && pnpm test -- --runInBand && pnpm run build",
+              "result": "PR #11 rebase 後通過；Vitest 26 files / 277 tests passed，production build 成功。"
+            },
+            {
+              "type": "codex-review-fix",
+              "ref": "progress.html generated timestamp",
+              "result": "Codex review P2：progress.json updated_at 晚於 progress.html HTML 產生時間；已用系統時間重寫 updated_at 並重新 render progress.html。"
+            },
+            {
+              "type": "codex-review-fix",
+              "ref": "render_progress.py trailing whitespace normalization",
+              "result": "Codex review rerender check 暴露 progress.html 與 render_progress.py 輸出在 trailing whitespace 上不一致；已讓 renderer 寫檔前 rstrip 每行，使產物可重現且保持 git diff --check clean。"
+            }
+          ]
         },
         {
           "id": "F11-T3",
@@ -3259,7 +3494,7 @@
     {
       "title": "Phase A infra / DB / staging 登入後 smoke 已完成",
       "reason": "Cloud Run / Cloud SQL DB / Secret Manager / LB host rule / IAP / DNS / managed cert / DB migration 都已完成；quote-staging.artogo.co 已完成 IAP 登入後 Builder / save / History smoke。",
-      "blocked_by": "無；commit gate / Codex review 已 clean，GitHub PR #9 已建立。下一步是 reviewer / branch protection 流程，以及 PR7 CI/CD 自動化。",
+      "blocked_by": "無；PR #9/#10 已 merge，staging branch push 已觸發 deploy-staging workflow 並成功完成。",
       "owner": "user + 工程師",
       "needed_by": "業務 cutover（PR9）",
       "impact": "staging 已可作為工程驗收入口；業務 cutover 前仍需補 CI/CD、prod deploy 自動化、prod 登入後 smoke 與正式切換公告。",
@@ -3269,7 +3504,7 @@
         "PR6：測試資料 AW-260523-001 軟刪除清理（已完成）",
         "PR6：commit 前 Codex review clean（已完成）",
         "PR6：commit / push / GitHub PR #9（已完成）",
-        "PR7：ci.yml + deploy-staging.yml（commit / push / stacked PR #10 已完成，等待 GitHub Actions 與 review）",
+        "PR7：ci.yml + deploy-staging.yml（PR #10 已 merge；staging branch push 已部署成功）",
         "PR8：deploy-prod.yml + main 分支保護"
       ],
       "status": "resolved"
@@ -3294,22 +3529,23 @@
     }
   ],
   "next_actions": [
-    "GitHub PR #8 Clean Architecture：等待 GitHub checks / reviewer；若有 review comments，依 findings 修正並重新驗證。",
-    "PR6：等待 GitHub PR #9 reviewer / branch protection 流程；若有 review comments，依 findings 修正並重新驗證",
-    "PR7：等待 GitHub PR #10 review comments",
-    "PR7：PR6 merge 後 rebase 或改 PR base 回 main，再用 staging branch 真正觸發 deploy-staging workflow",
-    "PR8：deploy-prod.yml + main 分支保護",
+    "PR #11 rebase 後第二輪 Codex review；若 clean，force-with-lease push 更新 PR。",
+    "PR #11 push 後等待 GitHub checks；確認 mergeable 回到 MERGEABLE。",
+    "逐條回覆並 resolve PR #11 的 4 個 Gemini inline threads（--condition=None false positive）。",
+    "PR #11 checks 全綠且 threads 處理完後，可 merge production deploy workflow。",
+    "PR #11 merge 後：確認 Deploy Prod GitHub Actions 在 main 真實執行並成功部署 quote-app-prod。",
+    "prod deploy 後：quote.artogo.co 登入後 Builder / save / History / load / delete smoke。",
     "PR9：業務 cutover（換網址 + IAP 登入引導 + 舊 GitHub Pages 退場）"
   ],
   "not_covered": [
-    "PR7 deploy-staging workflow 尚未真正部署 staging；PR #10 目前只驗到 CI / Docker package，實際 deploy 需 PR6/PR7 merge 後由 staging branch push 觸發。",
-    "quote.artogo.co prod 登入後 Builder / save / History smoke 尚未跑；目前 prod 只驗到 IAP redirect 與 Cloud Run 靜態資源 200 log。",
-    "MutationObserver guard fix 尚未部署到 Cloud Run；local tests/build 已通過，需 PR6 merge/deploy 後再驗正式 bundle console。",
+    "deploy-prod.yml 尚未 merge 到 main，因此 Deploy Prod GitHub Actions 尚未真實執行。",
+    "quote.artogo.co prod 登入後 Builder / save / History smoke 尚未跑；需等 deploy-prod workflow 實際部署 production revision 後驗證。",
     "本機 gcloud default project 仍是 excellent-tide-496207-r6，尚未切到 artogo-v2；後續所有 gcloud 指令需避免打錯 project",
     "本機 Terraform 1.5.7 低於 infra/README.md 要求的 >= 1.15，尚未升級",
     "Cross-browser（Safari / Firefox / Edge）— 目前只在 Chromium/Playwright 驗",
     "列印 PDF 在 staging/prod 的 1:1 視覺比對（本機已驗版面，prod 環境未驗）",
     "並發配號真實壓測（後端原子配號已實作 + 單機驗證；多業務同時存檔未壓測）",
-    "存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）"
+    "存檔失敗 / 網路中斷的 UX 實地 dogfood（save 有「儲存失敗」狀態，但未跑各種失敗情境）",
+    "quote.artogo.co prod 登入後 Builder / save / History smoke 尚未跑；目前 prod 只驗到 IAP redirect 與 Cloud Run 靜態資源 200 log。"
   ]
 }

@@ -30,12 +30,16 @@ RUN_SA_STAGING="${RUN_SA_STAGING:-quote-app-staging-runner}"
 RUN_SA_PROD="${RUN_SA_PROD:-quote-app-prod-runner}"
 EXPECTED_DEPLOYER_SA="${EXPECTED_DEPLOYER_SA:-quote-app-staging-deployer}"
 DEPLOYER_SA="${DEPLOYER_SA:-${EXPECTED_DEPLOYER_SA}}"
+EXPECTED_PROD_DEPLOYER_SA="${EXPECTED_PROD_DEPLOYER_SA:-quote-app-prod-deployer}"
+PROD_DEPLOYER_SA="${PROD_DEPLOYER_SA:-${EXPECTED_PROD_DEPLOYER_SA}}"
 LEGACY_DEPLOYER_SA="${LEGACY_DEPLOYER_SA:-github-actions-deployer}"
 WIF_POOL="${WIF_POOL:-github-actions}"
 WIF_PROVIDER="${WIF_PROVIDER:-github}"
 GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-ARTOGO/Artway-quote-system}"
 WIF_DEPLOY_REF="${WIF_DEPLOY_REF:-refs/heads/staging}"
 WIF_DEPLOY_WORKFLOW_REF="${WIF_DEPLOY_WORKFLOW_REF:-${GITHUB_REPOSITORY}/.github/workflows/deploy-staging.yml@${WIF_DEPLOY_REF}}"
+WIF_PROD_DEPLOY_REF="${WIF_PROD_DEPLOY_REF:-refs/heads/main}"
+WIF_PROD_DEPLOY_WORKFLOW_REF="${WIF_PROD_DEPLOY_WORKFLOW_REF:-${GITHUB_REPOSITORY}/.github/workflows/deploy-prod.yml@${WIF_PROD_DEPLOY_REF}}"
 URL_MAP="${URL_MAP:-https}"
 HTTPS_TARGET_PROXY="${HTTPS_TARGET_PROXY:-https-target-proxy-2}"
 CERT_NAME="${CERT_NAME:-quote-app-cert}"
@@ -53,6 +57,14 @@ if [[ "${DEPLOYER_SA}" != "${EXPECTED_DEPLOYER_SA}" ]]; then
   cat >&2 <<EOF
 DEPLOYER_SA=${DEPLOYER_SA} does not match the staging workflow deployer (${EXPECTED_DEPLOYER_SA}).
 Remove the stale DEPLOYER_SA override from ${ENV_FILE}, or update EXPECTED_DEPLOYER_SA and .github/workflows/deploy-staging.yml together.
+EOF
+  exit 1
+fi
+
+if [[ "${PROD_DEPLOYER_SA}" != "${EXPECTED_PROD_DEPLOYER_SA}" ]]; then
+  cat >&2 <<EOF
+PROD_DEPLOYER_SA=${PROD_DEPLOYER_SA} does not match the prod workflow deployer (${EXPECTED_PROD_DEPLOYER_SA}).
+Remove the stale PROD_DEPLOYER_SA override from ${ENV_FILE}, or update EXPECTED_PROD_DEPLOYER_SA and .github/workflows/deploy-prod.yml together.
 EOF
   exit 1
 fi
@@ -514,6 +526,13 @@ wif_deploy_workflow_principal() {
     "${WIF_DEPLOY_WORKFLOW_REF}"
 }
 
+wif_prod_deploy_workflow_principal() {
+  printf "principalSet://iam.googleapis.com/projects/%s/locations/global/workloadIdentityPools/%s/attribute.workflow_ref/%s" \
+    "${project_number}" \
+    "${WIF_POOL}" \
+    "${WIF_PROD_DEPLOY_WORKFLOW_REF}"
+}
+
 check_service_account_wif_binding() {
   local service_account_email="$1"
   local principal="$2"
@@ -564,10 +583,12 @@ echo "project number: ${project_number:-<unavailable>}"
 section "runtime identity"
 check_cmd "staging runtime service account" gcloud iam service-accounts describe "${RUN_SA_STAGING}@${PROJECT_ID}.iam.gserviceaccount.com" --project="${PROJECT_ID}"
 check_cmd "prod runtime service account" gcloud iam service-accounts describe "${RUN_SA_PROD}@${PROJECT_ID}.iam.gserviceaccount.com" --project="${PROJECT_ID}"
-check_cmd "deployer service account" gcloud iam service-accounts describe "${DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com" --project="${PROJECT_ID}"
+check_cmd "staging deployer service account" gcloud iam service-accounts describe "${DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com" --project="${PROJECT_ID}"
+check_cmd "prod deployer service account" gcloud iam service-accounts describe "${PROD_DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com" --project="${PROJECT_ID}"
 staging_run_member="serviceAccount:${RUN_SA_STAGING}@${PROJECT_ID}.iam.gserviceaccount.com"
 prod_run_member="serviceAccount:${RUN_SA_PROD}@${PROJECT_ID}.iam.gserviceaccount.com"
 deployer_member="serviceAccount:${DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
+prod_deployer_member="serviceAccount:${PROD_DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 legacy_run_member="serviceAccount:${RUN_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 staging_run_sa_email="${RUN_SA_STAGING}@${PROJECT_ID}.iam.gserviceaccount.com"
 prod_run_sa_email="${RUN_SA_PROD}@${PROJECT_ID}.iam.gserviceaccount.com"
@@ -583,12 +604,26 @@ done
 check_project_iam_role_absent "${deployer_member}" "roles/run.admin"
 check_project_iam_role_absent "${deployer_member}" "roles/run.developer"
 check_project_iam_role_absent "${deployer_member}" "roles/iam.serviceAccountUser"
+for role in \
+  roles/cloudsql.client \
+  roles/serviceusage.serviceUsageConsumer; do
+  check_project_iam_role "${prod_deployer_member}" "${role}"
+done
+check_project_iam_role_absent "${prod_deployer_member}" "roles/run.admin"
+check_project_iam_role_absent "${prod_deployer_member}" "roles/run.developer"
+check_project_iam_role_absent "${prod_deployer_member}" "roles/iam.serviceAccountUser"
 check_artifact_repository_iam_role "${deployer_member}" "roles/artifactregistry.writer"
+check_artifact_repository_iam_role "${prod_deployer_member}" "roles/artifactregistry.writer"
 check_cloud_run_service_iam_role "${SERVICE_STAGING}" "${deployer_member}" "roles/run.developer"
 check_cloud_run_service_iam_role_absent "${SERVICE_PROD}" "${deployer_member}" "roles/run.developer"
+check_cloud_run_service_iam_role "${SERVICE_PROD}" "${prod_deployer_member}" "roles/run.developer"
+check_cloud_run_service_iam_role_absent "${SERVICE_STAGING}" "${prod_deployer_member}" "roles/run.developer"
 check_service_account_iam_role "${staging_run_sa_email}" "${deployer_member}" "roles/iam.serviceAccountUser"
 check_service_account_iam_role_absent "${prod_run_sa_email}" "${deployer_member}" "roles/iam.serviceAccountUser"
 check_service_account_iam_role_absent "${legacy_run_sa_email}" "${deployer_member}" "roles/iam.serviceAccountUser"
+check_service_account_iam_role "${prod_run_sa_email}" "${prod_deployer_member}" "roles/iam.serviceAccountUser"
+check_service_account_iam_role_absent "${staging_run_sa_email}" "${prod_deployer_member}" "roles/iam.serviceAccountUser"
+check_service_account_iam_role_absent "${legacy_run_sa_email}" "${prod_deployer_member}" "roles/iam.serviceAccountUser"
 if [[ -n "${project_number}" ]]; then
   iap_sa="service-${project_number}@gcp-sa-iap.iam.gserviceaccount.com"
   echo "expected IAP service account: ${iap_sa}"
@@ -615,6 +650,8 @@ check_secret_iam_role "quote-app-prod-database-url" "${prod_run_member}" "roles/
 check_secret_iam_role_absent "quote-app-staging-database-url" "${prod_run_member}" "roles/secretmanager.secretAccessor"
 check_secret_iam_role "quote-app-staging-database-url" "${deployer_member}" "roles/secretmanager.secretAccessor"
 check_secret_iam_role_absent "quote-app-prod-database-url" "${deployer_member}" "roles/secretmanager.secretAccessor"
+check_secret_iam_role "quote-app-prod-database-url" "${prod_deployer_member}" "roles/secretmanager.secretAccessor"
+check_secret_iam_role_absent "quote-app-staging-database-url" "${prod_deployer_member}" "roles/secretmanager.secretAccessor"
 check_secret_iam_role_absent "quote-app-staging-database-url" "${legacy_run_member}" "roles/secretmanager.secretAccessor"
 check_secret_iam_role_absent "quote-app-prod-database-url" "${legacy_run_member}" "roles/secretmanager.secretAccessor"
 
@@ -655,12 +692,18 @@ section "workload identity"
 if [[ -n "${project_number}" ]]; then
   repository_principal="$(wif_repository_principal)"
   workflow_principal="$(wif_deploy_workflow_principal)"
+  prod_workflow_principal="$(wif_prod_deploy_workflow_principal)"
   check_wif_provider_attribute_mapping
   check_service_account_wif_binding "${DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "${workflow_principal}" "WIF deployer workflow_ref ${WIF_DEPLOY_WORKFLOW_REF}"
   check_service_account_wif_binding_absent "${DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "${repository_principal}" "repository-wide WIF binding for ${GITHUB_REPOSITORY}"
+  check_service_account_wif_binding_absent "${DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "${prod_workflow_principal}" "prod workflow_ref WIF binding for ${WIF_PROD_DEPLOY_WORKFLOW_REF}"
+  check_service_account_wif_binding "${PROD_DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "${prod_workflow_principal}" "WIF prod deployer workflow_ref ${WIF_PROD_DEPLOY_WORKFLOW_REF}"
+  check_service_account_wif_binding_absent "${PROD_DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "${repository_principal}" "repository-wide WIF binding for ${GITHUB_REPOSITORY}"
+  check_service_account_wif_binding_absent "${PROD_DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "${workflow_principal}" "staging workflow_ref WIF binding for ${WIF_DEPLOY_WORKFLOW_REF}"
   if [[ "${LEGACY_DEPLOYER_SA}" != "${DEPLOYER_SA}" ]]; then
     check_service_account_wif_binding_absent "${LEGACY_DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "${repository_principal}" "repository-wide WIF binding for ${GITHUB_REPOSITORY}"
     check_service_account_wif_binding_absent "${LEGACY_DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "${workflow_principal}" "workflow_ref WIF binding for ${WIF_DEPLOY_WORKFLOW_REF}"
+    check_service_account_wif_binding_absent "${LEGACY_DEPLOYER_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "${prod_workflow_principal}" "workflow_ref WIF binding for ${WIF_PROD_DEPLOY_WORKFLOW_REF}"
   fi
 else
   mark_missing "project number for WIF verification"

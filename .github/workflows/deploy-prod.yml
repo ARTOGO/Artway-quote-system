@@ -1,0 +1,202 @@
+name: Deploy Prod
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+env:
+  GO_VERSION: "1.26.3"
+  GOLANGCI_LINT_VERSION: v2.12.2
+  NODE_VERSION: "24"
+  PROJECT_ID: artogo-v2
+  PROJECT_NUMBER: "968864738717"
+  REGION: asia-east1
+  AR_REPOSITORY: internal
+  IMAGE_NAME: quote-app
+  SERVICE: quote-app-prod
+  RUNTIME_SERVICE_ACCOUNT: quote-app-prod-runner@artogo-v2.iam.gserviceaccount.com
+  DEPLOYER_SERVICE_ACCOUNT: quote-app-prod-deployer@artogo-v2.iam.gserviceaccount.com
+  WIF_PROVIDER: projects/968864738717/locations/global/workloadIdentityPools/github-actions/providers/github
+  SQL_INSTANCE: artogo-auth-db
+  CLOUD_SQL_CONNECTION_NAME: artogo-v2:asia-east1:artogo-auth-db
+  DATABASE_SECRET: quote-app-prod-database-url
+  HOST_PROD: quote.artogo.co
+  LB_IP: 35.241.57.95
+
+jobs:
+  verify:
+    name: Verify source
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck frontend
+        working-directory: frontend
+        run: pnpm run typecheck
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: pnpm run lint
+
+      - name: Test frontend
+        working-directory: frontend
+        run: pnpm test -- --runInBand
+
+      - name: Build frontend
+        working-directory: frontend
+        run: pnpm run build
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: backend/go.sum
+
+      - name: Vet backend
+        working-directory: backend
+        run: go vet ./...
+
+      - name: Lint backend
+        working-directory: backend
+        run: |
+          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+          "$(go env GOPATH)/bin/golangci-lint" run
+
+      - name: Test backend
+        working-directory: backend
+        run: go test ./...
+
+  deploy:
+    name: Build, migrate, deploy
+    runs-on: ubuntu-latest
+    needs: verify
+    environment: production
+    env:
+      IMAGE_URI: asia-east1-docker.pkg.dev/artogo-v2/internal/quote-app:${{ github.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOYER_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: backend/go.sum
+
+      - name: Install migration tools
+        run: |
+          go install github.com/pressly/goose/v3/cmd/goose@v3.27.0
+          go install github.com/GoogleCloudPlatform/cloud-sql-proxy/v2@v2.18.3
+          echo "$(go env GOPATH)/bin" >> "${GITHUB_PATH}"
+
+      - name: Configure Artifact Registry Docker auth
+        run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        run: |
+          docker buildx build \
+            --platform=linux/amd64 \
+            --provenance=false \
+            --push \
+            -t "${IMAGE_URI}" \
+            .
+
+      - name: Run goose migrations
+        env:
+          PROJECT_ID: ${{ env.PROJECT_ID }}
+          REGION: ${{ env.REGION }}
+          SQL_INSTANCE: ${{ env.SQL_INSTANCE }}
+          CLOUD_SQL_CONNECTION_NAME: ${{ env.CLOUD_SQL_CONNECTION_NAME }}
+          DATABASE_SECRET: ${{ env.DATABASE_SECRET }}
+        run: infra/scripts/run-goose-cloudsql.sh
+
+      - name: Deploy Cloud Run prod
+        run: |
+          gcloud run deploy "${SERVICE}" \
+            --project="${PROJECT_ID}" \
+            --region="${REGION}" \
+            --image="${IMAGE_URI}" \
+            --service-account="${RUNTIME_SERVICE_ACCOUNT}" \
+            --add-cloudsql-instances="${CLOUD_SQL_CONNECTION_NAME}" \
+            --ingress=internal-and-cloud-load-balancing \
+            --min-instances=1 \
+            --set-env-vars=ENV=prod \
+            --set-secrets=DATABASE_URL="${DATABASE_SECRET}:latest" \
+            --quiet
+
+      - name: Install smoke-test tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dnsutils
+
+      - name: Smoke prod ingress and IAP
+        run: |
+          service_json="$(gcloud run services describe "${SERVICE}" \
+            --project="${PROJECT_ID}" \
+            --region="${REGION}" \
+            --format=json)"
+          SERVICE_JSON="${service_json}" python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          data = json.loads(os.environ["SERVICE_JSON"])
+          url = data.get("status", {}).get("url", "")
+          ingress = data.get("metadata", {}).get("annotations", {}).get("run.googleapis.com/ingress", "")
+          min_instances = data.get("spec", {}).get("template", {}).get("metadata", {}).get("annotations", {}).get("autoscaling.knative.dev/minScale", "")
+          if not url:
+              print("Cloud Run service status.url missing", file=sys.stderr)
+              sys.exit(1)
+          if ingress != "internal-and-cloud-load-balancing":
+              print(f"Cloud Run ingress is {ingress!r}", file=sys.stderr)
+              sys.exit(1)
+          if min_instances != "1":
+              print(f"Cloud Run minScale is {min_instances!r}", file=sys.stderr)
+              sys.exit(1)
+          print(f"Cloud Run URL: {url}")
+          PY
+
+          dig +short "${HOST_PROD}" A | grep -qx "${LB_IP}"
+          curl -sSI --max-time 20 --max-redirs 0 "https://${HOST_PROD}/" \
+            | grep -qi '^x-goog-iap-generated-response: true'
+          curl -sSI --max-time 20 --max-redirs 0 "https://${HOST_PROD}/readyz" \
+            | grep -qi '^x-goog-iap-generated-response: true'
