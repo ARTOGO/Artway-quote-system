@@ -34,16 +34,13 @@ Because the local default project is not `artogo-v2`, every script passes
 | Database URL secret | `quote-app-staging-database-url` | `quote-app-prod-database-url` |
 | DB password secret | `quote-app-staging-db-password` | `quote-app-prod-db-password` |
 | Runtime service account | `quote-app-staging-runner` | `quote-app-prod-runner` |
+| GitHub Actions deployer | `quote-app-staging-deployer` | `quote-app-prod-deployer` |
 | Serverless NEG | `quote-app-staging-neg` | `quote-app-prod-neg` |
 | Backend service | `quote-app-staging-backend` | `quote-app-prod-backend` |
 | Hostname | `quote-staging.artogo.co` | `quote.artogo.co` |
 
 Shared resources:
 
-- GitHub Actions staging deployer service account:
-  `quote-app-staging-deployer@artogo-v2.iam.gserviceaccount.com`
-  (`phase-a-setup.sh` and `phase-a-verify.sh` reject stale local
-  `DEPLOYER_SA` overrides that do not match this workflow deployer.)
 - Legacy shared runtime service account kept only for cleanup checks:
   `quote-app-runner@artogo-v2.iam.gserviceaccount.com`
 - Artifact image: `asia-east1-docker.pkg.dev/artogo-v2/internal/quote-app:<tag>`
@@ -186,6 +183,49 @@ step checks that the old generic `github-actions-deployer` has neither binding.
 The Cloud SQL and Service Usage grants are required because the PR7 migration
 step connects through Cloud SQL Proxy and charges Cloud SQL Admin API quota to
 `artogo-v2`.
+
+## PR8 Prod Deployment
+
+PR8 adds `.github/workflows/deploy-prod.yml`:
+
+- runs on push to `main` or manual dispatch
+- authenticates to GCP through WIF
+- builds and pushes `quote-app:${GITHUB_SHA}` to Artifact Registry
+- runs `goose up` against `quotes_prod` through Cloud SQL Proxy
+- deploys `quote-app-prod` with `--min-instances=1`
+- smoke-checks Cloud Run ingress, minScale, DNS, and IAP-generated responses
+
+Production uses a separate deployer service account:
+
+```text
+quote-app-prod-deployer@artogo-v2.iam.gserviceaccount.com
+```
+
+That account is intentionally prod-scoped. It needs:
+
+- `roles/artifactregistry.writer` on Artifact Registry repo `internal`
+- `roles/run.developer` on Cloud Run service `quote-app-prod`
+- `roles/cloudsql.client`
+- `roles/serviceusage.serviceUsageConsumer`
+- `roles/iam.serviceAccountUser` on
+  `quote-app-prod-runner@artogo-v2.iam.gserviceaccount.com`
+- `roles/secretmanager.secretAccessor` on `quote-app-prod-database-url`
+
+The setup and verify scripts also assert the cross-environment boundary:
+
+- `DEPLOYER_SA` and `PROD_DEPLOYER_SA` local overrides are rejected unless
+  they match the service accounts hardcoded in the staging/prod workflows
+- staging deployer cannot deploy `quote-app-prod`, act as
+  `quote-app-prod-runner`, or read `quote-app-prod-database-url`
+- prod deployer cannot deploy `quote-app-staging`, act as
+  `quote-app-staging-runner`, or read `quote-app-staging-database-url`
+- neither deployer has project-level `roles/run.admin`,
+  `roles/run.developer`, or `roles/iam.serviceAccountUser`
+- staging WIF is scoped to
+  `ARTOGO/Artway-quote-system/.github/workflows/deploy-staging.yml@refs/heads/staging`
+- prod WIF is scoped to
+  `ARTOGO/Artway-quote-system/.github/workflows/deploy-prod.yml@refs/heads/main`
+- broad repository-wide WIF bindings must be absent
 
 Sources:
 

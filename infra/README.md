@@ -28,6 +28,7 @@ Phase A 的可執行入口：
 - `infra/scripts/phase-a-verify.sh`：apply 後的 read-only 驗證，可用 `--allow-missing` 做部署前差距盤點。
 - `.github/workflows/ci.yml`：PR / main / staging 的 frontend + backend + Docker package gate。
 - `.github/workflows/deploy-staging.yml`：push `staging` 或手動 dispatch 時 build/push image、跑 goose migration、部署 `quote-app-staging`、跑 staging smoke。
+- `.github/workflows/deploy-prod.yml`：push `main` 或手動 dispatch 時 build/push image、跑 goose migration、部署 `quote-app-prod`、跑 prod smoke。
 - `infra/scripts/run-goose-cloudsql.sh`：GitHub Actions 透過 Cloud SQL Proxy 執行 `goose up`。
 
 ### Phase B（1-3 週）：引用 `artogo-infra` module

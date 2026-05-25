@@ -1758,6 +1758,10 @@ def render_html(data: dict[str, Any]) -> str:
 """
 
 
+def normalize_html(html: str) -> str:
+    return "\n".join(line.rstrip() for line in html.splitlines()) + "\n"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Render progress.html from progress.json")
     parser.add_argument("source", help="Path to progress.json")
@@ -1768,7 +1772,7 @@ def main(argv: list[str] | None = None) -> int:
     target = Path(args.target)
     data = load_progress(source)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(render_html(data), encoding="utf-8")
+    target.write_text(normalize_html(render_html(data)), encoding="utf-8")
     return 0
 
 
