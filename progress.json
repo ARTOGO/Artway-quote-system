@@ -1,6 +1,6 @@
 {
   "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-25T11:44:36+08:00",
+  "updated_at": "2026-05-25T12:20:14+08:00",
   "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
   "success_criteria": [
     "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -13,9 +13,27 @@
   "current_focus": {
     "feature_id": "F11",
     "task_id": "F11-T1",
-    "summary": "PR7 stacked PR #10 已建立且 GitHub Actions 全綠：Frontend、Backend、Docker package、GitGuardian 都 pass。下一步是等 PR review / PR6 #9 merge；#9 merge 後 rebase 或 retarget PR #10 回 main，再進 PR8 deploy-prod + main 分支保護。"
+    "summary": "PR7 stacked PR #10 review messages 已處理：兩個 Gemini run-goose-cloudsql.sh findings 已修並通過 syntax / URL rewrite / unique mktemp log / live goose staging smoke / Codex review。下一步是 commit / push，等待 GitHub Actions，並回覆 review threads。"
   },
   "conversation_changes": [
+    {
+      "at": "2026-05-25T12:20:14+08:00",
+      "source": "codex-review",
+      "change": "PR #10 Gemini fixes 的 commit 前 Codex review clean。",
+      "impact": "codex review --uncommitted 回報：未發現 migration script 與 progress artifacts 變更導入的 correctness / security / regression issues。"
+    },
+    {
+      "at": "2026-05-25T12:14:48+08:00",
+      "source": "implementation",
+      "change": "修正 PR #10 兩個 Gemini review findings。",
+      "impact": "run-goose-cloudsql.sh 的 Cloud SQL Proxy log 改用 mktemp 唯一檔名，且 database_url_for_socket_dir 一律把 host 覆蓋成 Cloud SQL Proxy unix socket path。驗證：bash -n + git diff --check 通過；mktemp 行為測試確認產生唯一檔；URL rewrite 測試確認原本 localhost URL 也會加 host=/cloudsql/artogo-v2:asia-east1:artogo-auth-db；live run-goose-cloudsql.sh 回 goose no migrations to run/current version 1。"
+    },
+    {
+      "at": "2026-05-25T12:13:20+08:00",
+      "source": "pr-review",
+      "change": "讀取 PR #10 review messages。",
+      "impact": "目前有 3 個 unresolved threads：Gemini 兩個 medium（cloud-sql-proxy log 應使用唯一 temp file；run-goose-cloudsql.sh 應一律把 database URL host 指向 proxy unix socket）會修。Codex P1 指稱 Vitest 不支援 --runInBand，但 PR #10 最新 Frontend CI 已以同一指令 pass，判定為 false positive，將以 GitHub runner 證據回覆。"
+    },
     {
       "at": "2026-05-25T11:44:36+08:00",
       "source": "github-actions",

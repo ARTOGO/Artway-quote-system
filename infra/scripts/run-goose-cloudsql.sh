@@ -10,7 +10,7 @@ CLOUD_SQL_CONNECTION_NAME="${CLOUD_SQL_CONNECTION_NAME:-${PROJECT_ID}:${REGION}:
 DATABASE_SECRET="${DATABASE_SECRET:-quote-app-staging-database-url}"
 MIGRATION_DIR="${MIGRATION_DIR:-${ROOT_DIR}/backend/migrations}"
 CLOUD_SQL_SOCKET_DIR="${CLOUD_SQL_SOCKET_DIR:-/cloudsql}"
-CLOUD_SQL_PROXY_LOG="${CLOUD_SQL_PROXY_LOG:-${RUNNER_TEMP:-/tmp}/cloud-sql-proxy.log}"
+CLOUD_SQL_PROXY_LOG="${CLOUD_SQL_PROXY_LOG:-$(mktemp "${RUNNER_TEMP:-/tmp}/cloud-sql-proxy.XXXXXX")}"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -59,8 +59,7 @@ connection_name = os.environ["CLOUD_SQL_CONNECTION_NAME"]
 
 parts = urlsplit(database_url)
 query = dict(parse_qsl(parts.query, keep_blank_values=True))
-if socket_dir != "/cloudsql":
-    query["host"] = f"{socket_dir}/{connection_name}"
+query["host"] = f"{socket_dir}/{connection_name}"
 
 print(urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment)))
 PY
