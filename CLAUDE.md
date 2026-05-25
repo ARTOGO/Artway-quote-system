@@ -36,14 +36,15 @@
 
 ## 工作流
 
-### PM / 業務（改文字、改 UI、改報價單版面）
+### PM / 業務 / UIX（自助改文字、改 UI、改報價單版面）
 
-1. 開 Claude Code 進到這個 repo（如果還沒：`gh repo clone ARTOGO/Artway-quote-system`）
-2. 跟 Claude 說你要做什麼（例如：「把『付款條件』改成『付款方式』」）
-3. Claude 改完會建議 push 到 `staging` branch
-4. 等 1-2 分鐘 GitHub Actions 跑完，去 staging URL 看效果
-5. OK 後請 Claude 開 PR `staging → main`
-6. 工程師 review → merge → 自動上 prod
+1. 開 Claude Code / Codex 進到這個 repo（如果還沒：`gh repo clone ARTOGO/Artway-quote-system`）
+2. 先請 AI 讀 `docs/SELF_SERVE_DEVELOPMENT.md` 與 `docs/AI_DEVELOPMENT_SKILL.md`
+3. 跟 AI 說你要做什麼（例如：「把『付款條件』改成『付款方式』」）
+4. AI 必須在 feature branch 修改、跑檢查、整理驗證證據，再開 PR 到 `staging`
+5. GitHub checks 綠後，具備 repo write 權限的人可以自行 merge；merge 到 `staging` 會自動部署 staging
+6. 到 `https://quote-staging.artogo.co` 用 IAP 登入驗收
+7. OK 後開 PR `staging → main`；GitHub checks 綠後可自行 merge；merge 到 `main` 會自動部署 production
 
 ### 工程師（改後端、改架構、加新 endpoint）
 
@@ -52,16 +53,16 @@
 3. 跑本機驗證：`docker compose up`（後端 + 前端 + Postgres 一鍵起）
 4. 寫測試（TDD：先測試後實作）
 5. push branch → 開 PR
-6. CI 過 → reviewer 批 → merge → 進 staging（先 cherry-pick / merge 到 staging branch）→ 驗 OK → merge main
+6. CI 過 → merge staging → 驗 OK → merge main
 
 ---
 
 ## 禁止項
 
-- ❌ **直接 push `main`** — 有分支保護擋
+- ❌ **直接 push `main` / `staging`** — 走 PR merge；這裡的「自助 merge」是指 GitHub PR merge button，不是直接 push protected branch
 - ❌ **改 `backend/migrations/` 已存在的檔案** — 要加新 migration 檔（`0002_xxx.sql`），不要改舊的
 - ❌ **commit `.env` / service account JSON / 任何 secret** — 用 GitHub Secrets + GCP Secret Manager
-- ❌ **改 `.github/workflows/` 沒先讓工程師 review** — CI/CD 邏輯關係到部署安全
+- ❌ **改 `.github/workflows/` / `infra/` 沒先讓工程師或 repo owner review** — CI/CD 與 GCP 權限關係到部署安全
 - ❌ **用 inline style / magic number 寫 UI** — 一律從 `frontend/src/styles/tokens.scss` 取值
 - ❌ **用 Tailwind / 其他 CSS framework** — 此專案統一用 Module SCSS
 
