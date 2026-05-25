@@ -1,6 +1,6 @@
 {
   "project": "ARTWAY 報價單系統 — 後端 + React 重構 + Cloud Run + Workspace SSO",
-  "updated_at": "2026-05-25T11:41:28+08:00",
+  "updated_at": "2026-05-25T11:44:36+08:00",
   "final_goal": "把 ARTOGO 內部報價單系統從純前端單檔 HTML（GitHub Pages、152KB、4228 行）重構為 React + Go + Cloud Run，並透過 GCP IAP 鎖定 @artogo.co Workspace 員工。業務在 quote.artogo.co 用 Google 登入即可建立、查詢、列印報價單，全公司共享歷史紀錄。",
   "success_criteria": [
     "業務可在 quote.artogo.co 透過 Google Workspace SSO 登入並完成新報價建立、儲存、查詢、列印的完整流程",
@@ -13,9 +13,15 @@
   "current_focus": {
     "feature_id": "F11",
     "task_id": "F11-T1",
-    "summary": "PR7 stacked PR #10 已建立；CI pull_request trigger 已調整為所有 PR 都跑，push trigger 仍限 main/staging，且 trigger fix 已通過 actionlint / git diff --check / Codex review。下一步是看 PR #10 的 GitHub Actions 結果與 review comments。"
+    "summary": "PR7 stacked PR #10 已建立且 GitHub Actions 全綠：Frontend、Backend、Docker package、GitGuardian 都 pass。下一步是等 PR review / PR6 #9 merge；#9 merge 後 rebase 或 retarget PR #10 回 main，再進 PR8 deploy-prod + main 分支保護。"
   },
   "conversation_changes": [
+    {
+      "at": "2026-05-25T11:44:36+08:00",
+      "source": "github-actions",
+      "change": "PR #10 GitHub Actions 全綠。",
+      "impact": "Frontend pass 37s、Backend pass 1m27s、Docker package pass 46s、GitGuardian pass 1s。先前本機 Docker build 卡 registry metadata 的缺口已由 GitHub-hosted runner package job 補上；PR7 repo-side CI/CD commit gate 與 PR runner evidence 都已完成。"
+    },
     {
       "at": "2026-05-25T11:41:28+08:00",
       "source": "codex-review",
@@ -2081,6 +2087,11 @@
               "type": "pull-request",
               "ref": "https://github.com/ARTOGO/Artway-quote-system/pull/10",
               "result": "PR7 stacked PR 已建立，base 為 codex/pr6-infra-foundation；PR6 #9 merge 後需 rebase 或 retarget 回 main。"
+            },
+            {
+              "type": "github-actions",
+              "ref": "PR #10 checks",
+              "result": "Frontend pass 37s；Backend pass 1m27s；Docker package pass 46s；GitGuardian pass 1s。"
             }
           ]
         },
@@ -3041,14 +3052,13 @@
   ],
   "next_actions": [
     "PR6：等待 GitHub PR #9 reviewer / branch protection 流程；若有 review comments，依 findings 修正並重新驗證",
-    "PR7：監看 GitHub PR #10 Actions 與 review comments",
+    "PR7：等待 GitHub PR #10 review comments",
     "PR7：PR6 merge 後 rebase 或改 PR base 回 main，再用 staging branch 真正觸發 deploy-staging workflow",
     "PR8：deploy-prod.yml + main 分支保護",
     "PR9：業務 cutover（換網址 + IAP 登入引導 + 舊 GitHub Pages 退場）"
   ],
   "not_covered": [
-    "PR7 GitHub Actions 尚未確認結果；PR #10 已建立，目前需看 GitHub-hosted runner 的 CI / package job。",
-    "PR7 本輪 Docker build 卡在 Docker Hub metadata 並被中止；PR7 未改 Dockerfile，PR6 final review 曾驗過同一 Dockerfile，仍需 PR #10 的 GitHub Actions package job 補實際 Docker build 證據。",
+    "PR7 deploy-staging workflow 尚未真正部署 staging；PR #10 目前只驗到 CI / Docker package，實際 deploy 需 PR6/PR7 merge 後由 staging branch push 觸發。",
     "quote.artogo.co prod 登入後 Builder / save / History smoke 尚未跑；目前 prod 只驗到 IAP redirect 與 Cloud Run 靜態資源 200 log。",
     "MutationObserver guard fix 尚未部署到 Cloud Run；local tests/build 已通過，需 PR6 merge/deploy 後再驗正式 bundle console。",
     "本機 gcloud default project 仍是 excellent-tide-496207-r6，尚未切到 artogo-v2；後續所有 gcloud 指令需避免打錯 project",
