@@ -24,9 +24,9 @@ describe('createBlankQuote', () => {
     expect(q.meta.validUntil).toBe('2026-06-02');
   });
 
-  it('seeds default sales phone (02-7752-8899) and payment currency', () => {
+  it('seeds default sales phone (02-2578-8901) and payment currency', () => {
     const q = createBlankQuote();
-    expect(q.sales.phone).toBe('02-7752-8899');
+    expect(q.sales.phone).toBe('02-2578-8901');
     expect(q.payment.currency).toBe('新台幣 NTD');
     expect(q.payment.method).toBe('銀行轉帳');
   });
@@ -195,7 +195,7 @@ describe('quoteReducer', () => {
   it('SET_SALES updates a single field', () => {
     const next = quoteReducer(initial, { type: 'SET_SALES', field: 'name', value: 'Peter' });
     expect(next.sales.name).toBe('Peter');
-    expect(next.sales.phone).toBe('02-7752-8899'); // default unchanged
+    expect(next.sales.phone).toBe('02-2578-8901'); // default unchanged
   });
 
   it('returns the same state when setting an identical value (no-op)', () => {
