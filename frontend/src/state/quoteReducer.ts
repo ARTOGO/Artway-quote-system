@@ -60,6 +60,11 @@ function createStarterGroup(): QuoteGroup {
  * 摘要 + appendix always reflect the items present, while preserving the
  * user's per-sub_group summary / includeAppendix edits.
  */
+// Public so SalesSection can override with the per-user remembered values
+// from localStorage (see useRememberedSalesContact). Centralising the literal
+// here means changing the company main line only needs one edit.
+export const ARTWAY_DEFAULT_PHONE = '02-2578-8901';
+
 function reSyncServices(state: Quote): Quote {
   return { ...state, services: syncServices(state.groups, state.services) };
 }
@@ -67,8 +72,8 @@ function reSyncServices(state: Quote): Quote {
 /**
  * Build a blank quote with sensible defaults. The legacy app applied these
  * defaults inline (`payment.currency = '新台幣 NTD'`, `sales.phone =
- * '02-7752-8899'`); centralising them here means new quotes load uniformly
- * regardless of caller.
+ * ARTWAY_DEFAULT_PHONE`); centralising them here means new quotes load
+ * uniformly regardless of caller.
  *
  * - `issueDate`  → today (browser local)
  * - `validUntil` → today + 15 days (matches legacy line 3727 + 3843)
@@ -98,7 +103,7 @@ export function createBlankQuote(): Quote {
       taxId: '',
     },
     clientSig: { sameAsClient: true, name: '', title: '' },
-    sales: { name: '', title: '', phone: '02-7752-8899', email: '' },
+    sales: { name: '', title: '', phone: ARTWAY_DEFAULT_PHONE, email: '' },
     groups: [createStarterGroup()],
     deliverables: [],
     services: [],
