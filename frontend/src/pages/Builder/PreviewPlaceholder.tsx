@@ -29,7 +29,7 @@ import styles from './PreviewPlaceholder.module.scss';
 // as fixed values regardless of state (only 聯絡人 line draws from
 // state.sales.name). See legacy.html line 1942-1957.
 const ARTWAY_COMPANY = '藝途科技股份有限公司';
-const ARTWAY_DEFAULT_PHONE = '02-7752-8899';
+const ARTWAY_DEFAULT_PHONE = '02-2578-8901';
 const ARTWAY_DEFAULT_ADDRESS = '110 台北市信義區基隆路二段 56 號 4 樓';
 const ARTWAY_TAX_ID = '90841095';
 

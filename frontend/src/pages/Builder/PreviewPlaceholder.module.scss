@@ -181,7 +181,9 @@
 
 .sectionWrap {
   margin: 0 0 $space-5;
-  page-break-inside: avoid;
+  // 不再用 page-break-inside: avoid — 整塊區段太大時會把整個 01 推到下一頁，
+  // 第一頁留大量空白。改為允許「在組別之間」分頁，但「每個組別內部」保持完整
+  // （見 .quoteGroup 與 .sectionHd）。
 }
 
 .sectionHd {
@@ -189,6 +191,9 @@
   align-items: center;
   gap: $space-3;
   margin-bottom: $space-2_5;
+  // 區段標題（01 專案報價內容）後面一定要接內容,不能被孤兒在頁尾
+  page-break-after: avoid;
+  break-after: avoid;
 }
 
 .sectionNum {
@@ -841,7 +846,10 @@
   .deliverableGrid li,
   .bankAccountBox,
   .appendixSection,
-  .appendixHead {
+  .appendixHead,
+  // 簽章 / 用印區整塊不可拆 — 否則名字 / 日期會在一頁,圖章獨自跳到下一頁
+  .sigSection,
+  .sigBlock {
     page-break-inside: avoid;
     break-inside: avoid;
   }

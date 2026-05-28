@@ -10,12 +10,13 @@
 //   ✓ editable 副品項 / 品項名稱 / qty / unit / unitPrice; remove items
 //   ✓ Discount column + auto-discount (priceStandard − priceArts)
 //   ✓ Adjustment (議價 / 手續費) row
-//   ✓ reorder via ↑↓ buttons + drag handle; repick (⟲); 定價/優惠價 tier switch
+//   ✓ reorder via drag handle (⋮⋮); repick (⟲) preserves current selection;
+//     定價/優惠價 tier switch
 //   ✓ subtotal / tax / adjustment / group total displayed live
 //
 // Picker UX is inline (vs Radix Popover); a Radix upgrade is optional polish.
 
-import { useState, type JSX } from 'react';
+import { useEffect, useRef, useState, type JSX } from 'react';
 
 import { Button } from '../../../components/Button/Button';
 import { NumberInput } from '../../../components/NumberInput/NumberInput';
@@ -268,7 +269,6 @@ function GroupCard({ group, onRename, onRemove }: GroupCardProps): JSX.Element {
             key={it.id}
             item={it}
             index={idx}
-            total={group.items.length}
             hasDiscount={hasDiscount}
             autoDiscount={autoDiscount}
             isDragging={dragIndex === idx}
@@ -276,8 +276,6 @@ function GroupCard({ group, onRename, onRemove }: GroupCardProps): JSX.Element {
             onRemove={() => removeItem(group.id, it.id)}
             onRepick={() => setOpenPicker({ repick: it.id })}
             onTierToggle={() => handleTierToggle(it)}
-            onMoveUp={() => moveItem(group.id, idx, idx - 1)}
-            onMoveDown={() => moveItem(group.id, idx, idx + 1)}
             onDragStart={() => setDragIndex(idx)}
             onDragEnd={() => setDragIndex(null)}
             onDropOn={() => {
@@ -305,11 +303,18 @@ function GroupCard({ group, onRename, onRemove }: GroupCardProps): JSX.Element {
       ) : openPicker === 'manual' ? (
         <ManualPicker onCancel={() => setOpenPicker(null)} onAdd={handleAddManual} />
       ) : (
-        <CatalogPicker
-          repick
-          onCancel={() => setOpenPicker(null)}
-          onPick={(catItem) => handleRepick(openPicker.repick, catItem)}
-        />
+        (() => {
+          const targetId = openPicker.repick;
+          const target = group.items.find((it) => it.id === targetId);
+          return (
+            <CatalogPicker
+              repick
+              preset={target ? { subGroup: target.sub_group, name: target.name } : undefined}
+              onCancel={() => setOpenPicker(null)}
+              onPick={(catItem) => handleRepick(targetId, catItem)}
+            />
+          );
+        })()
       )}
 
       <div className={styles.totals}>
@@ -343,7 +348,6 @@ function GroupCard({ group, onRename, onRemove }: GroupCardProps): JSX.Element {
 interface ItemRowProps {
   item: QuoteItem;
   index: number;
-  total: number;
   hasDiscount: boolean;
   autoDiscount: boolean;
   isDragging: boolean;
@@ -351,8 +355,6 @@ interface ItemRowProps {
   onRemove: () => void;
   onRepick: () => void;
   onTierToggle: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onDragStart: () => void;
   onDragEnd: () => void;
   onDropOn: () => void;
@@ -361,7 +363,6 @@ interface ItemRowProps {
 function ItemRow({
   item,
   index,
-  total,
   hasDiscount,
   autoDiscount,
   isDragging,
@@ -369,8 +370,6 @@ function ItemRow({
   onRemove,
   onRepick,
   onTierToggle,
-  onMoveUp,
-  onMoveDown,
   onDragStart,
   onDragEnd,
   onDropOn,
@@ -443,26 +442,7 @@ function ItemRow({
           />
         </label>
         <div className={styles.itemActions}>
-          <div className={styles.itemReorder}>
-            <button
-              type="button"
-              onClick={onMoveUp}
-              disabled={index === 0}
-              aria-label="上移品項"
-              title="上移"
-            >
-              ↑
-            </button>
-            <button
-              type="button"
-              onClick={onMoveDown}
-              disabled={index === total - 1}
-              aria-label="下移品項"
-              title="下移"
-            >
-              ↓
-            </button>
-          </div>
+          {/* 排序改用左側拖曳把手 (⋮⋮) — 拿掉冗餘的 ↑↓ 按鈕 (Codex round-6 UX) */}
           {!item.isManual && (
             <button
               type="button"
@@ -549,15 +529,62 @@ function CatalogPicker({
   onCancel,
   onPick,
   repick = false,
+  preset,
 }: {
   onCancel: () => void;
   onPick: (item: CatalogItem) => void;
   repick?: boolean;
+  /**
+   * When repick-ing an existing item, pre-select the cascading dropdowns to
+   * that item's catalog row so the user usually only has to change the 品項
+   * 名稱 (third level). Lookup runs once after the catalog finishes loading.
+   */
+  preset?: { subGroup: string; name: string };
 }): JSX.Element {
   const { catalog, loading, error, live } = useItemsCatalog();
   const [group, setGroup] = useState('');
   const [subGroup, setSubGroup] = useState('');
   const [nameIdx, setNameIdx] = useState('');
+  const presetAppliedRef = useRef(false);
+
+  // ─── Preset hydration (waits for the live Google catalog) ─────────────────
+  // useItemsCatalog returns the bundled fixture immediately while it fetches
+  // the live Google Sheet in the background. If we try to match a real-world
+  // sub_group / name against the fixture, we'll usually miss — then a hard
+  // "applied" lock would prevent retry when the live catalog finally arrives.
+  //
+  // So: retry on every catalog change UNTIL we find an exact match (best
+  // outcome). Only fall back to "match sub_group only" once `loading` flips
+  // to false — meaning the live catalog has finished arriving and the item
+  // genuinely isn't in it (e.g. PM removed it from the Sheet).
+  useEffect(() => {
+    if (presetAppliedRef.current) return;
+    if (!preset || catalog.length === 0) return;
+    const row = catalog.find(
+      (it) => it.sub_group === preset.subGroup && it.name === preset.name,
+    );
+    if (row) {
+      setGroup(row.group);
+      setSubGroup(row.sub_group);
+      const idx = itemsInSubGroup(row.group, row.sub_group, catalog).findIndex(
+        (n) => n.name === row.name,
+      );
+      if (idx >= 0) setNameIdx(String(idx));
+      presetAppliedRef.current = true;
+      return;
+    }
+    // Not found yet — if still loading, defer; the live catalog may have it.
+    if (loading) return;
+    // Live load is done and we still didn't find it. Best-effort: at least
+    // surface the same sub_group label so the user only re-picks the name.
+    const fallback = catalog.find((it) => it.sub_group === preset.subGroup);
+    if (fallback) {
+      setGroup(fallback.group);
+      setSubGroup(preset.subGroup);
+    }
+    presetAppliedRef.current = true;
+  }, [catalog, loading, preset]);
+
   const groups = listGroups(catalog);
   const subGroups = group ? listSubGroups(group, catalog) : [];
   const names = group && subGroup ? itemsInSubGroup(group, subGroup, catalog) : [];

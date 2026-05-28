@@ -130,38 +130,6 @@
   padding-top: 14px; // align with the textarea body (past its label)
 }
 
-.itemReorder {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-
-  button {
-    width: 22px;
-    height: 16px;
-    padding: 0;
-    background: transparent;
-    border: $border-width-thin solid $overlay-gold-35;
-    border-radius: $radius-sm;
-    color: $color-gold;
-    cursor: pointer;
-    font-size: $font-size-sm;
-    line-height: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    &:hover:not(:disabled) {
-      background: $color-gold;
-      color: $color-ink-deep;
-    }
-
-    &:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-    }
-  }
-}
-
 .itemSubGroup {
   font-size: $font-size-md;
   font-weight: $font-weight-semibold;
