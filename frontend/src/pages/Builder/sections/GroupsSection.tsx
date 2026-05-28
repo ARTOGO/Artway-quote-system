@@ -547,36 +547,43 @@ function CatalogPicker({
   const [nameIdx, setNameIdx] = useState('');
   const presetAppliedRef = useRef(false);
 
-  // ─── One-shot preset hydration ────────────────────────────────────────────
-  // Wait for catalog to be available, then look up which 大品項 / 副品項
-  // / nameIndex matches the preset and prefill the dropdowns. Runs at most
-  // once per open (presetAppliedRef gates re-runs across renders).
+  // ─── Preset hydration (waits for the live Google catalog) ─────────────────
+  // useItemsCatalog returns the bundled fixture immediately while it fetches
+  // the live Google Sheet in the background. If we try to match a real-world
+  // sub_group / name against the fixture, we'll usually miss — then a hard
+  // "applied" lock would prevent retry when the live catalog finally arrives.
+  //
+  // So: retry on every catalog change UNTIL we find an exact match (best
+  // outcome). Only fall back to "match sub_group only" once `loading` flips
+  // to false — meaning the live catalog has finished arriving and the item
+  // genuinely isn't in it (e.g. PM removed it from the Sheet).
   useEffect(() => {
     if (presetAppliedRef.current) return;
     if (!preset || catalog.length === 0) return;
     const row = catalog.find(
       (it) => it.sub_group === preset.subGroup && it.name === preset.name,
     );
-    if (!row) {
-      // 找不到對應的 catalog row (例如該品項已被 PM 從 Sheet 移除) — 仍盡量
-      // 帶到 sub_group 那一層,讓使用者重選 name 即可。
-      // 用第一個有相同 sub_group 的 row 取得它的 group。
-      const fallback = catalog.find((it) => it.sub_group === preset.subGroup);
-      if (fallback) {
-        setGroup(fallback.group);
-        setSubGroup(preset.subGroup);
-      }
+    if (row) {
+      setGroup(row.group);
+      setSubGroup(row.sub_group);
+      const idx = itemsInSubGroup(row.group, row.sub_group, catalog).findIndex(
+        (n) => n.name === row.name,
+      );
+      if (idx >= 0) setNameIdx(String(idx));
       presetAppliedRef.current = true;
       return;
     }
-    setGroup(row.group);
-    setSubGroup(row.sub_group);
-    const idx = itemsInSubGroup(row.group, row.sub_group, catalog).findIndex(
-      (n) => n.name === row.name,
-    );
-    if (idx >= 0) setNameIdx(String(idx));
+    // Not found yet — if still loading, defer; the live catalog may have it.
+    if (loading) return;
+    // Live load is done and we still didn't find it. Best-effort: at least
+    // surface the same sub_group label so the user only re-picks the name.
+    const fallback = catalog.find((it) => it.sub_group === preset.subGroup);
+    if (fallback) {
+      setGroup(fallback.group);
+      setSubGroup(preset.subGroup);
+    }
     presetAppliedRef.current = true;
-  }, [catalog, preset]);
+  }, [catalog, loading, preset]);
 
   const groups = listGroups(catalog);
   const subGroups = group ? listSubGroups(group, catalog) : [];
