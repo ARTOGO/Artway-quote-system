@@ -374,26 +374,8 @@ describe('GroupsSection — item operations (Session 4b)', () => {
     expect((screen.getByLabelText('副品項') as HTMLTextAreaElement).value).toBe('X-9');
   });
 
-  it('↑↓ reorder buttons move an item up / down (reliable, no native drag)', async () => {
-    const { user } = mount();
-    // Add A-1 標準型 then B-1 單頁版.
-    await pickCatalog(user);
-    await pickCatalog(user, { group: 'B網站系統', sub: 'B-1_形象網站', nameIndex: 0 });
-    const namesOf = () =>
-      (screen.getAllByLabelText('品項名稱') as HTMLTextAreaElement[]).map((t) => t.value);
-    expect(namesOf()[0]).toMatch(/標準型/);
-
-    // Move the 2nd item up
-    const upButtons = screen.getAllByLabelText('上移品項');
-    expect(upButtons[0]).toBeDisabled(); // first row can't move up
-    await user.click(upButtons[1]);
-    expect(namesOf()[0]).toMatch(/單頁版/);
-    expect(namesOf()[1]).toMatch(/標準型/);
-
-    // Move it back down
-    await user.click(screen.getAllByLabelText('下移品項')[0]);
-    expect(namesOf()[0]).toMatch(/標準型/);
-  });
+  // Removed: ↑↓ reorder buttons were dropped from the UI (drag handle is the
+  // only reorder affordance now — see drag-reorder test below).
 
   it('drag-reorder moves an item (regression: dataTransfer.setData must fire)', async () => {
     const { user } = mount();
