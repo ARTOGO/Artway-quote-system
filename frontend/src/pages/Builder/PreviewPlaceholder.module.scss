@@ -846,7 +846,10 @@
   .deliverableGrid li,
   .bankAccountBox,
   .appendixSection,
-  .appendixHead {
+  .appendixHead,
+  // 簽章 / 用印區整塊不可拆 — 否則名字 / 日期會在一頁,圖章獨自跳到下一頁
+  .sigSection,
+  .sigBlock {
     page-break-inside: avoid;
     break-inside: avoid;
   }
