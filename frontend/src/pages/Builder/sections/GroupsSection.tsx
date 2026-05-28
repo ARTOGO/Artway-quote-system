@@ -269,7 +269,6 @@ function GroupCard({ group, onRename, onRemove }: GroupCardProps): JSX.Element {
             key={it.id}
             item={it}
             index={idx}
-            total={group.items.length}
             hasDiscount={hasDiscount}
             autoDiscount={autoDiscount}
             isDragging={dragIndex === idx}
@@ -349,7 +348,6 @@ function GroupCard({ group, onRename, onRemove }: GroupCardProps): JSX.Element {
 interface ItemRowProps {
   item: QuoteItem;
   index: number;
-  total: number;
   hasDiscount: boolean;
   autoDiscount: boolean;
   isDragging: boolean;
@@ -365,7 +363,6 @@ interface ItemRowProps {
 function ItemRow({
   item,
   index,
-  total: _total,
   hasDiscount,
   autoDiscount,
   isDragging,
