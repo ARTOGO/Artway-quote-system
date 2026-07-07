@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react';
 export type Route =
   | { name: 'builder' }
   | { name: 'history' }
-  | { name: 'quote-detail'; quoteNo: string };
+  | { name: 'quote-detail'; quoteNo: string; autoprint?: boolean };
 
 /**
  * Parse a `window.location.hash` string into a typed Route.
@@ -36,10 +36,19 @@ export function parseHash(hash: string): Route {
   // Strip leading '#' and optional leading '/'
   let clean = hash.replace(/^#/, '').replace(/^\//, '');
 
-  // Strip query string (legacy doesn't use it; future-proof)
+  // Split path / query. Only `autoprint` is recognised today (History → 一鍵
+  // 輸出 PDF 用它跳過 URL 正規化 + 觸發自動列印),其他 query 忽略。
+  let autoprint = false;
   const queryIdx = clean.indexOf('?');
   if (queryIdx >= 0) {
+    const query = clean.slice(queryIdx + 1);
     clean = clean.slice(0, queryIdx);
+    try {
+      const params = new URLSearchParams(query);
+      autoprint = params.get('autoprint') === '1';
+    } catch {
+      /* ignore malformed query */
+    }
   }
 
   if (clean === '') {
@@ -55,7 +64,11 @@ export function parseHash(hash: string): Route {
     // to Builder rather than crash the whole app on initial load.
     // Reviewer flagged: Gemini #3257443997 + Codex #3257453832 (both P1).
     try {
-      return { name: 'quote-detail', quoteNo: decodeURIComponent(quoteMatch[1]) };
+      return {
+        name: 'quote-detail',
+        quoteNo: decodeURIComponent(quoteMatch[1]),
+        autoprint,
+      };
     } catch {
       return { name: 'builder' };
     }

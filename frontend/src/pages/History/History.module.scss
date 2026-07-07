@@ -15,9 +15,10 @@
 }
 
 .page {
-  max-width: 1200px;
+  // 拿掉 max-width — 業務反映欄位被壓縮,現在讓歷史頁吃滿整個視窗寬度。
+  // 超寬螢幕上文字會拉長但業務會有更多資訊密度。
   width: 100%;
-  margin: 0 auto;
+  margin: 0;
   padding: $space-7 $space-8 $space-16; // 28px 32px ~60px (legacy)
 }
 
@@ -318,6 +319,64 @@
   }
 }
 
+// Inline 狀態下拉 — 取代靜態 pill,業務可直接在歷史頁改狀態。顏色跟著
+// data-status 屬性走(跟 .pill 一樣的四色 palette),看起來就像可點的 pill。
+.statusSelect {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-block;
+  padding: 2px $space-2;
+  padding-right: $space-5; // 給下拉三角形留位置
+  border-radius: $radius-2xl;
+  font-family: inherit;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  letter-spacing: $letter-spacing-wide;
+  border: $border-width-thin solid;
+  background: $overlay-black-20;
+  cursor: pointer;
+  color: $color-status-draft;
+  border-color: $color-status-draft;
+  // 下拉三角形 (SVG data URL — 金棕色跟主題一致)
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23BA9972' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right $space-2 center;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+
+  &:hover:not(:disabled) {
+    background-color: $overlay-gold-18;
+  }
+  &:focus-visible {
+    outline: $border-width-thin solid $color-gold;
+    outline-offset: 1px;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: wait;
+  }
+
+  &[data-status='sent'] {
+    color: $color-status-sent;
+    border-color: $color-status-sent;
+  }
+  &[data-status='signed'] {
+    color: $color-status-signed;
+    border-color: $color-status-signed;
+  }
+  &[data-status='executed'] {
+    color: $color-status-executed;
+    border-color: $color-status-executed;
+  }
+
+  option {
+    background: $color-surface-void;
+    color: $color-surface-stroke;
+  }
+}
+
 .actions {
   white-space: nowrap;
   text-align: right;
@@ -340,10 +399,16 @@
     border-color 0.15s,
     color 0.15s;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: $overlay-gold-18;
     border-color: $color-gold;
     color: $color-gold-warm;
+  }
+  &:disabled,
+  &[aria-disabled='true'] {
+    opacity: 0.4;
+    cursor: wait;
+    pointer-events: none;
   }
 }
 

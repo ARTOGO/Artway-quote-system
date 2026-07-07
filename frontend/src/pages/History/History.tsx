@@ -15,17 +15,20 @@
 import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
 
 import {
+  createQuote,
   deleteQuote,
   distinctSales,
+  getQuote,
   listQuotes,
+  updateQuote,
   type QuoteListItem,
   type QuoteListResult,
 } from '../../api/quotes';
-import { addDaysISO } from '../../lib/dates';
+import { addDaysISO, todayISO } from '../../lib/dates';
 import { formatMoney } from '../../lib/quoteCalc';
 import { navigate } from '../../lib/useHashRoute';
 import { useQuoteState } from '../../state/QuoteContext';
-import { STATUS_OPTIONS } from '../../state/quoteTypes';
+import { STATUS_OPTIONS, type QuoteStatus } from '../../state/quoteTypes';
 import styles from './History.module.scss';
 
 const PAGE_SIZE = 20;
@@ -38,10 +41,6 @@ const RANGE_OPTIONS: ReadonlyArray<{ days: string; label: string }> = [
   { days: '365', label: '過去 1 年' },
   { days: '', label: '全部' },
 ];
-
-function statusLabel(v: string): string {
-  return (STATUS_OPTIONS.find((o) => o.value === v) ?? STATUS_OPTIONS[0]).label;
-}
 
 // "YYYY-MM-DD HH:mm" in Asia/Taipei from an ISO timestamp. The backend stores
 // updated_at as UTC; format explicitly in the company timezone so the displayed
@@ -96,7 +95,7 @@ interface Toast {
 }
 
 export function History(): JSX.Element {
-  const { state, newQuote } = useQuoteState();
+  const { state, newQuote, load } = useQuoteState();
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
   const [reloadNonce, setReloadNonce] = useState(0);
@@ -106,6 +105,9 @@ export function History(): JSX.Element {
   const [salesOptions, setSalesOptions] = useState<string[]>([]);
   const [pendingDelete, setPendingDelete] = useState<QuoteListItem | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
+  // 每列可能同時被其他非同步動作 (change status / duplicate / print) 佔用 —
+  // 用單獨的 map 追蹤,避免同時按刪除又按複製之類的邊角情況造成 UI 不一致。
+  const [rowBusy, setRowBusy] = useState<Record<string, boolean>>({});
   const toastTimer = useRef<number | null>(null);
 
   const showToast = useCallback((msg: string, isError = false): void => {
@@ -205,6 +207,93 @@ export function History(): JSX.Element {
       }
     } catch (e) {
       showToast('刪除失敗：' + (e instanceof Error ? e.message : '未知錯誤'), true);
+    }
+  };
+
+  // 直接輸出 PDF — 該筆已在雲端,不必再存,跳過 Builder 兩段式確認。走 hash
+  // 路由帶 `?autoprint=1`,QuoteLoader 會在 quote 載入後自動觸發 window.print()
+  // 並在 afterprint 事件送回歷史頁 (見 App.tsx)。
+  const handlePrint = (item: QuoteListItem): void => {
+    navigate(`/quote/${encodeURIComponent(item.quote_no)}?autoprint=1`);
+  };
+
+  // 複製 — 直接建立同內容新報價 (草稿 / 新單號 / 今日開立日),完成後跳進 Builder。
+  // 走 create 是為了立刻拿到伺服器配發的 quote_no + id,業務進 Builder 就看得到
+  // 新單號 + 歷史列表下次刷新也會有這筆。
+  const handleCopy = async (item: QuoteListItem): Promise<void> => {
+    if (rowBusy[item.id]) return;
+    setRowBusy((b) => ({ ...b, [item.id]: true }));
+    try {
+      const src = await getQuote(item.id);
+      const today = todayISO();
+      const clone = {
+        ...src,
+        id: null as string | null,
+        status: 'draft' as QuoteStatus,
+        meta: {
+          ...src.meta,
+          quoteNo: '', // 伺服器在 create 時配發新單號
+          issueDate: today,
+          validUntil: addDaysISO(15),
+        },
+      };
+      const res = await createQuote(clone);
+      const persisted = {
+        ...clone,
+        id: res.id,
+        meta: { ...clone.meta, quoteNo: res.quote_no },
+      };
+      load(persisted);
+      showToast(`已複製為 ${res.quote_no}`);
+      navigate('/');
+    } catch (e) {
+      showToast('複製失敗:' + (e instanceof Error ? e.message : '未知錯誤'), true);
+    } finally {
+      setRowBusy((b) => {
+        const next = { ...b };
+        delete next[item.id];
+        return next;
+      });
+    }
+  };
+
+  // 直接在歷史頁改狀態 — 用完整 PUT (後端無 PATCH endpoint,存全部欄位)。
+  // Optimistic UI:先更新畫面,失敗還原並顯示 toast。
+  const handleStatusChange = async (
+    item: QuoteListItem,
+    nextStatus: QuoteStatus,
+  ): Promise<void> => {
+    if (nextStatus === item.status || rowBusy[item.id]) return;
+    const prevStatus = item.status;
+    setRowBusy((b) => ({ ...b, [item.id]: true }));
+    // Optimistic
+    setData((d) => {
+      if (!d) return d;
+      return {
+        ...d,
+        items: d.items.map((x) => (x.id === item.id ? { ...x, status: nextStatus } : x)),
+      };
+    });
+    try {
+      const full = await getQuote(item.id);
+      await updateQuote(item.id, { ...full, status: nextStatus });
+      showToast(`已更新狀態為 ${STATUS_OPTIONS.find((o) => o.value === nextStatus)?.label ?? ''}`);
+    } catch (e) {
+      // Revert on failure
+      setData((d) => {
+        if (!d) return d;
+        return {
+          ...d,
+          items: d.items.map((x) => (x.id === item.id ? { ...x, status: prevStatus } : x)),
+        };
+      });
+      showToast('狀態更新失敗:' + (e instanceof Error ? e.message : '未知錯誤'), true);
+    } finally {
+      setRowBusy((b) => {
+        const next = { ...b };
+        delete next[item.id];
+        return next;
+      });
     }
   };
 
@@ -321,44 +410,80 @@ export function History(): JSX.Element {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.items.map((it) => (
-                    <tr key={it.id}>
-                      <td>
-                        <a
-                          className={styles.quoteNo}
-                          href={`#/quote/${encodeURIComponent(it.quote_no)}`}
-                        >
-                          {it.quote_no}
-                        </a>
-                      </td>
-                      <td>{it.issue_date || '—'}</td>
-                      <td>{it.sales_name || '—'}</td>
-                      <td>{it.client_company || '—'}</td>
-                      <td>{it.title || <span className={styles.untitled}>（未命名）</span>}</td>
-                      <td className={styles.right}>NT$ {formatMoney(it.total_amount)}</td>
-                      <td>
-                        <span className={styles.pill} data-status={it.status}>
-                          {statusLabel(it.status)}
-                        </span>
-                      </td>
-                      <td className={styles.updated}>{fmtUpdated(it.updated_at)}</td>
-                      <td className={styles.actions}>
-                        <a
-                          className={styles.iconBtn}
-                          href={`#/quote/${encodeURIComponent(it.quote_no)}`}
-                        >
-                          載入
-                        </a>
-                        <button
-                          type="button"
-                          className={`${styles.iconBtn} ${styles.danger}`}
-                          onClick={() => setPendingDelete(it)}
-                        >
-                          刪除
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {data.items.map((it) => {
+                    const busy = !!rowBusy[it.id];
+                    return (
+                      <tr key={it.id}>
+                        <td>
+                          <a
+                            className={styles.quoteNo}
+                            href={`#/quote/${encodeURIComponent(it.quote_no)}`}
+                          >
+                            {it.quote_no}
+                          </a>
+                        </td>
+                        <td>{it.issue_date || '—'}</td>
+                        <td>{it.sales_name || '—'}</td>
+                        <td>{it.client_company || '—'}</td>
+                        <td>{it.title || <span className={styles.untitled}>（未命名）</span>}</td>
+                        <td className={styles.right}>NT$ {formatMoney(it.total_amount)}</td>
+                        <td>
+                          <select
+                            className={styles.statusSelect}
+                            data-status={it.status}
+                            value={it.status}
+                            disabled={busy}
+                            onChange={(e) =>
+                              void handleStatusChange(it, e.target.value as QuoteStatus)
+                            }
+                            aria-label={`${it.quote_no} 狀態`}
+                          >
+                            {STATUS_OPTIONS.map((o) => (
+                              <option key={o.value} value={o.value}>
+                                {o.label}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className={styles.updated}>{fmtUpdated(it.updated_at)}</td>
+                        <td className={styles.actions}>
+                          <a
+                            className={styles.iconBtn}
+                            href={`#/quote/${encodeURIComponent(it.quote_no)}`}
+                            aria-disabled={busy}
+                          >
+                            載入
+                          </a>
+                          <button
+                            type="button"
+                            className={styles.iconBtn}
+                            onClick={() => void handleCopy(it)}
+                            disabled={busy}
+                            title="以此筆內容為底建立新報價"
+                          >
+                            複製
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.iconBtn}
+                            onClick={() => handlePrint(it)}
+                            disabled={busy}
+                            title="輸出 PDF（不重存雲端）"
+                          >
+                            PDF
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.iconBtn} ${styles.danger}`}
+                            onClick={() => setPendingDelete(it)}
+                            disabled={busy}
+                          >
+                            刪除
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
