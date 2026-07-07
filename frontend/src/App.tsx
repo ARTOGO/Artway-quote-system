@@ -6,7 +6,7 @@
 // same provider: QuoteLoader fetches the quote by its 報價單號 and dispatches
 // LOAD into this shared state, then renders the Builder.
 
-import { useEffect, useState, type JSX } from 'react';
+import { useEffect, useRef, useState, type JSX } from 'react';
 
 import styles from './App.module.scss';
 import { getQuoteByNumber } from './api/quotes';
@@ -39,17 +39,24 @@ function RouteSwitch({ route }: { route: Route }): JSX.Element {
 
 // Resolve a #/quote/{quote_no} deep link (業務 bookmark) → load that quote into
 // the Builder via the by-number endpoint. Shows loading / not-found states.
-// When `autoprint=1`, we skip the URL normalise + immediately fire
-// window.print() after the state settles (History 「輸出 PDF」快捷),然後在
-// afterprint 事件把使用者送回歷史頁。
+// When `autoprint=1`, we keep the route on quote-detail and render the Builder
+// inline so window.print() prints the actual quote preview (not the loading
+// placeholder). afterprint sends the user back to the history page.
 function QuoteLoader({ quoteNo, autoprint }: { quoteNo: string; autoprint: boolean }): JSX.Element {
-  const { load, newQuote } = useQuoteState();
-  const [phase, setPhase] = useState<'loading' | 'error'>('loading');
+  const { load, newQuote, state } = useQuoteState();
+  const [phase, setPhase] = useState<'loading' | 'ready' | 'error'>('loading');
   const [errMsg, setErrMsg] = useState('');
+  // 只在載入完成的當下抓住 quote metadata(給列印檔名用) — 不能直接讀 state,
+  // 因為 autoprint 分支不會 navigate 走,state 之後可能被使用者編輯。
+  const printMetaRef = useRef<{ quoteNo: string; client: string; title: string } | null>(null);
+  // Ensure autoprint only fires once per mount even if effects re-run.
+  const firedPrintRef = useRef(false);
 
   useEffect(() => {
     const ctl = new AbortController();
     setPhase('loading');
+    firedPrintRef.current = false;
+    printMetaRef.current = null;
     getQuoteByNumber(quoteNo, ctl.signal)
       .then((q) => {
         // Bail if the user already left this route (e.g. Back to History) before
@@ -58,26 +65,14 @@ function QuoteLoader({ quoteNo, autoprint }: { quoteNo: string; autoprint: boole
         if (ctl.signal.aborted) return;
         load(q);
         if (autoprint) {
-          // History 一鍵輸出 PDF:報價單已在雲端 (才會出現在歷史列表),不必再
-          // 存一次。等 React commit + 下一個 frame 才 print (讓 Builder DOM 掛
-          // 上、避免對舊 preview 列印)。
-          window.setTimeout(() => {
-            const restore = (): void => {
-              window.removeEventListener('afterprint', restore);
-              // 印完 (或使用者取消) → 送回歷史頁,而不是留在快取的 quote 詳細頁,
-              // 因為那時 URL 上還帶著 autoprint,重整會再印一次。
-              navigate('/history', { replace: true });
-            };
-            window.addEventListener('afterprint', restore);
-            // 保險:某些瀏覽器 afterprint 不觸發時,3 秒後仍送回歷史。
-            window.setTimeout(restore, 3000);
-            printWithCustomFilename({
-              quoteNo: q.meta.quoteNo,
-              dateISO: todayISO(),
-              clientCompany: q.client.company,
-              projectTitle: q.meta.title,
-            });
-          }, 100);
+          // Stash print-time metadata (react state may not have flushed to the
+          // Builder DOM by the time we window.print, but state IS in the reducer).
+          printMetaRef.current = {
+            quoteNo: q.meta.quoteNo,
+            client: q.client.company,
+            title: q.meta.title,
+          };
+          setPhase('ready');
           return;
         }
         // Normalize the URL to the Builder route once loaded — staying on the
@@ -95,6 +90,44 @@ function QuoteLoader({ quoteNo, autoprint }: { quoteNo: string; autoprint: boole
       });
     return () => ctl.abort();
   }, [quoteNo, autoprint, load]);
+
+  // Autoprint: once Builder DOM is on screen, trigger the browser print dialog.
+  // Wait one extra frame so any children with useLayoutEffect / lazy chunks
+  // finish measuring — otherwise Chrome captures a half-rendered preview.
+  useEffect(() => {
+    if (phase !== 'ready' || !autoprint || firedPrintRef.current) return;
+    if (!printMetaRef.current) return;
+    firedPrintRef.current = true;
+    const meta = printMetaRef.current;
+    const raf = window.requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        const restore = (): void => {
+          window.removeEventListener('afterprint', restore);
+          window.clearTimeout(fallbackId);
+          // 印完(或使用者取消)後把使用者送回歷史頁 — 停在 #/quote/xxx?autoprint=1
+          // 會在 refresh 時再印一次。
+          navigate('/history', { replace: true });
+        };
+        window.addEventListener('afterprint', restore);
+        // afterprint 在某些瀏覽器/取消路徑不觸發 — 5 秒 fallback 保險。
+        const fallbackId = window.setTimeout(restore, 5000);
+        printWithCustomFilename({
+          quoteNo: meta.quoteNo,
+          dateISO: todayISO(),
+          clientCompany: meta.client,
+          projectTitle: meta.title,
+        });
+      }, 250); // 給 Preview 內部 img/svg 一點時間解析完畢
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [phase, autoprint, state.id]);
+
+  // Ready + autoprint → render the real Builder so window.print() captures its
+  // preview. Ready + !autoprint 只有這個瞬間會走到(通常已 navigate 走);保險起見
+  // 一樣 render Builder。
+  if (phase === 'ready') {
+    return <Builder />;
+  }
 
   return (
     <div className={styles.screen}>
