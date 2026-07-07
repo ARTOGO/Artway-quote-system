@@ -46,6 +46,7 @@ describe('parseHash', () => {
     expect(parseHash('#/quote/AW-260516-001')).toEqual({
       name: 'quote-detail',
       quoteNo: 'AW-260516-001',
+      autoprint: false,
     });
   });
 
@@ -54,6 +55,7 @@ describe('parseHash', () => {
     expect(parseHash('#/quote/AW-260516-001%20special')).toEqual({
       name: 'quote-detail',
       quoteNo: 'AW-260516-001 special',
+      autoprint: false,
     });
   });
 
@@ -62,11 +64,26 @@ describe('parseHash', () => {
     expect(parseHash('#/quote')).toEqual({ name: 'builder' }); // missing quote_no
   });
 
-  it('strips query string', () => {
+  it('strips unrecognised query params but preserves autoprint=1', () => {
+    // Unknown query keys on history are still ignored.
     expect(parseHash('#/history?foo=1&bar=baz')).toEqual({ name: 'history' });
+    // Unknown query keys on quote-detail don't set autoprint.
     expect(parseHash('#/quote/AW-1?force=1')).toEqual({
       name: 'quote-detail',
       quoteNo: 'AW-1',
+      autoprint: false,
+    });
+    // autoprint=1 is the History → 快捷輸出 PDF 使用的旗標。
+    expect(parseHash('#/quote/AW-1?autoprint=1')).toEqual({
+      name: 'quote-detail',
+      quoteNo: 'AW-1',
+      autoprint: true,
+    });
+    // Any other autoprint value is treated as falsy.
+    expect(parseHash('#/quote/AW-1?autoprint=0')).toEqual({
+      name: 'quote-detail',
+      quoteNo: 'AW-1',
+      autoprint: false,
     });
   });
 
