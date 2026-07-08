@@ -298,6 +298,10 @@ export function History(): JSX.Element {
       const full = await getQuote(item.id);
       await updateQuote(item.id, { ...full, status: nextStatus });
       showToast(`已更新狀態為 ${STATUS_OPTIONS.find((o) => o.value === nextStatus)?.label ?? ''}`);
+      // 觸發列表重抓 — 後端會用新狀態重新排序(尤其 template 要置頂,
+      // 或改離 template 要下沉),optimistic UI 只改欄位不重排,單靠它會
+      // 看起來像沒生效,要重整才對。
+      setReloadNonce((n) => n + 1);
     } catch (e) {
       // Revert on failure
       setData((d) => {
