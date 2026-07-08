@@ -43,7 +43,7 @@ function RouteSwitch({ route }: { route: Route }): JSX.Element {
 // inline so window.print() prints the actual quote preview (not the loading
 // placeholder). afterprint sends the user back to the history page.
 function QuoteLoader({ quoteNo, autoprint }: { quoteNo: string; autoprint: boolean }): JSX.Element {
-  const { load, newQuote, state } = useQuoteState();
+  const { load, newQuote } = useQuoteState();
   const [phase, setPhase] = useState<'loading' | 'ready' | 'error'>('loading');
   const [errMsg, setErrMsg] = useState('');
   // 只在載入完成的當下抓住 quote metadata(給列印檔名用) — 不能直接讀 state,
@@ -99,18 +99,31 @@ function QuoteLoader({ quoteNo, autoprint }: { quoteNo: string; autoprint: boole
     if (!printMetaRef.current) return;
     firedPrintRef.current = true;
     const meta = printMetaRef.current;
+
+    // 立刻把 ?autoprint=1 從網址拿掉 — 避免使用者取消印刷後重整/按上一頁
+    // 又觸發一次列印,也讓 quote-detail 網址回到乾淨的 deep-link 樣貌。
+    window.history.replaceState(
+      null,
+      '',
+      `#/quote/${encodeURIComponent(meta.quoteNo)}`,
+    );
+
+    // 印完或取消之後(afterprint 或 5 秒 fallback 先到者)把使用者送回歷史頁。
+    // 用 push (非 replace) 讓瀏覽器上一頁能回到剛才那筆報價的 Builder。
+    // once flag 防止 afterprint + fallback 兩者同時觸發雙重 navigate。
+    let done = false;
+    const finish = (): void => {
+      if (done) return;
+      done = true;
+      window.removeEventListener('afterprint', finish);
+      window.clearTimeout(fallbackId);
+      navigate('/history');
+    };
+    window.addEventListener('afterprint', finish);
+    const fallbackId = window.setTimeout(finish, 5000);
+
     const raf = window.requestAnimationFrame(() => {
       window.setTimeout(() => {
-        const restore = (): void => {
-          window.removeEventListener('afterprint', restore);
-          window.clearTimeout(fallbackId);
-          // 印完(或使用者取消)後把使用者送回歷史頁 — 停在 #/quote/xxx?autoprint=1
-          // 會在 refresh 時再印一次。
-          navigate('/history', { replace: true });
-        };
-        window.addEventListener('afterprint', restore);
-        // afterprint 在某些瀏覽器/取消路徑不觸發 — 5 秒 fallback 保險。
-        const fallbackId = window.setTimeout(restore, 5000);
         printWithCustomFilename({
           quoteNo: meta.quoteNo,
           dateISO: todayISO(),
@@ -119,8 +132,16 @@ function QuoteLoader({ quoteNo, autoprint }: { quoteNo: string; autoprint: boole
         });
       }, 250); // 給 Preview 內部 img/svg 一點時間解析完畢
     });
-    return () => window.cancelAnimationFrame(raf);
-  }, [phase, autoprint, state.id]);
+
+    // Unmount 時把所有掛在 window 上的東西清乾淨 — 否則使用者按 Topbar 的
+    // 「歷史紀錄」離開這條 route 之後,5 秒 timer 仍會 navigate 一次,把畫面
+    // 又拉回歷史頁,看起來就像按鈕行為異常。
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.removeEventListener('afterprint', finish);
+      window.clearTimeout(fallbackId);
+    };
+  }, [phase, autoprint]);
 
   // Ready + autoprint → render the real Builder so window.print() captures its
   // preview. Ready + !autoprint 只有這個瞬間會走到(通常已 navigate 走);保險起見
