@@ -433,7 +433,7 @@ export function History(): JSX.Element {
                   {data.items.map((it) => {
                     const busy = !!rowBusy[it.id];
                     return (
-                      <tr key={it.id}>
+                      <tr key={it.id} data-template={it.status === 'template' ? 'true' : undefined}>
                         <td>
                           <a
                             className={styles.quoteNo}
