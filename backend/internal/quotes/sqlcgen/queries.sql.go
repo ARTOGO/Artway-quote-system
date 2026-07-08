@@ -196,7 +196,10 @@ WHERE deleted_at IS NULL
   AND ($4::date    IS NULL OR issue_date <= $4::date)
   AND ($5::text IS NULL OR sales_name  = $5::text)
   AND ($6::text     IS NULL OR status      = $6::text)
-ORDER BY updated_at DESC
+-- Template 狀態置頂:業務把常用模板放在最上方,方便從歷史頁一鍵複製使用。
+-- (status = 'template') 在 Postgres 產生 boolean,DESC 讓 TRUE 排在前面。
+-- 同狀態群內部仍照 updated_at DESC — 最新編輯的在最上面。
+ORDER BY (status = 'template') DESC, updated_at DESC
 LIMIT  $1
 OFFSET $2
 `

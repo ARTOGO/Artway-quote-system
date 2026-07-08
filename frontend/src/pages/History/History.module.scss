@@ -370,10 +370,40 @@
     color: $color-status-executed;
     border-color: $color-status-executed;
   }
+  // Template pill 用實體金色(跟 +新報價 primary 按鈕一致),不是外框。
+  // 標示這筆是「常用模板」,方便業務一眼看到並複製使用。
+  &[data-status='template'] {
+    background: $color-gold;
+    color: $color-surface-void;
+    border-color: $color-gold;
+    // 三角形改深色才看得到
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%230D0804' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right $space-2 center;
+
+    &:hover:not(:disabled) {
+      background-color: $color-gold-warm;
+    }
+  }
 
   option {
     background: $color-surface-void;
     color: $color-surface-stroke;
+  }
+}
+
+// 模板列的視覺強調:左側粗金線 + 極淡金色底,讓業務一眼分辨出哪幾筆是
+// 「常用模板」(靠 tr[data-template='true'] 選擇器)。
+.table tbody tr[data-template='true'] {
+  background: rgba(186, 153, 114, 0.06); // 極淡金色,~$overlay-gold-06 手動值
+
+  &:hover {
+    background: rgba(186, 153, 114, 0.10);
+  }
+
+  // 粗左邊界只加在第一格 — tr 本身的 border 在很多瀏覽器不吃。
+  td:first-child {
+    border-left: 4px solid $color-gold;
   }
 }
 

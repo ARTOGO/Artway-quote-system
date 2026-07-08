@@ -21,12 +21,15 @@ const (
 	maxBodyBytes    = 600 * 1024 // SPEC §6: up to 500KB body, 600KB header room
 )
 
-// validStatuses mirrors the DB CHECK constraint (migrations/0001).
+// validStatuses mirrors the DB CHECK constraint (migrations/0001 + 0002).
+// 'template' is a business-side pseudo-status: quotes tagged that way get
+// pinned to the top of the History list so 業務 can quickly duplicate them.
 var validStatuses = map[string]bool{
 	"draft":    true,
 	"sent":     true,
 	"signed":   true,
 	"executed": true,
+	"template": true,
 }
 
 // Handler is the HTTP layer for quotes. It depends on the Repository
@@ -383,7 +386,7 @@ func validateIn(in quoteIn, requireQuoteNo bool) error {
 		return errors.New("quote_no required")
 	}
 	if !validStatuses[in.Status] {
-		return errors.New("status must be one of draft/sent/signed/executed")
+		return errors.New("status must be one of draft/sent/signed/executed/template")
 	}
 	return nil
 }
