@@ -59,8 +59,10 @@ WHERE deleted_at IS NULL
   AND (sqlc.narg('status')::text     IS NULL OR status      = sqlc.narg('status')::text)
 -- Template 狀態置頂:業務把常用模板放在最上方,方便從歷史頁一鍵複製使用。
 -- (status = 'template') 在 Postgres 產生 boolean,DESC 讓 TRUE 排在前面。
--- 同狀態群內部仍照 updated_at DESC — 最新編輯的在最上面。
-ORDER BY (status = 'template') DESC, updated_at DESC
+-- 非模板內部按 quote_no DESC — 用單號降冪 (AW-YYMMDD-NNN 字典序 = 日期
+-- 降序),讓最新開的報價自然在最上。不用 updated_at 是為了避免業務改狀態
+-- 或編輯內容就把該筆拉到最上面,PM 反映這樣不直覺 (2026-07)。
+ORDER BY (status = 'template') DESC, quote_no DESC
 LIMIT  $1
 OFFSET $2;
 
