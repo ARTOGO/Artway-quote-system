@@ -5,7 +5,12 @@
 // groups / services / etc are stubbed with empty arrays and populated in
 // later sessions.
 
-export type QuoteStatus = 'draft' | 'sent' | 'signed' | 'executed';
+// 'template' 是業務端的偽狀態:標記此筆為「常用模板」,歷史頁會置頂並用實體
+// 金色 pill 突顯,方便從歷史頁一鍵複製使用。後端 CHECK constraint 見
+// migrations/0002_add_template_status.sql。
+// 'executed' 已於 migration 0003 移除(業務生命週期停在 signed)。
+// 'lost' 於 migration 0004 加入 — 標記案子沒有成交(客戶轉單 / 預算砍掉)。
+export type QuoteStatus = 'draft' | 'sent' | 'signed' | 'template' | 'lost';
 
 export interface QuoteMeta {
   title: string;
@@ -180,8 +185,13 @@ export const STATUS_OPTIONS: ReadonlyArray<{
   label: string;
   color: string;
 }> = [
-  { value: 'draft', label: '草稿', color: '#9A8B7A' },
-  { value: 'sent', label: '已送出', color: '#BA9972' },
-  { value: 'signed', label: '已簽回', color: '#7AA88C' },
-  { value: 'executed', label: '已執行', color: '#6FA0C9' },
+  // 顏色由 CSS token 統一管理(見 tokens.scss $color-status-*);此處的 color
+  // 只留給非 CSS 場景(例如未來要做 chart / 匯出報表)參考,實際 pill / dot
+  // 都是走 data-status='...' 樣式。
+  { value: 'draft', label: '草稿', color: '#E6C866' }, // 柔黃
+  { value: 'sent', label: '已送出', color: '#6FA0C9' }, // 藍
+  { value: 'signed', label: '已簽回', color: '#7AA88C' }, // 綠
+  // 模板 pill 是實體金色,不是外框 — 走 History.module.scss 的 data-status='template' 樣式。
+  { value: 'template', label: '模板 (複製使用)', color: '#BA9972' },
+  { value: 'lost', label: '流失', color: '#7A7770' }, // 冷灰
 ];

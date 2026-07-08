@@ -117,7 +117,9 @@ export function createBlankQuote(): Quote {
   };
 }
 
-const VALID_STATUSES: readonly QuoteStatus[] = ['draft', 'sent', 'signed', 'executed'];
+// 'template' is a status. 'executed' dropped in migration 0003. 'lost' added
+// in migration 0004.
+const VALID_STATUSES: readonly QuoteStatus[] = ['draft', 'sent', 'signed', 'template', 'lost'];
 
 function isValidStatus(s: string): s is QuoteStatus {
   return (VALID_STATUSES as readonly string[]).includes(s);

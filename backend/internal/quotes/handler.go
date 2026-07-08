@@ -21,12 +21,18 @@ const (
 	maxBodyBytes    = 600 * 1024 // SPEC §6: up to 500KB body, 600KB header room
 )
 
-// validStatuses mirrors the DB CHECK constraint (migrations/0001).
+// validStatuses mirrors the DB CHECK constraint (migrations/0001 → 0004).
+// 'template' is a business-side pseudo-status: quotes tagged that way get
+// pinned to the top of the History list so 業務 can quickly duplicate them.
+// 'lost' marks quotes that didn't close (客戶轉單 / 預算砍掉 / …) — kept as
+// a legitimate final state so 成交率 stats can distinguish it from ongoing
+// drafts. 'executed' was dropped in migration 0003.
 var validStatuses = map[string]bool{
 	"draft":    true,
 	"sent":     true,
 	"signed":   true,
-	"executed": true,
+	"template": true,
+	"lost":     true,
 }
 
 // Handler is the HTTP layer for quotes. It depends on the Repository
@@ -383,7 +389,7 @@ func validateIn(in quoteIn, requireQuoteNo bool) error {
 		return errors.New("quote_no required")
 	}
 	if !validStatuses[in.Status] {
-		return errors.New("status must be one of draft/sent/signed/executed")
+		return errors.New("status must be one of draft/sent/signed/template/lost")
 	}
 	return nil
 }

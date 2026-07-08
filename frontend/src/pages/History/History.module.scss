@@ -15,9 +15,10 @@
 }
 
 .page {
-  max-width: 1200px;
+  // 拿掉 max-width — 業務反映欄位被壓縮,現在讓歷史頁吃滿整個視窗寬度。
+  // 超寬螢幕上文字會拉長但業務會有更多資訊密度。
   width: 100%;
-  margin: 0 auto;
+  margin: 0;
   padding: $space-7 $space-8 $space-16; // 28px 32px ~60px (legacy)
 }
 
@@ -312,9 +313,97 @@
     color: $color-status-signed;
     border-color: $color-status-signed;
   }
-  &[data-status='executed'] {
-    color: $color-status-executed;
-    border-color: $color-status-executed;
+  &[data-status='lost'] {
+    color: $color-status-lost;
+    border-color: $color-status-lost;
+  }
+}
+
+// Inline 狀態下拉 — 取代靜態 pill,業務可直接在歷史頁改狀態。顏色跟著
+// data-status 屬性走(跟 .pill 一樣的 palette),看起來就像可點的 pill。
+.statusSelect {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-block;
+  padding: 2px $space-2;
+  padding-right: $space-5; // 給下拉三角形留位置
+  border-radius: $radius-2xl;
+  font-family: inherit;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  letter-spacing: $letter-spacing-wide;
+  border: $border-width-thin solid;
+  background: $overlay-black-20;
+  cursor: pointer;
+  color: $color-status-draft;
+  border-color: $color-status-draft;
+  // 下拉三角形 (SVG data URL — 金棕色跟主題一致)
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23BA9972' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right $space-2 center;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+
+  &:hover:not(:disabled) {
+    background-color: $overlay-gold-18;
+  }
+  &:focus-visible {
+    outline: $border-width-thin solid $color-gold;
+    outline-offset: 1px;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: wait;
+  }
+
+  &[data-status='sent'] {
+    color: $color-status-sent;
+    border-color: $color-status-sent;
+  }
+  &[data-status='signed'] {
+    color: $color-status-signed;
+    border-color: $color-status-signed;
+  }
+  &[data-status='lost'] {
+    color: $color-status-lost;
+    border-color: $color-status-lost;
+  }
+  // Template pill 用實體金色(跟 +新報價 primary 按鈕一致),不是外框。
+  // 標示這筆是「常用模板」,方便業務一眼看到並複製使用。
+  &[data-status='template'] {
+    background: $color-gold;
+    color: $color-surface-void;
+    border-color: $color-gold;
+    // 三角形改深色才看得到
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%230D0804' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right $space-2 center;
+
+    &:hover:not(:disabled) {
+      background-color: $color-gold-warm;
+    }
+  }
+
+  option {
+    background: $color-surface-void;
+    color: $color-surface-stroke;
+  }
+}
+
+// 模板列的視覺強調:左側粗金線 + 極淡金色底,讓業務一眼分辨出哪幾筆是
+// 「常用模板」(靠 tr[data-template='true'] 選擇器)。
+.table tbody tr[data-template='true'] {
+  background: rgba(186, 153, 114, 0.06); // 極淡金色,~$overlay-gold-06 手動值
+
+  &:hover {
+    background: rgba(186, 153, 114, 0.10);
+  }
+
+  // 粗左邊界只加在第一格 — tr 本身的 border 在很多瀏覽器不吃。
+  td:first-child {
+    border-left: 4px solid $color-gold;
   }
 }
 
@@ -340,10 +429,16 @@
     border-color 0.15s,
     color 0.15s;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: $overlay-gold-18;
     border-color: $color-gold;
     color: $color-gold-warm;
+  }
+  &:disabled,
+  &[aria-disabled='true'] {
+    opacity: 0.4;
+    cursor: wait;
+    pointer-events: none;
   }
 }
 
@@ -493,6 +588,95 @@
   font-size: $font-size-xl;
   font-family: inherit;
   letter-spacing: $letter-spacing-wide;
+}
+
+// ─── 複製成功 modal(倒數 + 停留/前往) ──────────────────────────────────
+.copiedTitle {
+  font-size: $font-size-3xl; // 15px
+  font-weight: $font-weight-semibold;
+  color: $color-gold;
+  letter-spacing: $letter-spacing-wider;
+  margin-bottom: $space-4;
+  text-align: center;
+
+  &::before {
+    // 打勾標示 — 用金棕色圈起來的 ✓,不用 emoji
+    content: '✓';
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: $color-gold;
+    color: $color-surface-void;
+    font-weight: $font-weight-bold;
+    margin-right: $space-2;
+    font-size: $font-size-lg;
+    vertical-align: middle;
+  }
+}
+
+.copiedNo {
+  font-family: $font-family-mono, monospace;
+  font-size: $font-size-6xl; // 大字強調新單號
+  font-weight: $font-weight-bold;
+  color: $color-surface-cream;
+  text-align: center;
+  letter-spacing: $letter-spacing-wide;
+  background: $overlay-gold-06;
+  border: $border-width-thin solid $overlay-gold-25;
+  border-radius: $radius-base;
+  padding: $space-3 $space-4;
+  margin-bottom: $space-4;
+}
+
+.copiedCountdown {
+  font-size: $font-size-md;
+  color: $overlay-gold-70;
+  text-align: center;
+  margin-bottom: $space-5;
+  letter-spacing: $letter-spacing-wide;
+}
+
+// 「停留在此頁」— 淡淡的 ghost 樣式,不搶主動作的視線。
+.copiedStay {
+  background: transparent;
+  border: $border-width-thin solid $overlay-gold-25;
+  color: $overlay-gold-70;
+  padding: $space-2 $space-4;
+  border-radius: $radius-base;
+  cursor: pointer;
+  font-size: $font-size-xl;
+  font-family: inherit;
+  letter-spacing: $letter-spacing-wide;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+
+  &:hover {
+    color: $color-gold;
+    border-color: $color-gold;
+  }
+}
+
+// 「立即前往」— 金棕主色 primary(跟刪除的紅色不同,這是正向動作)。
+.copiedGo {
+  background: $color-gold;
+  border: $border-width-thin solid $color-gold;
+  color: $color-surface-void;
+  padding: $space-2 $space-4;
+  border-radius: $radius-base;
+  cursor: pointer;
+  font-size: $font-size-xl;
+  font-family: inherit;
+  font-weight: $font-weight-semibold;
+  letter-spacing: $letter-spacing-wide;
+  transition: background 0.15s;
+
+  &:hover {
+    background: $color-gold-warm;
+  }
 }
 
 // ─── Toast (legacy .hp-toast) ─────────────────────────────────────────────

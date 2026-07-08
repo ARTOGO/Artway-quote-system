@@ -15,17 +15,20 @@
 import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
 
 import {
+  createQuote,
   deleteQuote,
   distinctSales,
+  getQuote,
   listQuotes,
+  updateQuote,
   type QuoteListItem,
   type QuoteListResult,
 } from '../../api/quotes';
-import { addDaysISO } from '../../lib/dates';
+import { addDaysISO, todayISO } from '../../lib/dates';
 import { formatMoney } from '../../lib/quoteCalc';
 import { navigate } from '../../lib/useHashRoute';
 import { useQuoteState } from '../../state/QuoteContext';
-import { STATUS_OPTIONS } from '../../state/quoteTypes';
+import { STATUS_OPTIONS, type QuoteStatus } from '../../state/quoteTypes';
 import styles from './History.module.scss';
 
 const PAGE_SIZE = 20;
@@ -38,10 +41,6 @@ const RANGE_OPTIONS: ReadonlyArray<{ days: string; label: string }> = [
   { days: '365', label: '過去 1 年' },
   { days: '', label: '全部' },
 ];
-
-function statusLabel(v: string): string {
-  return (STATUS_OPTIONS.find((o) => o.value === v) ?? STATUS_OPTIONS[0]).label;
-}
 
 // "YYYY-MM-DD HH:mm" in Asia/Taipei from an ISO timestamp. The backend stores
 // updated_at as UTC; format explicitly in the company timezone so the displayed
@@ -96,7 +95,7 @@ interface Toast {
 }
 
 export function History(): JSX.Element {
-  const { state, newQuote } = useQuoteState();
+  const { state, newQuote, load } = useQuoteState();
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
   const [reloadNonce, setReloadNonce] = useState(0);
@@ -105,7 +104,15 @@ export function History(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [salesOptions, setSalesOptions] = useState<string[]>([]);
   const [pendingDelete, setPendingDelete] = useState<QuoteListItem | null>(null);
+  // 複製成功後的確認 modal:顯示新單號 + 倒數,倒數結束(或立即前往)才跳去
+  // Builder,業務也可以選擇停留在歷史頁繼續操作。
+  const [copiedInfo, setCopiedInfo] = useState<{ quoteNo: string; countdown: number } | null>(
+    null,
+  );
   const [toast, setToast] = useState<Toast | null>(null);
+  // 每列可能同時被其他非同步動作 (change status / duplicate / print) 佔用 —
+  // 用單獨的 map 追蹤,避免同時按刪除又按複製之類的邊角情況造成 UI 不一致。
+  const [rowBusy, setRowBusy] = useState<Record<string, boolean>>({});
   const toastTimer = useRef<number | null>(null);
 
   const showToast = useCallback((msg: string, isError = false): void => {
@@ -124,6 +131,21 @@ export function History(): JSX.Element {
     },
     [],
   );
+
+  // 複製成功 modal 的倒數計時器 — 每秒 -1;0 時自動跳到 Builder。
+  useEffect(() => {
+    if (!copiedInfo) return;
+    if (copiedInfo.countdown <= 0) {
+      // 倒數結束:清 modal + 跳走(state 已在 handleCopy 內 load 好)
+      setCopiedInfo(null);
+      navigate('/');
+      return;
+    }
+    const t = window.setTimeout(() => {
+      setCopiedInfo((c) => (c ? { ...c, countdown: c.countdown - 1 } : c));
+    }, 1000);
+    return () => window.clearTimeout(t);
+  }, [copiedInfo]);
 
   // ＋ 新報價: clear the loaded quote BEFORE navigating, or (since QuoteProvider
   // sits above the router) the Builder would reopen the previously-loaded quote
@@ -205,6 +227,97 @@ export function History(): JSX.Element {
       }
     } catch (e) {
       showToast('刪除失敗：' + (e instanceof Error ? e.message : '未知錯誤'), true);
+    }
+  };
+
+  // 直接輸出 PDF — 該筆已在雲端,不必再存,跳過 Builder 兩段式確認。走 hash
+  // 路由帶 `?autoprint=1`,QuoteLoader 會在 quote 載入後自動觸發 window.print()
+  // 並在 afterprint 事件送回歷史頁 (見 App.tsx)。
+  const handlePrint = (item: QuoteListItem): void => {
+    navigate(`/quote/${encodeURIComponent(item.quote_no)}?autoprint=1`);
+  };
+
+  // 複製 — 直接建立同內容新報價 (草稿 / 新單號 / 今日開立日),完成後跳進 Builder。
+  // 走 create 是為了立刻拿到伺服器配發的 quote_no + id,業務進 Builder 就看得到
+  // 新單號 + 歷史列表下次刷新也會有這筆。
+  const handleCopy = async (item: QuoteListItem): Promise<void> => {
+    if (rowBusy[item.id]) return;
+    setRowBusy((b) => ({ ...b, [item.id]: true }));
+    try {
+      const src = await getQuote(item.id);
+      const today = todayISO();
+      const clone = {
+        ...src,
+        id: null as string | null,
+        status: 'draft' as QuoteStatus,
+        meta: {
+          ...src.meta,
+          quoteNo: '', // 伺服器在 create 時配發新單號
+          issueDate: today,
+          validUntil: addDaysISO(15),
+        },
+      };
+      const res = await createQuote(clone);
+      const persisted = {
+        ...clone,
+        id: res.id,
+        meta: { ...clone.meta, quoteNo: res.quote_no },
+      };
+      load(persisted);
+      // 不直接跳走 — 顯示成功 modal + 5 秒倒數,業務可選擇跳走或停留。
+      setCopiedInfo({ quoteNo: res.quote_no, countdown: 5 });
+    } catch (e) {
+      showToast('複製失敗:' + (e instanceof Error ? e.message : '未知錯誤'), true);
+    } finally {
+      setRowBusy((b) => {
+        const next = { ...b };
+        delete next[item.id];
+        return next;
+      });
+    }
+  };
+
+  // 直接在歷史頁改狀態 — 用完整 PUT (後端無 PATCH endpoint,存全部欄位)。
+  // Optimistic UI:先更新畫面,失敗還原並顯示 toast。
+  const handleStatusChange = async (
+    item: QuoteListItem,
+    nextStatus: QuoteStatus,
+  ): Promise<void> => {
+    if (nextStatus === item.status || rowBusy[item.id]) return;
+    const prevStatus = item.status;
+    setRowBusy((b) => ({ ...b, [item.id]: true }));
+    // Optimistic
+    setData((d) => {
+      if (!d) return d;
+      return {
+        ...d,
+        items: d.items.map((x) => (x.id === item.id ? { ...x, status: nextStatus } : x)),
+      };
+    });
+    try {
+      const full = await getQuote(item.id);
+      await updateQuote(item.id, { ...full, status: nextStatus });
+      showToast(`已更新狀態為 ${STATUS_OPTIONS.find((o) => o.value === nextStatus)?.label ?? ''}`);
+      // 觸發列表重抓 — 後端會用新狀態重新排序(尤其 template 要置頂,
+      // 或改離 template 要下沉),optimistic UI 只改欄位不重排,單靠它會
+      // 看起來像沒生效,要重整才對。
+      setReloadNonce((n) => n + 1);
+    } catch (e) {
+      // Revert on failure
+      setData((d) => {
+        if (!d) return d;
+        return {
+          ...d,
+          items: d.items.map((x) => (x.id === item.id ? { ...x, status: prevStatus } : x)),
+        };
+      });
+      showToast('狀態更新失敗:' + (e instanceof Error ? e.message : '未知錯誤'), true);
+    } finally {
+      setRowBusy((b) => {
+        const next = { ...b };
+        delete next[item.id];
+        return next;
+      });
     }
   };
 
@@ -321,44 +434,80 @@ export function History(): JSX.Element {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.items.map((it) => (
-                    <tr key={it.id}>
-                      <td>
-                        <a
-                          className={styles.quoteNo}
-                          href={`#/quote/${encodeURIComponent(it.quote_no)}`}
-                        >
-                          {it.quote_no}
-                        </a>
-                      </td>
-                      <td>{it.issue_date || '—'}</td>
-                      <td>{it.sales_name || '—'}</td>
-                      <td>{it.client_company || '—'}</td>
-                      <td>{it.title || <span className={styles.untitled}>（未命名）</span>}</td>
-                      <td className={styles.right}>NT$ {formatMoney(it.total_amount)}</td>
-                      <td>
-                        <span className={styles.pill} data-status={it.status}>
-                          {statusLabel(it.status)}
-                        </span>
-                      </td>
-                      <td className={styles.updated}>{fmtUpdated(it.updated_at)}</td>
-                      <td className={styles.actions}>
-                        <a
-                          className={styles.iconBtn}
-                          href={`#/quote/${encodeURIComponent(it.quote_no)}`}
-                        >
-                          載入
-                        </a>
-                        <button
-                          type="button"
-                          className={`${styles.iconBtn} ${styles.danger}`}
-                          onClick={() => setPendingDelete(it)}
-                        >
-                          刪除
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {data.items.map((it) => {
+                    const busy = !!rowBusy[it.id];
+                    return (
+                      <tr key={it.id} data-template={it.status === 'template' ? 'true' : undefined}>
+                        <td>
+                          <a
+                            className={styles.quoteNo}
+                            href={`#/quote/${encodeURIComponent(it.quote_no)}`}
+                          >
+                            {it.quote_no}
+                          </a>
+                        </td>
+                        <td>{it.issue_date || '—'}</td>
+                        <td>{it.sales_name || '—'}</td>
+                        <td>{it.client_company || '—'}</td>
+                        <td>{it.title || <span className={styles.untitled}>（未命名）</span>}</td>
+                        <td className={styles.right}>NT$ {formatMoney(it.total_amount)}</td>
+                        <td>
+                          <select
+                            className={styles.statusSelect}
+                            data-status={it.status}
+                            value={it.status}
+                            disabled={busy}
+                            onChange={(e) =>
+                              void handleStatusChange(it, e.target.value as QuoteStatus)
+                            }
+                            aria-label={`${it.quote_no} 狀態`}
+                          >
+                            {STATUS_OPTIONS.map((o) => (
+                              <option key={o.value} value={o.value}>
+                                {o.label}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className={styles.updated}>{fmtUpdated(it.updated_at)}</td>
+                        <td className={styles.actions}>
+                          <a
+                            className={styles.iconBtn}
+                            href={`#/quote/${encodeURIComponent(it.quote_no)}`}
+                            aria-disabled={busy}
+                          >
+                            載入
+                          </a>
+                          <button
+                            type="button"
+                            className={styles.iconBtn}
+                            onClick={() => void handleCopy(it)}
+                            disabled={busy}
+                            title="以此筆內容為底建立新報價"
+                          >
+                            複製
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.iconBtn}
+                            onClick={() => handlePrint(it)}
+                            disabled={busy}
+                            title="輸出 PDF（不重存雲端）"
+                          >
+                            PDF
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.iconBtn} ${styles.danger}`}
+                            onClick={() => setPendingDelete(it)}
+                            disabled={busy}
+                          >
+                            刪除
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -430,6 +579,42 @@ export function History(): JSX.Element {
               </button>
               <button type="button" className={styles.confirmOk} onClick={confirmDelete}>
                 確定刪除
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {copiedInfo && (
+        <div
+          className={styles.confirmOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-label="已複製成功"
+        >
+          <div className={styles.confirmBox}>
+            <div className={styles.copiedTitle}>已複製成功</div>
+            <div className={styles.copiedNo}>{copiedInfo.quoteNo}</div>
+            <div className={styles.copiedCountdown}>
+              {copiedInfo.countdown} 秒後自動跳轉至編輯頁…
+            </div>
+            <div className={styles.confirmActions}>
+              <button
+                type="button"
+                className={styles.copiedStay}
+                onClick={() => setCopiedInfo(null)}
+              >
+                停留在此頁
+              </button>
+              <button
+                type="button"
+                className={styles.copiedGo}
+                onClick={() => {
+                  setCopiedInfo(null);
+                  navigate('/');
+                }}
+              >
+                立即前往
               </button>
             </div>
           </div>
