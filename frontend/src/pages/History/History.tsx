@@ -104,6 +104,11 @@ export function History(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [salesOptions, setSalesOptions] = useState<string[]>([]);
   const [pendingDelete, setPendingDelete] = useState<QuoteListItem | null>(null);
+  // 複製成功後的確認 modal:顯示新單號 + 倒數,倒數結束(或立即前往)才跳去
+  // Builder,業務也可以選擇停留在歷史頁繼續操作。
+  const [copiedInfo, setCopiedInfo] = useState<{ quoteNo: string; countdown: number } | null>(
+    null,
+  );
   const [toast, setToast] = useState<Toast | null>(null);
   // 每列可能同時被其他非同步動作 (change status / duplicate / print) 佔用 —
   // 用單獨的 map 追蹤,避免同時按刪除又按複製之類的邊角情況造成 UI 不一致。
@@ -126,6 +131,21 @@ export function History(): JSX.Element {
     },
     [],
   );
+
+  // 複製成功 modal 的倒數計時器 — 每秒 -1;0 時自動跳到 Builder。
+  useEffect(() => {
+    if (!copiedInfo) return;
+    if (copiedInfo.countdown <= 0) {
+      // 倒數結束:清 modal + 跳走(state 已在 handleCopy 內 load 好)
+      setCopiedInfo(null);
+      navigate('/');
+      return;
+    }
+    const t = window.setTimeout(() => {
+      setCopiedInfo((c) => (c ? { ...c, countdown: c.countdown - 1 } : c));
+    }, 1000);
+    return () => window.clearTimeout(t);
+  }, [copiedInfo]);
 
   // ＋ 新報價: clear the loaded quote BEFORE navigating, or (since QuoteProvider
   // sits above the router) the Builder would reopen the previously-loaded quote
@@ -244,8 +264,8 @@ export function History(): JSX.Element {
         meta: { ...clone.meta, quoteNo: res.quote_no },
       };
       load(persisted);
-      showToast(`已複製為 ${res.quote_no}`);
-      navigate('/');
+      // 不直接跳走 — 顯示成功 modal + 5 秒倒數,業務可選擇跳走或停留。
+      setCopiedInfo({ quoteNo: res.quote_no, countdown: 5 });
     } catch (e) {
       showToast('複製失敗:' + (e instanceof Error ? e.message : '未知錯誤'), true);
     } finally {
@@ -555,6 +575,42 @@ export function History(): JSX.Element {
               </button>
               <button type="button" className={styles.confirmOk} onClick={confirmDelete}>
                 確定刪除
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {copiedInfo && (
+        <div
+          className={styles.confirmOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-label="已複製成功"
+        >
+          <div className={styles.confirmBox}>
+            <div className={styles.copiedTitle}>已複製成功</div>
+            <div className={styles.copiedNo}>{copiedInfo.quoteNo}</div>
+            <div className={styles.copiedCountdown}>
+              {copiedInfo.countdown} 秒後自動跳轉至編輯頁…
+            </div>
+            <div className={styles.confirmActions}>
+              <button
+                type="button"
+                className={styles.copiedStay}
+                onClick={() => setCopiedInfo(null)}
+              >
+                停留在此頁
+              </button>
+              <button
+                type="button"
+                className={styles.copiedGo}
+                onClick={() => {
+                  setCopiedInfo(null);
+                  navigate('/');
+                }}
+              >
+                立即前往
               </button>
             </div>
           </div>

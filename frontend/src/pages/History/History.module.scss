@@ -560,6 +560,95 @@
   letter-spacing: $letter-spacing-wide;
 }
 
+// ─── 複製成功 modal(倒數 + 停留/前往) ──────────────────────────────────
+.copiedTitle {
+  font-size: $font-size-3xl; // 15px
+  font-weight: $font-weight-semibold;
+  color: $color-gold;
+  letter-spacing: $letter-spacing-wider;
+  margin-bottom: $space-4;
+  text-align: center;
+
+  &::before {
+    // 打勾標示 — 用金棕色圈起來的 ✓,不用 emoji
+    content: '✓';
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: $color-gold;
+    color: $color-surface-void;
+    font-weight: $font-weight-bold;
+    margin-right: $space-2;
+    font-size: $font-size-lg;
+    vertical-align: middle;
+  }
+}
+
+.copiedNo {
+  font-family: $font-family-mono, monospace;
+  font-size: $font-size-6xl; // 大字強調新單號
+  font-weight: $font-weight-bold;
+  color: $color-surface-cream;
+  text-align: center;
+  letter-spacing: $letter-spacing-wide;
+  background: $overlay-gold-06;
+  border: $border-width-thin solid $overlay-gold-25;
+  border-radius: $radius-base;
+  padding: $space-3 $space-4;
+  margin-bottom: $space-4;
+}
+
+.copiedCountdown {
+  font-size: $font-size-md;
+  color: $overlay-gold-70;
+  text-align: center;
+  margin-bottom: $space-5;
+  letter-spacing: $letter-spacing-wide;
+}
+
+// 「停留在此頁」— 淡淡的 ghost 樣式,不搶主動作的視線。
+.copiedStay {
+  background: transparent;
+  border: $border-width-thin solid $overlay-gold-25;
+  color: $overlay-gold-70;
+  padding: $space-2 $space-4;
+  border-radius: $radius-base;
+  cursor: pointer;
+  font-size: $font-size-xl;
+  font-family: inherit;
+  letter-spacing: $letter-spacing-wide;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+
+  &:hover {
+    color: $color-gold;
+    border-color: $color-gold;
+  }
+}
+
+// 「立即前往」— 金棕主色 primary(跟刪除的紅色不同,這是正向動作)。
+.copiedGo {
+  background: $color-gold;
+  border: $border-width-thin solid $color-gold;
+  color: $color-surface-void;
+  padding: $space-2 $space-4;
+  border-radius: $radius-base;
+  cursor: pointer;
+  font-size: $font-size-xl;
+  font-family: inherit;
+  font-weight: $font-weight-semibold;
+  letter-spacing: $letter-spacing-wide;
+  transition: background 0.15s;
+
+  &:hover {
+    background: $color-gold-warm;
+  }
+}
+
 // ─── Toast (legacy .hp-toast) ─────────────────────────────────────────────
 .toast {
   position: fixed;
