@@ -313,14 +313,10 @@
     color: $color-status-signed;
     border-color: $color-status-signed;
   }
-  &[data-status='executed'] {
-    color: $color-status-executed;
-    border-color: $color-status-executed;
-  }
 }
 
 // Inline 狀態下拉 — 取代靜態 pill,業務可直接在歷史頁改狀態。顏色跟著
-// data-status 屬性走(跟 .pill 一樣的四色 palette),看起來就像可點的 pill。
+// data-status 屬性走(跟 .pill 一樣的三色 palette + template),看起來就像可點的 pill。
 .statusSelect {
   appearance: none;
   -webkit-appearance: none;
@@ -365,10 +361,6 @@
   &[data-status='signed'] {
     color: $color-status-signed;
     border-color: $color-status-signed;
-  }
-  &[data-status='executed'] {
-    color: $color-status-executed;
-    border-color: $color-status-executed;
   }
   // Template pill 用實體金色(跟 +新報價 primary 按鈕一致),不是外框。
   // 標示這筆是「常用模板」,方便業務一眼看到並複製使用。
