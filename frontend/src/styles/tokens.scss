@@ -59,10 +59,13 @@ $color-ink-quiet: #b3a898; // disabled text
 // Status colors (quote workflow + alerts)
 // ═══════════════════════════════════════════════════════════════════════════
 
-$color-status-draft: #9a8b7a; // draft (muted gold)
-$color-status-sent: #ba9972; // sent (gold, same as brand)
+// Status palette — draft/sent 顏色於 2026-07 更新;PM 決定用溫暖黃 + 亮藍
+// 而非原本的柔灰 + 金(避免 sent 跟 brand gold + template pill 撞色)。
+$color-status-draft: #e6c866; // draft (warm yellow)
+$color-status-sent: #6fa0c9; // sent (sky blue — 之前 executed 的顏色重用)
 $color-status-signed: #7aa88c; // signed (mint green)
-$color-status-executed: #6fa0c9; // executed (sky blue)
+$color-status-executed: #6fa0c9; // 保留 token 供舊 code / 潛在需求;可移除
+$color-status-lost: #7a7770; // lost (cool gray — 案子沒成交,視覺淡化)
 
 $color-alert-error: #8b2635; // destructive / error
 $color-alert-warning: #c45c6e; // warning (rose)
