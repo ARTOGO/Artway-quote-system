@@ -105,8 +105,9 @@
   &[data-status='signed'] {
     background: $color-status-signed;
   }
-  &[data-status='executed'] {
-    background: $color-status-executed;
+  // Template 用金色點,跟其他 pill 一致(gold-warm 才夠亮)。
+  &[data-status='template'] {
+    background: $color-gold;
   }
 }
 

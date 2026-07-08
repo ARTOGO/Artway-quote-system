@@ -8,7 +8,8 @@
 // 'template' 是業務端的偽狀態:標記此筆為「常用模板」,歷史頁會置頂並用實體
 // 金色 pill 突顯,方便從歷史頁一鍵複製使用。後端 CHECK constraint 見
 // migrations/0002_add_template_status.sql。
-export type QuoteStatus = 'draft' | 'sent' | 'signed' | 'executed' | 'template';
+// 'executed' 已於 migration 0003 移除(業務生命週期停在 signed)。
+export type QuoteStatus = 'draft' | 'sent' | 'signed' | 'template';
 
 export interface QuoteMeta {
   title: string;
@@ -186,7 +187,6 @@ export const STATUS_OPTIONS: ReadonlyArray<{
   { value: 'draft', label: '草稿', color: '#9A8B7A' },
   { value: 'sent', label: '已送出', color: '#BA9972' },
   { value: 'signed', label: '已簽回', color: '#7AA88C' },
-  { value: 'executed', label: '已執行', color: '#6FA0C9' },
   // 模板 pill 是實體金色,不是外框 — 走 History.module.scss 的 data-status='template' 樣式。
   { value: 'template', label: '模板 (複製使用)', color: '#BA9972' },
 ];
